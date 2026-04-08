@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
+
+/**
+ * @title Events
+ * @notice Định nghĩa các sự kiện cho hệ thống Campaign.
+ */
+contract Events {
+    /// @notice Phát ra khi có người đóng góp
+    event Donation(address indexed donor, uint256 amount);
+
+    /// @notice Phát ra khi manager tạo yêu cầu chi tiêu mới
+    event RequestCreated(uint256 indexed id, string description, uint256 value, address recipient);
+
+    /// @notice Phát ra khi donor biểu quyết cho yêu cầu
+    event Voted(address indexed voter, uint256 indexed requestId);
+
+    /// @notice Phát ra khi yêu cầu chi tiêu được thực thi
+    event FundsReleased(uint256 indexed requestId);
+
+    /// @notice Phát ra khi chiến dịch bị tạm dừng
+    event CampaignDeactivated();
+}
