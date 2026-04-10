@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import "./Campaign.sol";
+import "./ValidatorPool.sol";
 
 /**
  * @title CampaignFactory
@@ -28,7 +29,9 @@ contract CampaignFactory {
      * @param minimum Số tiền tối thiểu để được coi là donor (wei).
      */
     function createCampaign(uint256 minimum) external {
-        Campaign newCampaign = new Campaign(minimum, msg.sender);
+        // Khởi tạo pool cho campaign mới, manager là người quản trị pool ban đầu
+        ValidatorPool pool = new ValidatorPool(msg.sender);
+        Campaign newCampaign = new Campaign(minimum, msg.sender, address(pool));
         address campaignAddr = address(newCampaign);
 
         deployedCampaigns.push(campaignAddr);

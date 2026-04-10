@@ -19,16 +19,17 @@ const config: HardhatUserConfig = {
         enabled: true,
         runs: 200,
       },
+      evmVersion: "cancun",
     },
   },
   networks: {
     ...(isValidPrivateKey
       ? {
-          sepolia: {
-            url: SEPOLIA_RPC_URL,
-            accounts: [`0x${rawKey}`],
-          },
-        }
+        sepolia: {
+          url: SEPOLIA_RPC_URL,
+          accounts: [`0x${rawKey}`],
+        },
+      }
       : {}),
   },
   etherscan: {

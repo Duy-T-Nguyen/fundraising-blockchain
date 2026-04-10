@@ -2,58 +2,43 @@
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "./RequestLib.sol";
 import "./Events.sol";
 import "./Errors.sol";
 import "./modifiers/AccessControl.sol";
+import "./ValidatorPool.sol";
 
 /**
  * @title Campaign
  * @author Fundraising Blockchain Team
- * @notice Quản lý một chiến dịch gây quỹ phi tập trung.
- * @dev Sử dụng ReentrancyGuard để bảo vệ chống tấn công re-entrancy.
- *      Cơ chế biểu quyết yêu cầu hơn 50% donors đồng ý để giải ngân.
+ * @notice Quản lý chiến dịch gây quỹ phi tập trung với Zero-Trust & Milestones
  */
 contract Campaign is Events, AccessControl, ReentrancyGuard {
     using RequestLib for RequestLib.Request;
+    using ECDSA for bytes32;
 
-    /// @notice Số tiền tối thiểu (wei) để trở thành donor
     uint256 public minimumContribution;
-
-    /// @notice Tổng số donors duy nhất
     uint256 public totalDonors;
-
-    /// @notice Mapping lưu trữ số tiền đã đóng góp của mỗi donor
     mapping(address => uint256) public contributions;
-
-    /// @notice Danh sách các yêu cầu chi tiêu
     RequestLib.Request[] public requests;
-
-    /// @notice Trạng thái chiến dịch (true = đang hoạt động)
     bool public active;
+    
+    ValidatorPool public validatorPool;
 
-    // =====================
-    // CONSTRUCTOR
-    // =====================
+    /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ tại thời điểm tạo)
+    uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
 
-    /**
-     * @notice Khởi tạo chiến dịch mới.
-     * @param _minimum Số tiền tối thiểu để được coi là donor (wei).
-     * @param _manager Địa chỉ của người quản lý chiến dịch.
-     */
-    constructor(uint256 _minimum, address _manager) {
+    constructor(uint256 _minimum, address _manager, address _validatorPool) {
         if (_minimum == 0) revert InsufficientFunds();
-        if (_manager == address(0)) revert InvalidAddress();
+        if (_manager == address(0) || _validatorPool == address(0)) revert InvalidAddress();
         manager = _manager;
         minimumContribution = _minimum;
+        validatorPool = ValidatorPool(_validatorPool);
         active = true;
     }
 
-    // =====================
-    // MODIFIERS
-    // =====================
-
-    /// @dev Chỉ cho phép khi chiến dịch đang hoạt động
     modifier onlyActive() {
         if (!active) revert CampaignNotActive();
         _;
@@ -62,33 +47,24 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     // =====================
     // DONATE
     // =====================
-
-    /**
-     * @notice Đóng góp tiền vào chiến dịch.
-     * @dev Yêu cầu số tiền >= minimumContribution.
-     *      Tự động tăng totalDonors nếu là người đóng góp mới.
-     */
     function donate() external payable onlyActive {
         if (msg.value < minimumContribution) revert InsufficientFunds();
 
         if (contributions[msg.sender] == 0) {
             totalDonors++;
         }
-
         contributions[msg.sender] += msg.value;
 
         emit Donation(msg.sender, msg.value);
     }
 
     // =====================
-    // CREATE REQUEST
+    // REQUEST CREATION
     // =====================
-
+    
     /**
-     * @notice Manager tạo một yêu cầu chi tiêu tiền quỹ.
-     * @param desc Mô tả mục đích chi tiêu.
-     * @param value Số tiền yêu cầu (wei).
-     * @param recipient Địa chỉ nhận tiền.
+     * @notice Tạo request bình thường (SINGLE)
+     * @dev Nếu số tiền < 0.5% quỹ, hệ thống tự động chọn 3 validator ngẫu nhiên.
      */
     function createRequest(
         string calldata desc,
@@ -97,31 +73,75 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     ) external onlyManager onlyActive {
         if (value == 0) revert InsufficientFunds();
         if (recipient == address(0)) revert InvalidAddress();
+        if (recipient == manager) revert ManagerNotAllowedAsRecipient();
         if (bytes(desc).length == 0) revert EmptyDescription();
 
         RequestLib.Request storage r = requests.push();
-
         r.description = desc;
         r.value = value;
         r.recipient = recipient;
         r.complete = false;
         r.approvalCount = 0;
+        r.requestType = RequestLib.RequestType.SINGLE;
+
+        // Kiểm tra ngưỡng Validator (0.5%)
+        uint256 threshold = (address(this).balance * VALIDATOR_THRESHOLD_BPS) / 10000;
+        if (value <= threshold && address(this).balance > 0) {
+            // Chọn ngẫu nhiên 3 Validator từ Pool
+            address[] memory selected = validatorPool.getRandomValidators(requests.length + block.timestamp);
+            r.selectedValidators = selected;
+        }
 
         emit RequestCreated(requests.length - 1, desc, value, recipient);
     }
 
+    /**
+     * @notice Tạo request theo giai đoạn (MULTI)
+     * @dev Dành cho quỹ dự án lớn, chia thành nhiều cột mốc.
+     */
+    function createMultiStageRequest(
+        string calldata desc,
+        address payable recipient,
+        address verifier,
+        uint256[] calldata milestoneValues,
+        string[] calldata milestoneDescriptions
+    ) external onlyManager onlyActive {
+        if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
+        if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (milestoneValues.length == 0 || milestoneValues.length != milestoneDescriptions.length) revert InvalidRequestIndex();
+
+        RequestLib.Request storage r = requests.push();
+        r.description = desc;
+        r.recipient = recipient;
+        r.complete = false;
+        r.approvalCount = 0;
+        r.requestType = RequestLib.RequestType.MULTI;
+        r.verifier = verifier;
+        r.currentMilestone = 0;
+
+        uint256 totalBudget = 0;
+        for (uint i = 0; i < milestoneValues.length; i++) {
+            r.milestones.push(RequestLib.Milestone({
+                value: milestoneValues[i],
+                description: milestoneDescriptions[i],
+                released: false
+            }));
+            totalBudget += milestoneValues[i];
+        }
+        r.value = totalBudget;
+
+        emit RequestCreated(requests.length - 1, desc, totalBudget, recipient);
+    }
+
     // =====================
-    // VOTE
+    // APPROVAL
     // =====================
 
     /**
-     * @notice Donor tham gia biểu quyết cho một yêu cầu.
-     * @param index Chỉ số của yêu cầu cần biểu quyết.
-     * @dev Manager không được phép vote. Mỗi donor chỉ vote 1 lần.
+     * @notice Donor biểu quyết cho yêu cầu
      */
     function approveRequest(uint256 index) external onlyActive {
         if (index >= requests.length) revert InvalidRequestIndex();
-
         RequestLib.Request storage r = requests[index];
 
         if (contributions[msg.sender] == 0) revert NotDonor();
@@ -135,42 +155,106 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         emit Voted(msg.sender, index);
     }
 
+    /**
+     * @notice Validator biểu quyết cho yêu cầu nhỏ (Luồng A)
+     */
+    function approveAsValidator(uint256 index) external onlyActive {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+
+        if (r.selectedValidators.length == 0) revert MilestoneNotApproved(); // Không phải luồng validator
+        if (r.validatorApprovals[msg.sender]) revert AlreadyVoted();
+        
+        // Kiểm tra xem msg.sender có nằm trong danh sách 3 người được chọn không
+        bool isSelected = false;
+        for (uint i = 0; i < r.selectedValidators.length; i++) {
+            if (r.selectedValidators[i] == msg.sender) {
+                isSelected = true;
+                break;
+            }
+        }
+        if (!isSelected) revert NotAuthorizedValidator();
+
+        r.validatorApprovals[msg.sender] = true;
+        r.validatorApprovalCount++;
+
+        emit Voted(msg.sender, index); // Có thể dùng event riêng nếu muốn
+    }
+
     // =====================
-    // FINALIZE
+    // EXECUTION
     // =====================
 
     /**
-     * @notice Manager thực thi việc chi tiêu khi có đủ số phiếu bầu (> 50%).
-     * @param index Chỉ số của yêu cầu cần thực thi.
-     * @dev Sử dụng `.call` thay vì `.transfer` để tránh giới hạn 2300 gas.
+     * @notice Manager thực thi request (Tương thích cả Donor Path và Validator Path cho SINGLE)
      */
     function finalizeRequest(uint256 index) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
-
         RequestLib.Request storage r = requests[index];
 
+        if (r.requestType != RequestLib.RequestType.SINGLE) revert InvalidRequestIndex();
         if (r.complete) revert RequestCompleted();
         if (r.value > address(this).balance) revert InsufficientFunds();
 
-        // Cần hơn 50% số lượng donor đồng ý
-        if (r.approvalCount <= totalDonors / 2)
-            revert NotEnoughApprovals();
+        bool canFinalize = false;
+
+        // Ưu tiên Luồng A: Validator duyệt (2/3)
+        if (r.selectedValidators.length > 0) {
+            if (r.validatorApprovalCount >= 2) {
+                canFinalize = true;
+            }
+        }
+        
+        // Luồng B: Donor duyệt (>50%)
+        if (!canFinalize && r.approvalCount > totalDonors / 2) {
+            canFinalize = true;
+        }
+
+        if (!canFinalize) revert NotEnoughApprovals();
 
         r.complete = true;
-
         (bool success, ) = r.recipient.call{value: r.value}("");
         if (!success) revert TransferFailed();
 
         emit FundsReleased(index);
     }
 
-    // =====================
-    // ADMIN
-    // =====================
-
     /**
-     * @notice Manager tạm dừng chiến dịch.
+     * @notice Thực thi từng cột mốc (Milestone) dựa trên chữ ký của Verifier
      */
+    function executeMilestone(uint256 index, bytes calldata signature) external nonReentrant {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+
+        if (r.requestType != RequestLib.RequestType.MULTI) revert InvalidRequestIndex();
+        if (r.complete) revert RequestCompleted();
+        if (r.approvalCount <= totalDonors / 2) revert NotEnoughApprovals();
+
+        uint256 current = r.currentMilestone;
+        if (current >= r.milestones.length) revert MilestoneAlreadyReleased();
+        
+        RequestLib.Milestone storage m = r.milestones[current];
+        if (m.value > address(this).balance) revert InsufficientFunds();
+
+        bytes32 messageHash = keccak256(abi.encodePacked(address(this), index, current));
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        
+        address signer = ECDSA.recover(ethSignedMessageHash, signature);
+        if (signer != r.verifier) revert InvalidSignature();
+
+        m.released = true;
+        r.currentMilestone++;
+
+        if (r.currentMilestone == r.milestones.length) {
+            r.complete = true;
+        }
+
+        (bool success, ) = r.recipient.call{value: m.value}("");
+        if (!success) revert TransferFailed();
+
+        emit MilestoneReleased(index, current, m.value);
+    }
+
     function deactivateCampaign() external onlyManager {
         if (!active) revert CampaignNotActive();
         active = false;
@@ -180,16 +264,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     // =====================
     // VIEW FUNCTIONS
     // =====================
-
-    /**
-     * @notice Lấy thông tin tổng quan của chiến dịch.
-     * @return balance Số dư hiện tại (wei).
-     * @return minContribution Số tiền đóng góp tối thiểu (wei).
-     * @return numRequests Số lượng yêu cầu chi tiêu.
-     * @return donors Số lượng donors.
-     * @return managerAddr Địa chỉ manager.
-     * @return isActive Trạng thái hoạt động.
-     */
     function getSummary()
         external
         view
@@ -212,10 +286,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         );
     }
 
-    /**
-     * @notice Lấy số lượng yêu cầu chi tiêu.
-     * @return Tổng số yêu cầu.
-     */
     function getRequestsCount() external view returns (uint256) {
         return requests.length;
     }

@@ -21,9 +21,10 @@
 7. [Hướng Dẫn Compile & Test](#-hướng-dẫn-compile--test)
 8. [Hướng Dẫn Deploy](#-hướng-dẫn-deploy)
 9. [Hướng Dẫn Tương Tác Với Contract](#-hướng-dẫn-tương-tác-với-contract)
-10. [Giải Thích Luồng Hoạt Động](#-giải-thích-luồng-hoạt-động-end-to-end)
-11. [Các Lỗi Thường Gặp & Cách Khắc Phục](#-các-lỗi-thường-gặp--cách-khắc-phục)
-12. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
+10. [Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền](#-giải-thích-luồng-hoạt-động--cơ-chế-rút-tiền)
+11. [Cơ Chế Rút Tiền Tối Ưu (Hybrid Approval)](#-cơ-chế-rút-tiền-tối-ưu-hybrid-approval)
+12. [Các Lỗi Thường Gặp & Cách Khắc Phục](#-các-lỗi-thường-gặp--cách-khắc-phục)
+13. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
 
 ---
 
@@ -128,13 +129,14 @@ bc/                                 ← Thư mục gốc của dự án blockcha
 ├── yarn.lock                       ← Khóa phiên bản dependencies
 │
 ├── contracts/                      ← ⭐ THƯ MỤC SMART CONTRACT
-│   ├── Campaign.sol                ← Smart Contract chính — quản lý 1 chiến dịch
-│   ├── CampaignFactory.sol         ← Factory Contract — tạo ra nhiều Campaign
+│   ├── Campaign.sol                ← Smart Contract chính — Quản lý Hybrid Approval & Milestones
+│   ├── CampaignFactory.sol         ← Factory Contract — Tạo Campaign + ValidatorPool
+│   ├── ValidatorPool.sol           ← Quản lý danh sách Validator và chọn ngẫu nhiên
 │   ├── Errors.sol                  ← Định nghĩa các lỗi (Custom Errors)
 │   ├── Events.sol                  ← Định nghĩa các sự kiện (Events)
-│   ├── RequestLib.sol              ← Thư viện dữ liệu cho yêu cầu chi tiêu
+│   ├── RequestLib.sol              ← Thư viện dữ liệu (hỗ trợ Milestones & Validators)
 │   └── modifiers/
-│       └── AccessControl.sol       ← Kiểm soát quyền truy cập (ai được gọi hàm nào)
+│       └── AccessControl.sol       ← Kiểm soát quyền truy cập
 │
 ├── scripts/                        ← Scripts để deploy và tương tác
 │   ├── deploy.ts                   ← ⭐ Script deploy chính (TypeScript)
@@ -143,7 +145,8 @@ bc/                                 ← Thư mục gốc của dự án blockcha
 │   └── interact.js                 ← Script tương tác mẫu (donate)
 │
 ├── test/                           ← THƯ MỤC TEST
-│   └── Campaign.ts                 ← ⭐ 54 test cases kiểm tra toàn bộ hệ thống
+│   ├── Campaign.ts                 ← ⭐ 54 test cases kiểm tra toàn bộ hệ thống
+│   └── Campaign_WithdrawalOptimization.test.ts ← ⭐ Test cơ chế rút tiền tối ưu (Mới)
 │
 ├── ignition/                       ← Hardhat Ignition (cách deploy khác — không dùng chính)
 │   └── modules/
@@ -901,7 +904,14 @@ main();
 
 ---
 
-#### 📌 `test/Campaign.ts` — Bộ test toàn diện (⭐ 54 test cases)
+#### 📌 `test/Campaign_WithdrawalOptimization.test.ts` — Test cơ chế tối ưu (⭐ Mới)
+
+**Vai trò**: Kiểm tra các luồng rút tiền phức tạp mới được bổ sung:
+- **Path A**: Validator duyệt lệnh nhỏ lẻ (Small Requests).
+- **Path B**: Giải ngân đa tầng (Multi-stage) qua chữ ký Oracle (ECDSA).
+- **Security**: Chống lạm quyền, xác thực Verifier, phòng chống Re-entrancy.
+
+#### 📌 `test/Campaign.ts` — Bộ test cơ bản (54 test cases)
 
 **Vai trò**: Kiểm tra **toàn bộ** chức năng của hệ thống. Bao gồm 8 nhóm test:
 
@@ -1219,7 +1229,7 @@ npx hardhat verify --network sepolia <ĐỊA_CHỈ_CONTRACT_VỪA_DEPLOY>
 
 **Ví dụ**:
 ```bash
-npx hardhat verify --network sepolia 0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90
+npx hardhat verify --network sepolia 0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1232,8 +1242,8 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 | Thông tin | Giá trị |
 |---|---|
 | Mạng | Sepolia Testnet |
-| CampaignFactory Address | `0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90` |
-| Etherscan | [Xem contract](https://sepolia.etherscan.io/address/0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90#code) |
+| CampaignFactory Address | `0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384` |
+| Etherscan | [Xem contract](https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384#code) |
 
 ---
 
@@ -1243,7 +1253,7 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 
 #### Bước 1: Truy cập contract trên Etherscan
 
-Mở link: [https://sepolia.etherscan.io/address/0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90](https://sepolia.etherscan.io/address/0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90)
+Mở link: [https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384](https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384)
 
 #### Bước 2: Kết nối ví MetaMask
 
@@ -1337,9 +1347,46 @@ console.log(campaigns);
 
 ---
 
-## 🔄 Giải Thích Luồng Hoạt Động (End-to-End)
+## 🔄 Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền
 
-### Infographic: Vòng đời của 1 chiến dịch
+Hệ thống đã được nâng cấp lên mô hình **Zero-Trust** với cơ chế **Hybrid Approval** để tối ưu hóa trải nghiệm người dùng và tính bảo mật.
+
+### 1. Phân luồng rút tiền (Hybrid Approval)
+
+Dựa trên số tiền yêu cầu (ngưỡng 0.5% tổng quỹ), hệ thống tự động chọn luồng xử lý:
+
+| Đặc điểm | Luồng A (Tiền nhỏ lẻ) | Luồng B (Dự án/Số tiền lớn) |
+|---|---|---|
+| **Điều kiện** | < 0.5% số dư quỹ | > 0.5% số dư quỹ |
+| **Người duyệt** | 3 Validator ngẫu nhiên | Toàn bộ Donors |
+| **Cơ chế duyệt** | Chọn ngẫu nhiên để chống thông đồng | Biểu quyết đa số (>50%) |
+| **Giải ngân** | Duyệt xong nhận tiền ngay | Duyệt 1 lần budget, giải ngân từng đợt |
+| **Xác thực** | Validator xác nhận chứng từ | Oracle/Verifier ký chữ ký số (ECDSA) |
+
+---
+
+## ⚡ Cơ Chế Rút Tiền Tối Ưu (Hybrid Approval)
+
+### Luồng A: Phê duyệt nhanh qua Validator Pool
+Dành cho các chi phí vận hành nhỏ lẻ liên tục (tiền điện, nước, văn phòng phẩm...). Tránh làm phiền Donor (Voter Fatigue).
+
+1. **Tạo Request**: Manager tạo request bình thường. Nếu số tiền nhỏ, hệ thống tự kích hoạt Path A.
+2. **Chọn Validator**: Smart Contract tự động chọn **3 địa chỉ Validator ngẫu nhiên** từ Pool.
+3. **Biểu quyết**: 2 trên 3 Validator được chọn nhấn `approveAsValidator`.
+4. **Giải ngân**: Manager gọi `finalizeRequest`, tiền chuyển thẳng cho Nhà cung cấp.
+
+### Luồng B: Phê duyệt đa tầng (Multi-stage Milestones)
+Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi.
+
+1. **Tạo Lộ trình**: Manager tạo `MultiStageRequest` với danh sách các cột mốc (Milestones).
+2. **Duyệt Tổng**: Donors biểu quyết **TẤT CẢ** các giai đoạn một lần duy nhất (>50% đồng ý).
+3. **Thực hiện Giai đoạn**: Sau khi hoàn thành 1 mốc, Manager upload bằng chứng (hóa đơn, báo cáo) cho bên thứ 3 (Oracle/Verifier).
+4. **Xác thực Số**: Verifier ký một thông điệp (Signature) xác nhận mốc đó đã xong.
+5. **Giải ngân Tự động**: Manager gọi `executeMilestone` kèm chữ ký số. Smart Contract tự xác thực chữ ký (ECDSA) và chuyển tiền mốc đó.
+
+---
+
+## 🏛 Kiến Trúc Hệ Thống (Cập nhật)
 
 ```
   ┌──────────────┐
@@ -1502,4 +1549,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 08/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 10/04/2026**

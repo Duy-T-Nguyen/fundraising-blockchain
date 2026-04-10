@@ -18,6 +18,12 @@ contract Events {
     /// @notice Phát ra khi yêu cầu chi tiêu được thực thi
     event FundsReleased(uint256 indexed requestId);
 
+    /// @notice Phát ra khi một milestone được giải ngân
+    event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount);
+
+    /// @notice Phát ra khi validator pool được cập nhật
+    event ValidatorPoolUpdated(address indexed poolAddress);
+
     /// @notice Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
 }
