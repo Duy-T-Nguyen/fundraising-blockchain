@@ -5,6 +5,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 describe("Campaign & Factory", function () {
   let factory: any;
   let campaign: any;
+  let supplierRegistry: any;
   let owner: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
@@ -18,9 +19,13 @@ describe("Campaign & Factory", function () {
     [owner, donor1, donor2, donor3, recipient, nonDonor] =
       await ethers.getSigners();
 
+    const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
+    supplierRegistry = await SupplierRegistry.deploy(owner.address);
+    await supplierRegistry.addSupplier(recipient.address);
+
     const CampaignFactory =
       await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy();
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress());
 
     await factory.createCampaign(MIN_CONTRIBUTION);
     const addresses = await factory.getDeployedCampaigns();

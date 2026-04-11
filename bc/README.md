@@ -1222,15 +1222,24 @@ CampaignFactory deployed to: 0xNewContractAddress
 
 #### Verify trên Etherscan
 
-Verify giúp **công khai mã nguồn** trên Etherscan, cho phép mọi người đọc code và tương tác qua giao diện web.
+Verify giúp **công khai mã nguồn** trên Etherscan, cho phép mọi người đọc code và tương tác qua giao diện web. Vì kiến trúc mới có 2 contract (Registry và Factory), và cả hai đều nhận tham số khởi tạo (constructor arguments), bạn cần verify lần lượt và phải truyền đúng tham số đã dùng khi deploy.
 
+**Cú pháp chung:**
 ```bash
-npx hardhat verify --network sepolia <ĐỊA_CHỈ_CONTRACT_VỪA_DEPLOY>
+# 1. Verify SupplierRegistry (Tham số là địa chỉ Admin)
+npx hardhat verify --network sepolia <ĐỊA_CHỈ_REGISTRY> "<ĐỊA_CHỈ_ADMIN>"
+
+# 2. Verify CampaignFactory (Tham số là địa chỉ Registry)
+npx hardhat verify --network sepolia <ĐỊA_CHỈ_FACTORY> "<ĐỊA_CHỈ_REGISTRY>"
 ```
 
-**Ví dụ**:
+**Lệnh thực tế (với lần deploy gần nhất của bạn)**:
 ```bash
-npx hardhat verify --network sepolia 0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384
+# Verify SupplierRegistry
+npx hardhat verify --network sepolia 0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
+
+# Verify CampaignFactory
+npx hardhat verify --network sepolia 0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b"
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1243,8 +1252,24 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 | Thông tin | Giá trị |
 |---|---|
 | Mạng | Sepolia Testnet |
-| CampaignFactory Address | `0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384` |
-| Etherscan | [Xem contract](https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384#code) |
+| Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
+| SupplierRegistry Address | `0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b` |
+| CampaignFactory Address | `0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#code) |
+
+#### 💡 Giải thích các địa chỉ 
+
+Để hệ thống hoạt động an toàn theo mô hình WFP, chúng ta cần 3 thành phần này phối hợp với nhau:
+
+1.  **Platform Admin (Ví cá nhân của bạn)**:
+    - Đây là địa chỉ ví MetaMask bạn dùng để deploy.
+    - **Vai trò**: "Người gác cổng". Chỉ có ví này mới có quyền thêm hoặc xóa các Nhà cung cấp (Suppliers) vào danh sách tin cậy.
+2.  **SupplierRegistry (Smart Contract - Cuốn sổ cái)**:
+    - Đây là một hợp đồng thông minh lưu trữ danh sách các Nhà cung cấp đã được xác minh.
+    - **Vai trò**: "Danh sách trắng (Whitelist)". Nó đảm bảo rằng tiền từ thiện không thể gửi cho bất kỳ địa chỉ lạ nào mà chưa được Admin phê duyệt từ trước.
+3.  **CampaignFactory (Smart Contract - Xưởng tạo quỹ)**:
+    - Đây là hợp đồng dùng để tạo ra các chiến dịch gây quỹ mới.
+    - **Vai trò**: "Người thực thi". Mọi chiến dịch được tạo ra từ đây đều tự động liên kết với `SupplierRegistry` để áp dụng quy tắc: *Chỉ giải ngân cho người có tên trong danh sách trắng*.
 
 ---
 
