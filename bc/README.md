@@ -1273,81 +1273,68 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 
 ---
 
-## 🎮 Hướng Dẫn Tương Tác Với Contract
+## 🎮 Hướng Dẫn Tương Tác Với Contract (Mô hình WFP)
 
-### Cách 1: Qua Etherscan (Không cần code — Dễ nhất)
+Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận giám sát lẫn nhau. Dưới đây là quy trình 5 bước để vận hành hệ thống này trực tiếp trên Etherscan.
 
-#### Bước 1: Truy cập contract trên Etherscan
+### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
+Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-Mở link: [https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384](https://sepolia.etherscan.io/address/0xF67C05dfc64C1A0Eb4f6e8299115b72C45B97384)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract](https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract)
+2.  Kết nối ví MetaMask (Connect to Web3).
+3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
+4.  Nhấn **"Write"** để xác nhận.
 
-#### Bước 2: Kết nối ví MetaMask
+### Bước 1: Tạo Chiến dịch (Campaign Manager)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract)
+2.  Dùng hàm **`createCampaign`**: Nhập số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
+3.  Sau khi giao dịch thành công, sang tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign vừa tạo.
 
-1. Nhấn tab **"Write Contract"**
-2. Nhấn **"Connect to Web3"**
-3. Chọn MetaMask → Xác nhận kết nối
-4. Đảm bảo MetaMask đang ở mạng **Sepolia**
+### Bước 2: Quyên góp (Donors)
+1.  Tìm kiếm địa chỉ Campaign vừa lấy được trên Etherscan.
+2.  Vào tab **"Write Contract"**, tìm hàm **`donate`**.
+3.  Ở mục `payableAmount`, nhập số ETH muốn gửi (ví dụ `0.05`).
+4.  Nhấn **"Write"**.
 
-#### Bước 3: Tạo chiến dịch mới
+### Bước 3: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
+1.  Tại trang Campaign, tìm hàm **`createRequest`**.
+2.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
 
-1. Tìm hàm **`createCampaign`**
-2. Nhập `minimum` (đơn vị Wei):
-   - `10000000000000000` = 0.01 ETH
-   - `100000000000000000` = 0.1 ETH
-3. Nhấn **"Write"** → Xác nhận trên MetaMask
+### Bước 4: Kiểm duyệt & Giải ngân (WFP Flow)
 
-#### Bước 4: Xem chiến dịch đã tạo
+| Thao tác | Ai thực hiện | Hàm tương ứng | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| **Duyệt lệnh nhỏ** | Validators | `approveAsValidator` | Dành cho lệnh < 0.5% quỹ |
+| **Duyệt lệnh lớn** | Donors | `approveRequest` | Cần > 50% tổng số donors đồng ý |
+| **Xác thực giao hàng** | Oracle | `executeMilestone` | Dành cho lệnh Multi-stage (Cần chữ ký số) |
+| **Nhận tiền** | Supplier | `finalizeRequest` | Tiền tự động chuyển thẳng cho ví Nhà cung cấp |
 
-1. Nhấn tab **"Read Contract"**
-2. Gọi **`getDeployedCampaigns`** → Xem danh sách địa chỉ campaigns
-3. Copy địa chỉ campaign → Dán vào thanh tìm kiếm Etherscan
+---
 
-#### Bước 5: Tương tác với Campaign
+### Cách 2: Qua Script (Dành cho Developer)
 
-1. Truy cập địa chỉ Campaign trên Etherscan
-2. Tab **"Write Contract"** → **"Connect to Web3"**
-3. Thực hiện các thao tác:
-
-| Thao tác | Hàm | Ghi chú |
-|---|---|---|
-| Đóng góp | `donate` | Nhập ETH trong trường `payableAmount` phía trên |
-| Tạo yêu cầu | `createRequest` | Nhập desc, value (wei), recipient address |
-| Bỏ phiếu | `approveRequest` | Nhập index (0, 1, 2...) |
-| Giải ngân | `finalizeRequest` | Chỉ manager, cần >50% phiếu |
-
-### Cách 2: Qua Script (Dành cho developer)
-
-Tạo file script mới hoặc sửa `interact.js`:
+Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng Ethers.js:
 
 ```javascript
 async function main() {
-  // 1. Kết nối đến CampaignFactory đã deploy
-  const factory = await ethers.getContractAt(
-    "CampaignFactory",
-    "0xc1c3B6DAe097372e1C60Ed0ae5D148523131Fd90"
-  );
+  const REGISTRY_ADDR = "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b";
+  const FACTORY_ADDR = "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D";
 
-  // 2. Tạo campaign mới (minimum = 0.01 ETH)
-  const tx = await factory.createCampaign(ethers.parseEther("0.01"));
-  await tx.wait();
-  console.log("Campaign created!");
+  // 1. Thêm Supplier
+  const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
+  const addTx = await registry.addSupplier("0xĐịa_Chỉ_Cửa_Hàng...");
+  await addTx.wait();
 
-  // 3. Lấy danh sách campaigns
+  // 2. Tạo Campaign
+  const factory = await ethers.getContractAt("CampaignFactory", FACTORY_ADDR);
+  const createTx = await factory.createCampaign(ethers.parseEther("0.01"));
+  await createTx.wait();
+
+  // 3. Lấy Campaign mới nhất
   const campaigns = await factory.getDeployedCampaigns();
-  console.log("Campaigns:", campaigns);
-
-  // 4. Kết nối đến campaign vừa tạo
   const campaign = await ethers.getContractAt("Campaign", campaigns[campaigns.length - 1]);
 
-  // 5. Donate 0.05 ETH
-  const donateTx = await campaign.donate({ value: ethers.parseEther("0.05") });
-  await donateTx.wait();
-  console.log("Donated!");
-
-  // 6. Xem summary
-  const summary = await campaign.getSummary();
-  console.log("Balance:", ethers.formatEther(summary.balance), "ETH");
-  console.log("Donors:", summary.donors.toString());
+  console.log("Hệ thống đã sẵn sàng tại:", await campaign.getAddress());
 }
 
 main().catch(console.error);
@@ -1366,7 +1353,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0xc1c3...");
+const factory = await ethers.getContractAt("CampaignFactory", "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
