@@ -2,11 +2,13 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
-describe("Campaign Withdrawal Optimization", function () {
+describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   let factory: any;
   let campaign: any;
   let validatorPool: any;
-  let owner: HardhatEthersSigner;
+  let supplierRegistry: any;
+  let platformAdmin: HardhatEthersSigner;
+  let campaignManager: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
   let validator1: HardhatEthersSigner;
@@ -14,20 +16,29 @@ describe("Campaign Withdrawal Optimization", function () {
   let validator3: HardhatEthersSigner;
   let validator4: HardhatEthersSigner;
   let verifier: HardhatEthersSigner;
-  let recipient: HardhatEthersSigner;
+  let supplier: HardhatEthersSigner;
+  let nonSupplier: HardhatEthersSigner;
 
   const MIN_CONTRIBUTION = ethers.parseEther("0.1");
 
   beforeEach(async () => {
-    [owner, donor1, donor2, validator1, validator2, validator3, validator4, verifier, recipient] = await ethers.getSigners();
+    [platformAdmin, campaignManager, donor1, donor2, validator1, validator2, validator3, validator4, verifier, supplier, nonSupplier] = await ethers.getSigners();
 
+    // 1. Platform Admin deploys SupplierRegistry
+    const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
+    supplierRegistry = await SupplierRegistry.connect(platformAdmin).deploy(platformAdmin.address);
+
+    // 2. Platform Admin whitelist Supplier
+    await supplierRegistry.connect(platformAdmin).addSupplier(supplier.address);
+
+    // 3. Deploy CampaignFactory with SupplierRegistry
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy();
+    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress());
 
-    // Factory creates Campaign and ValidatorPool
-    await factory.createCampaign(MIN_CONTRIBUTION);
+    // 4. Campaign Manager creates a Campaign via Factory
+    await factory.connect(campaignManager).createCampaign(MIN_CONTRIBUTION);
     const campaignAddress = await factory.deployedCampaigns(0);
-    
+
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(campaignAddress);
 
@@ -35,158 +46,290 @@ describe("Campaign Withdrawal Optimization", function () {
     const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
     validatorPool = await ValidatorPool.attach(validatorPoolAddress);
 
-    // Setup Validators
-    await validatorPool.connect(owner).addValidator(validator1.address);
-    await validatorPool.connect(owner).addValidator(validator2.address);
-    await validatorPool.connect(owner).addValidator(validator3.address);
-    await validatorPool.connect(owner).addValidator(validator4.address);
+    // 5. Setup Validators (managed by campaign manager who is also ValidatorPool admin)
+    await validatorPool.connect(campaignManager).addValidator(validator1.address);
+    await validatorPool.connect(campaignManager).addValidator(validator2.address);
+    await validatorPool.connect(campaignManager).addValidator(validator3.address);
+    await validatorPool.connect(campaignManager).addValidator(validator4.address);
 
-    // Add some funds to the campaign
+    // 6. Add funds to the campaign
     await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
     await campaign.connect(donor2).donate({ value: ethers.parseEther("10") });
   });
 
-  describe("Path A: Small Requests (Validator-only)", function () {
-    it("should assign 3 random validators for small requests", async () => {
-      // 0.5% of 20 ETH = 0.1 ETH. Let's request 0.05 ETH.
-      const amount = ethers.parseEther("0.05");
-      await campaign.createRequest("Small fix", amount, recipient.address);
-      
-      const request = await campaign.requests(0);
-      // selectedValidators is an internal array in RequestLib.Request, 
-      // but in Solidity versions where we return structs, it might be tricky.
-      // We'll check the length via a custom getter or just checking if approveAsValidator works for the selected ones.
-      
-      // We can't directly access the selectedValidators array from the returned struct in ethers easily if it's dynamic.
-      // But we can check if the logic picked 3.
+  // =========================================================
+  // SUPPLIER REGISTRY
+  // =========================================================
+  describe("SupplierRegistry", function () {
+    it("Platform Admin can add a Supplier", async () => {
+      const newSupplier = ethers.Wallet.createRandom().address;
+      await supplierRegistry.connect(platformAdmin).addSupplier(newSupplier);
+      expect(await supplierRegistry.isSupplier(newSupplier)).to.equal(true);
     });
 
-    it("should allow 2/3 validators to approve and finalize a small request", async () => {
-      const amount = ethers.parseEther("0.05");
-      await campaign.createRequest("Small fix", amount, recipient.address);
-      
-      // Find out who were selected
-      const selected: string[] = [];
-      const vAddrs = [validator1.address, validator2.address, validator3.address, validator4.address];
-      
-      // We'll peek into the contract state or just try all.
-      // For testing, let's just find the 3 selected ones.
-      for (const v of [validator1, validator2, validator3, validator4]) {
-          try {
-              await campaign.connect(v).approveAsValidator(0);
-              selected.push(v.address);
-          } catch (e) {
-              // Not selected
-          }
-      }
-      
-      expect(selected.length).to.equal(3);
-      
-      // If 2 approved, manager can finalize
-      if (selected.length >= 2) {
-          await campaign.connect(owner).finalizeRequest(0);
-          const afterBalance = await ethers.provider.getBalance(recipient.address);
-          // Check if funds were sent (recipient might have had funds, so we check delta)
-      }
+    it("Platform Admin can remove a Supplier", async () => {
+      await supplierRegistry.connect(platformAdmin).removeSupplier(supplier.address);
+      expect(await supplierRegistry.isSupplier(supplier.address)).to.equal(false);
     });
 
-    it("should revert if amount > 0.5% and try to use validator path", async () => {
-       const largeAmount = ethers.parseEther("0.2"); // 1% of 20 ETH
-       await campaign.createRequest("Large one", largeAmount, recipient.address);
-       
-       await expect(campaign.connect(validator1).approveAsValidator(0))
-         .to.be.revertedWithCustomError(campaign, "MilestoneNotApproved");
+    it("should emit SupplierAdded event", async () => {
+      const addr = ethers.Wallet.createRandom().address;
+      await expect(supplierRegistry.connect(platformAdmin).addSupplier(addr))
+        .to.emit(supplierRegistry, "SupplierAdded")
+        .withArgs(addr);
+    });
+
+    it("should emit SupplierRemoved event", async () => {
+      await expect(supplierRegistry.connect(platformAdmin).removeSupplier(supplier.address))
+        .to.emit(supplierRegistry, "SupplierRemoved")
+        .withArgs(supplier.address);
+    });
+
+    it("Campaign Manager CANNOT add a Supplier", async () => {
+      await expect(
+        supplierRegistry.connect(campaignManager).addSupplier(ethers.Wallet.createRandom().address)
+      ).to.be.revertedWithCustomError(supplierRegistry, "NotAdmin");
+    });
+
+    it("Campaign Manager CANNOT remove a Supplier", async () => {
+      await expect(
+        supplierRegistry.connect(campaignManager).removeSupplier(supplier.address)
+      ).to.be.revertedWithCustomError(supplierRegistry, "NotAdmin");
+    });
+
+    it("Donor CANNOT add a Supplier", async () => {
+      await expect(
+        supplierRegistry.connect(donor1).addSupplier(ethers.Wallet.createRandom().address)
+      ).to.be.revertedWithCustomError(supplierRegistry, "NotAdmin");
+    });
+
+    it("should revert if adding duplicate Supplier", async () => {
+      await expect(
+        supplierRegistry.connect(platformAdmin).addSupplier(supplier.address)
+      ).to.be.revertedWithCustomError(supplierRegistry, "AlreadyWhitelisted");
+    });
+
+    it("should revert if removing non-existent Supplier", async () => {
+      await expect(
+        supplierRegistry.connect(platformAdmin).removeSupplier(nonSupplier.address)
+      ).to.be.revertedWithCustomError(supplierRegistry, "NotWhitelisted");
+    });
+
+    it("should return correct supplier count", async () => {
+      expect(await supplierRegistry.getSupplierCount()).to.equal(1);
+      await supplierRegistry.connect(platformAdmin).addSupplier(nonSupplier.address);
+      expect(await supplierRegistry.getSupplierCount()).to.equal(2);
     });
   });
 
-  describe("Path B: Multi-Stage Requests (Donor + Oracle)", function () {
-    const milestoneValues = [ethers.parseEther("1"), ethers.parseEther("2")];
-    const milestoneDescs = ["Stage 1", "Stage 2"];
+  // =========================================================
+  // SUPPLIER WHITELIST ENFORCEMENT IN CAMPAIGN
+  // =========================================================
+  describe("Supplier Whitelist Enforcement", function () {
+    it("Manager CAN create request for whitelisted Supplier", async () => {
+      await campaign.connect(campaignManager).createRequest(
+        "Buy rice from Supplier",
+        ethers.parseEther("0.05"),
+        supplier.address
+      );
+      const request = await campaign.requests(0);
+      expect(request.recipient).to.equal(supplier.address);
+    });
 
-    it("should allow donor to approve once and handle milestones via signatures", async () => {
-      await campaign.createMultiStageRequest(
-          "Long Project",
-          recipient.address,
+    it("Manager CANNOT create request for non-whitelisted address", async () => {
+      await expect(
+        campaign.connect(campaignManager).createRequest(
+          "Buy from unknown",
+          ethers.parseEther("0.05"),
+          nonSupplier.address
+        )
+      ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
+    });
+
+    it("Manager CANNOT create multi-stage request for non-whitelisted address", async () => {
+      await expect(
+        campaign.connect(campaignManager).createMultiStageRequest(
+          "Project",
+          nonSupplier.address,
           verifier.address,
-          milestoneValues,
-          milestoneDescs
+          [ethers.parseEther("1")],
+          ["Phase 1"]
+        )
+      ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
+    });
+
+    it("Manager CANNOT set self as recipient", async () => {
+      await expect(
+        campaign.connect(campaignManager).createRequest(
+          "Self pay",
+          100,
+          campaignManager.address
+        )
+      ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
+    });
+  });
+
+  // =========================================================
+  // PATH A: SMALL REQUESTS (VALIDATOR-ONLY)
+  // =========================================================
+  describe("Path A: Small Requests (Validator-only)", function () {
+    it("should allow 2/3 validators to approve and finalize a small request", async () => {
+      const amount = ethers.parseEther("0.05");
+      await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address);
+
+      // Find selected validators and approve
+      const selected: string[] = [];
+      for (const v of [validator1, validator2, validator3, validator4]) {
+        try {
+          await campaign.connect(v).approveAsValidator(0);
+          selected.push(v.address);
+        } catch (e) {
+          // Not selected
+        }
+      }
+      expect(selected.length).to.equal(3);
+
+      // 2 approved (first 2 in selected) + manager finalizes
+      const beforeBalance = await ethers.provider.getBalance(supplier.address);
+      await campaign.connect(campaignManager).finalizeRequest(0);
+      const afterBalance = await ethers.provider.getBalance(supplier.address);
+
+      expect(afterBalance - beforeBalance).to.equal(amount);
+    });
+
+    it("should revert if amount > 0.5% and try to use validator path", async () => {
+      const largeAmount = ethers.parseEther("0.2"); // 1% of 20 ETH
+      await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address);
+
+      await expect(campaign.connect(validator1).approveAsValidator(0))
+        .to.be.revertedWithCustomError(campaign, "MilestoneNotApproved");
+    });
+  });
+
+  // =========================================================
+  // PATH B: MULTI-STAGE REQUESTS (DONOR + ORACLE)
+  // =========================================================
+  describe("Path B: Multi-Stage Requests (Donor + Oracle / Proof of Delivery)", function () {
+    const milestoneValues = [ethers.parseEther("1"), ethers.parseEther("2")];
+    const milestoneDescs = ["Delivery 1: 500 bags of rice", "Delivery 2: 1000 bags of rice"];
+
+    it("should complete full Proof of Delivery flow", async () => {
+      // 1. Manager creates multi-stage request for whitelisted Supplier
+      await campaign.connect(campaignManager).createMultiStageRequest(
+        "Rice distribution program",
+        supplier.address,
+        verifier.address,
+        milestoneValues,
+        milestoneDescs
       );
 
-      // 1. Donor approves once
+      // 2. Donors approve once
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
 
-      // 2. Execute Stage 1
-      // Message: address(this), requestIndex (0), milestoneIndex (0)
+      // 3. Execute Delivery 1 — Verifier signs proof of delivery
       const domain = await campaign.getAddress();
-      const messageHash = ethers.solidityPackedKeccak256(
-          ["address", "uint256", "uint256"],
-          [domain, 0, 0]
+      const messageHash1 = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [domain, 0, 0]
       );
-      const signature = await verifier.signMessage(ethers.toBeArray(messageHash));
-      
-      const beforeBalance = await ethers.provider.getBalance(recipient.address);
-      await campaign.executeMilestone(0, signature);
-      const afterBalance = await ethers.provider.getBalance(recipient.address);
-      
-      expect(afterBalance - beforeBalance).to.equal(milestoneValues[0]);
+      const signature1 = await verifier.signMessage(ethers.toBeArray(messageHash1));
 
-      // 3. Execute Stage 2
+      const before1 = await ethers.provider.getBalance(supplier.address);
+      await campaign.executeMilestone(0, signature1);
+      const after1 = await ethers.provider.getBalance(supplier.address);
+      expect(after1 - before1).to.equal(milestoneValues[0]);
+
+      // 4. Execute Delivery 2
       const messageHash2 = ethers.solidityPackedKeccak256(
-          ["address", "uint256", "uint256"],
-          [domain, 0, 1]
+        ["address", "uint256", "uint256"],
+        [domain, 0, 1]
       );
       const signature2 = await verifier.signMessage(ethers.toBeArray(messageHash2));
       await campaign.executeMilestone(0, signature2);
-      
+
+      // 5. Verify request is complete
       const request = await campaign.requests(0);
       expect(request.complete).to.equal(true);
     });
 
     it("should revert if signature is from wrong verifier", async () => {
-        await campaign.createMultiStageRequest(
-            "Long Project",
-            recipient.address,
-            verifier.address,
-            milestoneValues,
-            milestoneDescs
-        );
-        await campaign.connect(donor1).approveRequest(0);
-        await campaign.connect(donor2).approveRequest(0);
+      await campaign.connect(campaignManager).createMultiStageRequest(
+        "Project",
+        supplier.address,
+        verifier.address,
+        milestoneValues,
+        milestoneDescs
+      );
+      await campaign.connect(donor1).approveRequest(0);
+      await campaign.connect(donor2).approveRequest(0);
 
-        const domain = await campaign.getAddress();
-        const messageHash = ethers.solidityPackedKeccak256(["address", "uint256", "uint256"], [domain, 0, 0]);
-        const badSignature = await owner.signMessage(ethers.toBeArray(messageHash));
+      const domain = await campaign.getAddress();
+      const messageHash = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [domain, 0, 0]
+      );
+      // Wrong signer
+      const badSignature = await campaignManager.signMessage(ethers.toBeArray(messageHash));
 
-        await expect(campaign.executeMilestone(0, badSignature))
-            .to.be.revertedWithCustomError(campaign, "InvalidSignature");
+      await expect(campaign.executeMilestone(0, badSignature))
+        .to.be.revertedWithCustomError(campaign, "InvalidSignature");
     });
   });
 
-  describe("Security Restrictions", function () {
-    it("should not allow manager to be recipient", async () => {
-        await expect(campaign.createRequest("Self pay", 100, owner.address))
-            .to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
-    });
+  // =========================================================
+  // END-TO-END: FULL WFP-STYLE FLOW
+  // =========================================================
+  describe("End-to-End: WFP-Style Aid Distribution", function () {
+    it("full lifecycle: Admin whitelist → Manager request → Donor vote → Oracle verify → Supplier paid", async () => {
+      // 1. Platform Admin has already whitelisted Supplier in beforeEach
+      expect(await supplierRegistry.isSupplier(supplier.address)).to.equal(true);
 
-    it("should not allow multiple approvals from same validator", async () => {
-        const amount = ethers.parseEther("0.01");
-        await campaign.createRequest("Small", amount, recipient.address);
-        
-        // Find one selected validator
-        let selectedV: HardhatEthersSigner | null = null;
-        for (const v of [validator1, validator2, validator3, validator4]) {
-            try {
-                await campaign.connect(v).approveAsValidator(0);
-                selectedV = v;
-                break;
-            } catch (e) {}
-        }
+      // 2. Campaign Manager creates request for Supplier
+      await campaign.connect(campaignManager).createMultiStageRequest(
+        "Emergency food aid - Batch 1",
+        supplier.address,
+        verifier.address,
+        [ethers.parseEther("2"), ethers.parseEther("3")],
+        ["500 food kits", "750 food kits"]
+      );
 
-        if (selectedV) {
-            await expect(campaign.connect(selectedV).approveAsValidator(0))
-                .to.be.revertedWithCustomError(campaign, "AlreadyVoted");
-        }
+      // 3. Donors vote ONCE for total budget
+      await campaign.connect(donor1).approveRequest(0);
+      await campaign.connect(donor2).approveRequest(0);
+
+      // 4. First delivery complete → Verifier signs proof
+      const domain = await campaign.getAddress();
+      const hash1 = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [domain, 0, 0]
+      );
+      const sig1 = await verifier.signMessage(ethers.toBeArray(hash1));
+
+      const supplierBefore = await ethers.provider.getBalance(supplier.address);
+      await campaign.executeMilestone(0, sig1);
+      const supplierAfter = await ethers.provider.getBalance(supplier.address);
+
+      expect(supplierAfter - supplierBefore).to.equal(ethers.parseEther("2"));
+
+      // 5. Second delivery complete
+      const hash2 = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [domain, 0, 1]
+      );
+      const sig2 = await verifier.signMessage(ethers.toBeArray(hash2));
+      await campaign.executeMilestone(0, sig2);
+
+      // 6. Verify: Request complete, Supplier received all funds
+      const request = await campaign.requests(0);
+      expect(request.complete).to.equal(true);
+
+      const finalSupplierBalance = await ethers.provider.getBalance(supplier.address);
+      expect(finalSupplierBalance - supplierBefore).to.equal(ethers.parseEther("5"));
+
+      // 7. Campaign still has remaining funds
+      const summary = await campaign.getSummary();
+      expect(summary.balance).to.equal(ethers.parseEther("15")); // 20 - 5
     });
   });
 });

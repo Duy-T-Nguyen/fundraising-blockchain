@@ -22,7 +22,7 @@
 8. [Hướng Dẫn Deploy](#-hướng-dẫn-deploy)
 9. [Hướng Dẫn Tương Tác Với Contract](#-hướng-dẫn-tương-tác-với-contract)
 10. [Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền](#-giải-thích-luồng-hoạt-động--cơ-chế-rút-tiền)
-11. [Cơ Chế Rút Tiền Tối Ưu (Hybrid Approval)](#-cơ-chế-rút-tiền-tối-ưu-hybrid-approval)
+11. [Humanitarian Accountability Protocol (DAO x WFP)](#-humanitarian-accountability-protocol-dao-x-wfp)
 12. [Các Lỗi Thường Gặp & Cách Khắc Phục](#-các-lỗi-thường-gặp--cách-khắc-phục)
 13. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
 
@@ -129,8 +129,9 @@ bc/                                 ← Thư mục gốc của dự án blockcha
 ├── yarn.lock                       ← Khóa phiên bản dependencies
 │
 ├── contracts/                      ← ⭐ THƯ MỤC SMART CONTRACT
-│   ├── Campaign.sol                ← Smart Contract chính — Quản lý Hybrid Approval & Milestones
+│   ├── Campaign.sol                ← Smart Contract chính — Quản lý Hybrid Approval, Milestones & KYC Supplier
 │   ├── CampaignFactory.sol         ← Factory Contract — Tạo Campaign + ValidatorPool
+│   ├── SupplierRegistry.sol        ← Sổ cái Nhà cung cấp — Quản lý bởi Platform Admin (Mô hình WFP)
 │   ├── ValidatorPool.sol           ← Quản lý danh sách Validator và chọn ngẫu nhiên
 │   ├── Errors.sol                  ← Định nghĩa các lỗi (Custom Errors)
 │   ├── Events.sol                  ← Định nghĩa các sự kiện (Events)
@@ -1349,7 +1350,7 @@ console.log(campaigns);
 
 ## 🔄 Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền
 
-Hệ thống đã được nâng cấp lên mô hình **Zero-Trust** với cơ chế **Hybrid Approval** để tối ưu hóa trải nghiệm người dùng và tính bảo mật.
+Hệ thống đã được nâng cấp lên mô hình **Zero-Trust** với cơ chế **Hybrid Approval** và **Danh sách Trắng Nhà cung cấp (Supplier Whitelist)** để tối ưu hóa trải nghiệm người dùng và tính bảo mật.
 
 ### 1. Phân luồng rút tiền (Hybrid Approval)
 
@@ -1365,34 +1366,48 @@ Dựa trên số tiền yêu cầu (ngưỡng 0.5% tổng quỹ), hệ thống t
 
 ---
 
-## ⚡ Cơ Chế Rút Tiền Tối Ưu (Hybrid Approval)
+## ⚡ Humanitarian Accountability Protocol (DAO x WFP)
 
-### Luồng A: Phê duyệt nhanh qua Validator Pool
-Dành cho các chi phí vận hành nhỏ lẻ liên tục (tiền điện, nước, văn phòng phẩm...). Tránh làm phiền Donor (Voter Fatigue).
+Hệ thống giải ngân được lấy cảm hứng từ cấu trúc phân phối viện trợ của **Chương trình Lương thực Thế giới (WFP Building Blocks)**:
 
-1. **Tạo Request**: Manager tạo request bình thường. Nếu số tiền nhỏ, hệ thống tự kích hoạt Path A.
+### Nguyên Tắc Phân Quyền Giám Sát
+Để đảm bảo tiền không bị thất thoát, hệ thống chia vai trò rõ ràng:
+1. **Platform Admin (Quản trị viên Hệ thống)**: Phê duyệt và đưa các Nhà cung cấp (Suppliers - ví dụ: siêu thị, công ty vật liệu) vào Sổ cái `SupplierRegistry`. Admins là bên thứ ba độc lập.
+2. **Campaign Manager (Người quản lý quỹ)**: Tạo Request để giải ngân. **Bắt buộc** phải chọn Người nhận (`recipient`) từ danh sách Nhà cung cấp đã được duyệt. Không được phép mạo nhận ví để trục lợi.
+3. **Donors / Validators (Người đóng góp / Kiểm duyệt viên)**: Biểu quyết cấp vốn cho các đơn đặt hàng từ Manager.
+4. **Oracle / Verifier (Xác thực viên)**: Xác nhận Nhà cung cấp đã giao hàng/thực hiện xong dịch vụ để hợp đồng tự động gọi hàm thanh toán số tiền cho Nhà cung cấp. Manager không bao giờ cầm tiền mặt.
+
+### Luồng A: Phê duyệt nhanh qua Validator Pool (Dành cho Chi Phí Nhỏ)
+Dành cho các chi phí vận hành nhỏ lẻ liên tục. Tránh làm phiền Donor (Voter Fatigue).
+
+1. **Tạo Request**: Manager tạo request bình thường nhưng thanh toán phải nhắm tới một Supplier đã duyệt. Hệ thống tự kích hoạt Path A nếu `< 0.5%`.
 2. **Chọn Validator**: Smart Contract tự động chọn **3 địa chỉ Validator ngẫu nhiên** từ Pool.
 3. **Biểu quyết**: 2 trên 3 Validator được chọn nhấn `approveAsValidator`.
-4. **Giải ngân**: Manager gọi `finalizeRequest`, tiền chuyển thẳng cho Nhà cung cấp.
+4. **Giải ngân**: Manager gọi `finalizeRequest`, tiền chuyển thẳng cho Nhà cung cấp (Không thông qua Manager).
 
-### Luồng B: Phê duyệt đa tầng (Multi-stage Milestones)
-Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi.
+### Luồng B: Phê duyệt đa tầng (Proof of Delivery / Milestones)
+Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi. Giải ngân theo tiến độ giao hàng/tiến độ công trình.
 
 1. **Tạo Lộ trình**: Manager tạo `MultiStageRequest` với danh sách các cột mốc (Milestones).
 2. **Duyệt Tổng**: Donors biểu quyết **TẤT CẢ** các giai đoạn một lần duy nhất (>50% đồng ý).
-3. **Thực hiện Giai đoạn**: Sau khi hoàn thành 1 mốc, Manager upload bằng chứng (hóa đơn, báo cáo) cho bên thứ 3 (Oracle/Verifier).
-4. **Xác thực Số**: Verifier ký một thông điệp (Signature) xác nhận mốc đó đã xong.
-5. **Giải ngân Tự động**: Manager gọi `executeMilestone` kèm chữ ký số. Smart Contract tự xác thực chữ ký (ECDSA) và chuyển tiền mốc đó.
+3. **Thực hiện Giai đoạn (Proof of Delivery)**: Sau khi hoàn thành 1 mốc (ví dụ: Supplier giao đủ vật liệu xây dựng), Verifier ký một thông điệp (Signature) xác nhận mốc đó đã xong.
+4. **Giải ngân Tự động**: Manager gọi `executeMilestone` kèm chữ ký số. Smart Contract tự xác thực chữ ký (ECDSA) và chuyển thẳng số tiền mốc đó cho Supplier.
 
 ---
 
 ## 🏛 Kiến Trúc Hệ Thống (Cập nhật)
 
-```
+```text
+  ┌──────────────┐
+  │  BƯỚC 0      │     Platform Admin thẩm định & thêm Supplier vào Registry
+  │  KYB SUPPLIER│     (SupplierRegistry.addSupplier)
+  └──────┬───────┘
+         │
+         ▼
   ┌──────────────┐
   │  BƯỚC 1      │     Manager gọi CampaignFactory.createCampaign()
   │  TẠO CHIẾN   │     → Factory deploy Campaign mới
-  │  DỊCH        │     → Truyền minimum contribution & manager address
+  │  DỊCH        │     → Liên kết tự động với SupplierRegistry
   └──────┬───────┘
          │
          ▼
@@ -1405,40 +1420,39 @@ Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi.
          ▼
   ┌──────────────┐
   │  BƯỚC 3      │     Manager gọi Campaign.createRequest()
-  │  TẠO YÊU    │     → Khai báo: mô tả, số tiền, người nhận
-  │  CẦU CHI    │     → Request đang ở trạng thái "pending"
-  │  TIÊU       │
+  │  TẠO ĐƠN HÀNG│     → Khai báo: mô tả, số tiền, Supplier (Từ danh sách trắng)
+  │  (REQUEST)   │     → Thất bại nếu Supplier chưa được duyệt!
   └──────┬───────┘
          │
          ▼
   ┌──────────────┐
-  │  BƯỚC 4      │     Donors gọi Campaign.approveRequest()
-  │  BIỂU QUYẾT │     → Mỗi donor chỉ vote 1 lần
-  │  (VOTE)      │     → Cần > 50% donors đồng ý
+  │  BƯỚC 4      │     Donors / Validators biểu quyết
+  │  BIỂU QUYẾT │     → Validator duyệt nếu lệnh nhỏ / Donors duyệt > 50% nếu lớn
   └──────┬───────┘
          │
          ▼
   ┌──────────────┐
-  │  BƯỚC 5      │     Manager gọi Campaign.finalizeRequest()
-  │  GIẢI NGÂN  │     → Kiểm tra đủ phiếu → Chuyển ETH cho recipient
-  │  (FINALIZE)  │     → Request đánh dấu "complete"
+  │  BƯỚC 5      │     Oracle ký xác nhận (Proof of Delivery)
+  │  GIẢI NGÂN   │     → Gửi thẳng ETH cho Supplier bằng Smart Contract
+  │  TỰ ĐỘNG     │     (Manager KHÔNG BAO GIỜ chạm vào tiền quỹ)
   └──────────────┘
 ```
 
 ### Ví dụ cụ thể
 
-Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David.
+Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David. Platform Admin là Eve. Cửa hàng là Shop.
 
 | Bước | Ai thực hiện | Hành động | Kết quả |
 |---|---|---|---|
+| 0 | Eve | `SupplierRegistry.addSupplier(Shop)` | Đưa Shop vào Danh sách Trắng |
 | 1 | David | `createCampaign(0.01 ETH)` | Campaign mới được tạo, minimum = 0.01 ETH |
 | 2 | Alice | `donate()` + 5 ETH | totalDonors = 1, balance = 5 ETH |
 | 3 | Bob | `donate()` + 3 ETH | totalDonors = 2, balance = 8 ETH |
 | 4 | Charlie | `donate()` + 2 ETH | totalDonors = 3, balance = 10 ETH |
-| 5 | David | `createRequest("Mua server", 4 ETH, recipientAddr)` | Request #0 created |
+| 5 | David | `createRequest("Mua server", 4 ETH, Shop)` | Request #0 được khởi tạo (*không lỗi vì Shop đã duyệt*) |
 | 6 | Alice | `approveRequest(0)` | approvalCount = 1/3 |
 | 7 | Bob | `approveRequest(0)` | approvalCount = 2/3 (>50% ✅) |
-| 8 | David | `finalizeRequest(0)` | 4 ETH chuyển cho recipient, balance = 6 ETH |
+| 8 | David | `finalizeRequest(0)` | 4 ETH chuyển cho Shop, balance = 6 ETH |
 
 ---
 

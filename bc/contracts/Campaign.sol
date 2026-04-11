@@ -9,11 +9,14 @@ import "./Events.sol";
 import "./Errors.sol";
 import "./modifiers/AccessControl.sol";
 import "./ValidatorPool.sol";
+import "./SupplierRegistry.sol";
 
 /**
  * @title Campaign
  * @author Fundraising Blockchain Team
- * @notice Quản lý chiến dịch gây quỹ phi tập trung với Zero-Trust & Milestones
+ * @notice Quản lý chiến dịch gây quỹ phi tập trung với Zero-Trust, Milestones & Supplier Whitelist.
+ * @dev Tích hợp mô hình WFP: Tiền chỉ chảy đến Supplier đã được Platform Admin thẩm định.
+ *      Manager KHÔNG có quyền thêm Supplier hoặc nhận tiền.
  */
 contract Campaign is Events, AccessControl, ReentrancyGuard {
     using RequestLib for RequestLib.Request;
@@ -26,16 +29,24 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     bool public active;
     
     ValidatorPool public validatorPool;
+    SupplierRegistry public supplierRegistry;
 
     /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ tại thời điểm tạo)
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
 
-    constructor(uint256 _minimum, address _manager, address _validatorPool) {
+    constructor(
+        uint256 _minimum,
+        address _manager,
+        address _validatorPool,
+        address _supplierRegistry
+    ) {
         if (_minimum == 0) revert InsufficientFunds();
-        if (_manager == address(0) || _validatorPool == address(0)) revert InvalidAddress();
+        if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
+            revert InvalidAddress();
         manager = _manager;
         minimumContribution = _minimum;
         validatorPool = ValidatorPool(_validatorPool);
+        supplierRegistry = SupplierRegistry(_supplierRegistry);
         active = true;
     }
 
@@ -65,6 +76,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     /**
      * @notice Tạo request bình thường (SINGLE)
      * @dev Nếu số tiền < 0.5% quỹ, hệ thống tự động chọn 3 validator ngẫu nhiên.
+     *      Recipient PHẢI nằm trong SupplierRegistry (Whitelisted Supplier).
      */
     function createRequest(
         string calldata desc,
@@ -74,6 +86,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (value == 0) revert InsufficientFunds();
         if (recipient == address(0)) revert InvalidAddress();
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
         if (bytes(desc).length == 0) revert EmptyDescription();
 
         RequestLib.Request storage r = requests.push();
@@ -96,8 +109,10 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     }
 
     /**
-     * @notice Tạo request theo giai đoạn (MULTI)
-     * @dev Dành cho quỹ dự án lớn, chia thành nhiều cột mốc.
+     * @notice Tạo request theo giai đoạn (MULTI) — Proof of Delivery
+     * @dev Dành cho quỹ dự án lớn hoặc chương trình cứu trợ nhiều đợt.
+     *      Recipient PHẢI nằm trong SupplierRegistry.
+     *      Verifier (Oracle) ký xác nhận mỗi đợt giao hàng.
      */
     function createMultiStageRequest(
         string calldata desc,
@@ -108,6 +123,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     ) external onlyManager onlyActive {
         if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
         if (milestoneValues.length == 0 || milestoneValues.length != milestoneDescriptions.length) revert InvalidRequestIndex();
 
         RequestLib.Request storage r = requests.push();
@@ -178,7 +194,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.validatorApprovals[msg.sender] = true;
         r.validatorApprovalCount++;
 
-        emit Voted(msg.sender, index); // Có thể dùng event riêng nếu muốn
+        emit Voted(msg.sender, index);
     }
 
     // =====================
@@ -187,6 +203,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Manager thực thi request (Tương thích cả Donor Path và Validator Path cho SINGLE)
+     * @dev Tiền chuyển thẳng cho Supplier — Manager KHÔNG nhận tiền.
      */
     function finalizeRequest(uint256 index) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
@@ -220,7 +237,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     }
 
     /**
-     * @notice Thực thi từng cột mốc (Milestone) dựa trên chữ ký của Verifier
+     * @notice Thực thi từng đợt giao hàng (Milestone / Proof of Delivery)
+     * @dev Verifier (Oracle) ký chữ ký số xác nhận hàng đã giao.
+     *      Tiền tự động chuyển thẳng cho Supplier đã whitelist.
      */
     function executeMilestone(uint256 index, bytes calldata signature) external nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();

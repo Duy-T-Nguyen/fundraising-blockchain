@@ -31,3 +31,11 @@ error MilestoneAlreadyReleased();
 error MilestoneNotApproved();
 error ManagerNotAllowedAsRecipient();
 error AggregateMonthlyCapExceeded();
+
+// =====================
+// Supplier Registry Errors
+// =====================
+error NotAdmin();
+error RecipientNotWhitelisted();
+error AlreadyWhitelisted();
+error NotWhitelisted();
