@@ -11,6 +11,7 @@ library RequestLib {
         uint256 value;          // Số tiền của giai đoạn này
         string description;     // Mô tả công việc
         bool released;          // Đã giải ngân hay chưa
+        string evidenceHash;    // IPFS Hash minh chứng hoàn thành
     }
 
     enum RequestType { SINGLE, MULTI }
@@ -21,6 +22,7 @@ library RequestLib {
         address payable recipient;
         bool complete;
         uint256 approvalCount;
+        string evidenceHash;    // IPFS Hash minh chứng
         mapping(address => bool) approvals;
         
         // Cấu trúc cho Multi-stage

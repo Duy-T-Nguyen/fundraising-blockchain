@@ -41,7 +41,8 @@ Trong gây quỹ truyền thống, người quyên góp phải **tin tưởng** 
 | Vấn đề truyền thống | Giải pháp Blockchain |
 |---|---|
 | Người quản lý có thể lạm dụng tiền quỹ | Tiền bị khóa trong Smart Contract, không ai rút được tùy tiện |
-| Không minh bạch chi tiêu | Mọi giao dịch được ghi lại vĩnh viễn trên blockchain |
+| Không minh bạch chi tiêu | Mọi giao dịch được ghi lại vĩnh vễn trên blockchain |
+| Chứng từ có thể bị làm giả / thất lạc | **Bằng chứng (hóa đơn, ảnh) được lưu trên IPFS** (bất biến) |
 | Phải tin tưởng bên trung gian | Code tự động thực thi, không cần tin tưởng ai |
 | Donors không có quyền quyết định | Donors phải **biểu quyết** (vote) trước khi tiền được giải ngân |
 
@@ -51,8 +52,10 @@ Trong gây quỹ truyền thống, người quyên góp phải **tin tưởng** 
 |---|---|---|
 | **Solidity** | Ngôn ngữ viết Smart Contract | Giống JavaScript nhưng chạy trên Blockchain |
 | **Hardhat** | Framework phát triển | Bộ công cụ để compile, test, deploy Smart Contract |
+| **NestJS** | Backend API (be/) | Xử lý upload file và tương tác với IPFS |
+| **IPFS / Pinata** | Lưu trữ bằng chứng | Hệ thống lưu trữ file phi tập trung (không thể sửa/xóa) |
 | **Ethers.js** | Thư viện JavaScript | Giúp JavaScript giao tiếp với Blockchain |
-| **OpenZeppelin** | Thư viện bảo mật | Các module an toàn đã được kiểm tra kỹ (như ReentrancyGuard) |
+| **OpenZeppelin** | Thư viện bảo mật | Các module an toàn đã được kiểm tra kỹ |
 | **TypeScript** | Ngôn ngữ lập trình | JavaScript có thêm kiểu dữ liệu, giảm lỗi |
 | **Chai** | Thư viện test | Framework viết unit test |
 | **dotenv** | Quản lý biến môi trường | Đọc thông tin nhạy cảm từ file `.env` |
@@ -119,44 +122,21 @@ Trong Smart Contract, mọi giá trị tiền đều tính bằng **Wei**.
 ## 🗂 Cấu Trúc Thư Mục
 
 ```
-bc/                                 ← Thư mục gốc của dự án blockchain
-├── .env                            ← File chứa biến môi trường (BÍ MẬT - không đẩy lên Git)
-├── .gitignore                      ← Danh sách file/thư mục mà Git bỏ qua
-├── README.md                       ← File tài liệu bạn đang đọc
-├── package.json                    ← Khai báo dependencies (thư viện cần thiết)
-├── tsconfig.json                   ← Cấu hình TypeScript
-├── hardhat.config.ts               ← ⭐ Cấu hình Hardhat (quan trọng nhất)
-├── yarn.lock                       ← Khóa phiên bản dependencies
+fundraising-blockchain/             ← Thư mục gốc dự án (Monorepo)
+├── bc/                             ← ⭐ CHUYÊN VỀ BLOCKCHAIN (Mã nguồn này)
+│   ├── contracts/                  ← Smart Contracts (Solidity)
+│   ├── test/                       ← Unit tests cho Smart Contracts
+│   ├── scripts/                    ← Scripts deploy & interact
+│   └── hardhat.config.ts           ← Cấu hình dự án Blockchain
 │
-├── contracts/                      ← ⭐ THƯ MỤC SMART CONTRACT
-│   ├── Campaign.sol                ← Smart Contract chính — Quản lý Hybrid Approval, Milestones & KYC Supplier
-│   ├── CampaignFactory.sol         ← Factory Contract — Tạo Campaign + ValidatorPool
-│   ├── SupplierRegistry.sol        ← Sổ cái Nhà cung cấp — Quản lý bởi Platform Admin (Mô hình WFP)
-│   ├── ValidatorPool.sol           ← Quản lý danh sách Validator và chọn ngẫu nhiên
-│   ├── Errors.sol                  ← Định nghĩa các lỗi (Custom Errors)
-│   ├── Events.sol                  ← Định nghĩa các sự kiện (Events)
-│   ├── RequestLib.sol              ← Thư viện dữ liệu (hỗ trợ Milestones & Validators)
-│   └── modifiers/
-│       └── AccessControl.sol       ← Kiểm soát quyền truy cập
+├── be/                             ← ⭐ CHUYÊN VỀ BACKEND (NestJS)
+│   ├── src/                        ← Xử lý Logic Backend & IPFS Evidence
+│   └── .env                        ← Cấu hình API Key Pinata
 │
-├── scripts/                        ← Scripts để deploy và tương tác
-│   ├── deploy.ts                   ← ⭐ Script deploy chính (TypeScript)
-│   ├── deploy.js                   ← Script deploy cũ (JavaScript) — tham khảo
-│   ├── check-balance.ts            ← Kiểm tra số dư ví
-│   └── interact.js                 ← Script tương tác mẫu (donate)
+├── fe/                             ← ⭐ CHUYÊN VỀ FRONTEND (React/Vite)
+│   └── src/                        ← Giao diện người dùng
 │
-├── test/                           ← THƯ MỤC TEST
-│   ├── Campaign.ts                 ← ⭐ 54 test cases kiểm tra toàn bộ hệ thống
-│   └── Campaign_WithdrawalOptimization.test.ts ← ⭐ Test cơ chế rút tiền tối ưu (Mới)
-│
-├── ignition/                       ← Hardhat Ignition (cách deploy khác — không dùng chính)
-│   └── modules/
-│       └── Lock.ts                 ← Module mẫu từ Hardhat (không liên quan dự án)
-│
-├── artifacts/                      ← [Tự sinh] ABI và bytecode sau compile
-├── cache/                          ← [Tự sinh] Cache của Hardhat
-├── typechain-types/                ← [Tự sinh] TypeScript types cho contract
-└── node_modules/                   ← [Tự sinh] Thư viện đã cài đặt
+└── README.md                       ← Tài liệu tổng quan toàn bộ hệ thống
 ```
 
 > **Ghi chú**: Các thư mục `artifacts/`, `cache/`, `typechain-types/`, `node_modules/` được tự động sinh ra. Bạn **không cần** (và không nên) chỉnh sửa chúng.
@@ -609,9 +589,10 @@ constructor(uint256 _minimum, address _manager) {
 | Hàm | Loại | Ai gọi? | Mô tả | Gas |
 |---|---|---|---|---|
 | `donate()` | Write (payable) | Bất kỳ ai | Đóng góp ETH vào chiến dịch | ~45.000 |
-| `createRequest(desc, value, recipient)` | Write | Chỉ Manager | Tạo yêu cầu chi tiêu | ~80.000 |
+| `createRequest(...)` | Write | Chỉ Manager | Tạo yêu cầu chi tiêu + **Evidence Hash** | ~90.000 |
 | `approveRequest(index)` | Write | Chỉ Donor | Bỏ phiếu đồng ý cho request | ~50.000 |
 | `finalizeRequest(index)` | Write | Chỉ Manager | Giải ngân khi đủ phiếu | ~60.000 |
+| `executeMilestone(...)` | Write | Manager/Verifier | Giải ngân theo giai đoạn + **Evidence** | ~120.000 |
 | `deactivateCampaign()` | Write | Chỉ Manager | Tạm dừng chiến dịch | ~30.000 |
 | `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan | 0 |
 | `getRequestsCount()` | Read (miễn phí) | Bất kỳ ai | Đếm số requests | 0 |
@@ -650,11 +631,13 @@ function donate() external payable onlyActive {
 function createRequest(
     string calldata desc,       // Mô tả
     uint256 value,              // Số tiền
-    address payable recipient   // Người nhận
+    address payable recipient,  // Người nhận
+    string calldata evidenceHash // CID từ IPFS (hóa đơn, chứng từ)
 ) external onlyManager onlyActive {
     if (value == 0) revert InsufficientFunds();
     if (recipient == address(0)) revert InvalidAddress();
     if (bytes(desc).length == 0) revert EmptyDescription();
+    if (bytes(evidenceHash).length == 0) revert EmptyDescription();
 
     // Tạo Request mới và thêm vào mảng
     RequestLib.Request storage r = requests.push();
@@ -992,25 +975,26 @@ File này là **mẫu mặc định** khi tạo dự án Hardhat mới. **Không
 ### Sơ đồ tổng quan
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│                     ETHEREUM BLOCKCHAIN                    │
-│                                                           │
-│  ┌─────────────────────┐                                  │
-│  │  CampaignFactory    │ ← Deploy DUY NHẤT 1 lần         │
-│  │  ─────────────────  │                                  │
-│  │  createCampaign()   │──────┐                           │
-│  │  getDeployedCampaigns()   │                           │
-│  └─────────────────────┘     │                           │
-│                              ▼                           │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │  Campaign #1 │  │  Campaign #2 │  │  Campaign #3 │   │
-│  │  ──────────  │  │  ──────────  │  │  ──────────  │   │
-│  │  donate()    │  │  donate()    │  │  donate()    │   │
-│  │  vote()      │  │  vote()      │  │  vote()      │   │
-│  │  finalize()  │  │  finalize()  │  │  finalize()  │   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                                                           │
-└───────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ETHEREUM BLOCKCHAIN (Sepolia)                      │
+│                                                                             │
+│  ┌─────────────────────┐          ┌──────────────────────────────────────┐  │
+│  │  CampaignFactory    │          │           Campaign Contract         │  │
+│  │  ─────────────────  │          │  ─────────────────────────────────── │  │
+│  │  createCampaign()   │───────►  │  evidenceHash (CID) ◄──┐             │  │
+│  │  getDeployed()      │          │  finalizeRequest()     │             │  │
+│  └─────────────────────┘          └────────────────────────┼─────────────┘  │
+│                                                            │                │
+└────────────────────────────────────────────────────────────┼────────────────┘
+                                                             │
+                                                             │ (CID Hash)
+                                                             │
+┌──────────────────────────────────────┐      ┌──────────────┴────────────────┐
+│            NESTJS BACKEND            │      │         IPFS / PINATA         │
+│  ──────────────────────────────────  │      │  ───────────────────────────  │
+│  - Upload Evidence API               │──────►  - Store Invoices/Photos      │
+│  - Pinata integration                │      │  - Decentralized & Immutable  │
+└──────────────────────────────────────┘      └───────────────────────────────┘
 ```
 
 ### Mối quan hệ giữa các file (Inheritance & Import)
@@ -1298,7 +1282,8 @@ Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đ�
 
 ### Bước 3: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
 1.  Tại trang Campaign, tìm hàm **`createRequest`**.
-2.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
+2.  **Ô `evidenceHash`**: Bạn cần upload hóa đơn lên Backend (`be/`) trước để lấy mã CID (ví dụ: `Qm...`).
+3.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
 
 ### Bước 4: Kiểm duyệt & Giải ngân (WFP Flow)
 
@@ -1375,6 +1360,13 @@ Dựa trên số tiền yêu cầu (ngưỡng 0.5% tổng quỹ), hệ thống t
 | **Cơ chế duyệt** | Chọn ngẫu nhiên để chống thông đồng | Biểu quyết đa số (>50%) |
 | **Giải ngân** | Duyệt xong nhận tiền ngay | Duyệt 1 lần budget, giải ngân từng đợt |
 | **Xác thực** | Validator xác nhận chứng từ | Oracle/Verifier ký chữ ký số (ECDSA) |
+
+### 3. Lưu trữ bằng chứng (IPFS & Backend)
+Để đảm bảo tính minh bạch tuyệt đối, các bằng chứng chi tiêu (invoice) không được lưu trên server truyền thống mà được đẩy lên **IPFS** (Hệ thống lưu trữ ngang hàng).
+
+- **Mã CID (Content Identifier)**: Mỗi file khi upload lên IPFS sẽ có một mã băm duy nhất (ví dụ: `QmX...`). Nếu file bị sửa đổi, mã này sẽ thay đổi hoàn toàn.
+- **Tính bất biến**: Khi đã lưu mã CID này vào Smart Contract, không ai có thể thay đổi bằng chứng đã gửi.
+- **NestJS Backend**: Đóng vai trò là cổng trung gian để nhận file từ người dùng, thực hiện upload lên Pinata (một dịch vụ quản lý IPFS) và trả về mã CID cho Frontend để thực hiện giao dịch Blockchain.
 
 ---
 
@@ -1511,6 +1503,7 @@ Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David. Platform Admin 
 | Thuật ngữ | Tiếng Việt | Giải thích |
 |---|---|---|
 | **Smart Contract** | Hợp đồng thông minh | Chương trình chạy tự động trên blockchain |
+| **IPFS / CID** | — | Hệ thống lưu trữ file phi tập trung / Mã định danh nội dung |
 | **Deploy** | Triển khai | Đưa contract lên blockchain để mọi người sử dụng |
 | **Transaction (tx)** | Giao dịch | Một thao tác thay đổi dữ liệu trên blockchain |
 | **Gas** | Phí gas | Chi phí tính toán trên Ethereum, trả bằng ETH |

@@ -81,7 +81,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     function createRequest(
         string calldata desc,
         uint256 value,
-        address payable recipient
+        address payable recipient,
+        string calldata evidenceHash
     ) external onlyManager onlyActive {
         if (value == 0) revert InsufficientFunds();
         if (recipient == address(0)) revert InvalidAddress();
@@ -95,6 +96,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.recipient = recipient;
         r.complete = false;
         r.approvalCount = 0;
+        r.evidenceHash = evidenceHash;
         r.requestType = RequestLib.RequestType.SINGLE;
 
         // Kiểm tra ngưỡng Validator (0.5%)
@@ -105,7 +107,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             r.selectedValidators = selected;
         }
 
-        emit RequestCreated(requests.length - 1, desc, value, recipient);
+        emit RequestCreated(requests.length - 1, desc, value, recipient, evidenceHash);
     }
 
     /**
@@ -140,13 +142,14 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             r.milestones.push(RequestLib.Milestone({
                 value: milestoneValues[i],
                 description: milestoneDescriptions[i],
-                released: false
+                released: false,
+                evidenceHash: ""
             }));
             totalBudget += milestoneValues[i];
         }
         r.value = totalBudget;
 
-        emit RequestCreated(requests.length - 1, desc, totalBudget, recipient);
+        emit RequestCreated(requests.length - 1, desc, totalBudget, recipient, "");
     }
 
     // =====================
@@ -241,7 +244,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
      * @dev Verifier (Oracle) ký chữ ký số xác nhận hàng đã giao.
      *      Tiền tự động chuyển thẳng cho Supplier đã whitelist.
      */
-    function executeMilestone(uint256 index, bytes calldata signature) external nonReentrant {
+    function executeMilestone(uint256 index, bytes calldata signature, string calldata evidenceHash) external nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
@@ -262,6 +265,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (signer != r.verifier) revert InvalidSignature();
 
         m.released = true;
+        m.evidenceHash = evidenceHash;
         r.currentMilestone++;
 
         if (r.currentMilestone == r.milestones.length) {
@@ -271,7 +275,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         (bool success, ) = r.recipient.call{value: m.value}("");
         if (!success) revert TransferFailed();
 
-        emit MilestoneReleased(index, current, m.value);
+        emit MilestoneReleased(index, current, m.value, evidenceHash);
     }
 
     function deactivateCampaign() external onlyManager {

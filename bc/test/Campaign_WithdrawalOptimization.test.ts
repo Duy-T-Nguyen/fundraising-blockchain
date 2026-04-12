@@ -130,7 +130,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       await campaign.connect(campaignManager).createRequest(
         "Buy rice from Supplier",
         ethers.parseEther("0.05"),
-        supplier.address
+        supplier.address,
+        ""
       );
       const request = await campaign.requests(0);
       expect(request.recipient).to.equal(supplier.address);
@@ -141,7 +142,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         campaign.connect(campaignManager).createRequest(
           "Buy from unknown",
           ethers.parseEther("0.05"),
-          nonSupplier.address
+          nonSupplier.address,
+          ""
         )
       ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
     });
@@ -163,7 +165,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         campaign.connect(campaignManager).createRequest(
           "Self pay",
           100,
-          campaignManager.address
+          campaignManager.address,
+          ""
         )
       ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
     });
@@ -175,7 +178,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   describe("Path A: Small Requests (Validator-only)", function () {
     it("should allow 2/3 validators to approve and finalize a small request", async () => {
       const amount = ethers.parseEther("0.05");
-      await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address);
+      await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address, "");
 
       // Find selected validators and approve
       const selected: string[] = [];
@@ -199,7 +202,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("should revert if amount > 0.5% and try to use validator path", async () => {
       const largeAmount = ethers.parseEther("0.2"); // 1% of 20 ETH
-      await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address);
+      await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address, "");
 
       await expect(campaign.connect(validator1).approveAsValidator(0))
         .to.be.revertedWithCustomError(campaign, "MilestoneNotApproved");
@@ -236,7 +239,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const signature1 = await verifier.signMessage(ethers.toBeArray(messageHash1));
 
       const before1 = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, signature1);
+      await campaign.executeMilestone(0, signature1, "");
       const after1 = await ethers.provider.getBalance(supplier.address);
       expect(after1 - before1).to.equal(milestoneValues[0]);
 
@@ -246,7 +249,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const signature2 = await verifier.signMessage(ethers.toBeArray(messageHash2));
-      await campaign.executeMilestone(0, signature2);
+      await campaign.executeMilestone(0, signature2, "");
 
       // 5. Verify request is complete
       const request = await campaign.requests(0);
@@ -272,7 +275,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       // Wrong signer
       const badSignature = await campaignManager.signMessage(ethers.toBeArray(messageHash));
 
-      await expect(campaign.executeMilestone(0, badSignature))
+      await expect(campaign.executeMilestone(0, badSignature, ""))
         .to.be.revertedWithCustomError(campaign, "InvalidSignature");
     });
   });
@@ -307,7 +310,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const sig1 = await verifier.signMessage(ethers.toBeArray(hash1));
 
       const supplierBefore = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, sig1);
+      await campaign.executeMilestone(0, sig1, "");
       const supplierAfter = await ethers.provider.getBalance(supplier.address);
 
       expect(supplierAfter - supplierBefore).to.equal(ethers.parseEther("2"));
@@ -318,7 +321,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const sig2 = await verifier.signMessage(ethers.toBeArray(hash2));
-      await campaign.executeMilestone(0, sig2);
+      await campaign.executeMilestone(0, sig2, "");
 
       // 6. Verify: Request complete, Supplier received all funds
       const request = await campaign.requests(0);

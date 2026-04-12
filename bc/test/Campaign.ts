@@ -222,7 +222,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Buy supplies",
         ethers.parseEther("0.05"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       const request = await campaign.requests(0);
@@ -238,7 +239,8 @@ describe("Campaign & Factory", function () {
         campaign.createRequest(
           "Buy supplies",
           ethers.parseEther("0.05"),
-          recipient.address
+          recipient.address,
+          ""
         )
       )
         .to.emit(campaign, "RequestCreated")
@@ -246,14 +248,15 @@ describe("Campaign & Factory", function () {
           0,
           "Buy supplies",
           ethers.parseEther("0.05"),
-          recipient.address
+          recipient.address,
+          ""
         );
     });
 
     it("should track multiple requests", async () => {
-      await campaign.createRequest("Request 1", 100, recipient.address);
-      await campaign.createRequest("Request 2", 200, recipient.address);
-      await campaign.createRequest("Request 3", 300, recipient.address);
+      await campaign.createRequest("Request 1", 100, recipient.address, "");
+      await campaign.createRequest("Request 2", 200, recipient.address, "");
+      await campaign.createRequest("Request 3", 300, recipient.address, "");
 
       expect(await campaign.getRequestsCount()).to.equal(3);
     });
@@ -262,25 +265,25 @@ describe("Campaign & Factory", function () {
       await expect(
         campaign
           .connect(donor1)
-          .createRequest("Buy supplies", 100, recipient.address)
+          .createRequest("Buy supplies", 100, recipient.address, "")
       ).to.be.revertedWithCustomError(campaign, "NotManager");
     });
 
     it("should revert with zero value", async () => {
       await expect(
-        campaign.createRequest("Buy supplies", 0, recipient.address)
+        campaign.createRequest("Buy supplies", 0, recipient.address, "")
       ).to.be.revertedWithCustomError(campaign, "InsufficientFunds");
     });
 
     it("should revert with zero-address recipient", async () => {
       await expect(
-        campaign.createRequest("Buy supplies", 100, ethers.ZeroAddress)
+        campaign.createRequest("Buy supplies", 100, ethers.ZeroAddress, "")
       ).to.be.revertedWithCustomError(campaign, "InvalidAddress");
     });
 
     it("should revert with empty description", async () => {
       await expect(
-        campaign.createRequest("", 100, recipient.address)
+        campaign.createRequest("", 100, recipient.address, "")
       ).to.be.revertedWithCustomError(campaign, "EmptyDescription");
     });
   });
@@ -300,7 +303,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Spend money",
         ethers.parseEther("0.5"),
-        recipient.address
+        recipient.address,
+        ""
       );
     });
 
@@ -378,7 +382,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Spend money",
         ethers.parseEther("1"),
-        recipient.address
+        recipient.address,
+        ""
       );
     });
 
@@ -465,7 +470,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Expensive",
         ethers.parseEther("100"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       await campaign.connect(donor1).approveRequest(1);
@@ -487,7 +493,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Second request",
         ethers.parseEther("0.5"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       // Vote and finalize first request
@@ -551,7 +558,7 @@ describe("Campaign & Factory", function () {
     it("cannot create request on deactivated campaign", async () => {
       await campaign.deactivateCampaign();
       await expect(
-        campaign.createRequest("Test", 100, recipient.address)
+        campaign.createRequest("Test", 100, recipient.address, "")
       ).to.be.revertedWithCustomError(campaign, "CampaignNotActive");
     });
 
@@ -563,7 +570,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Test",
         ethers.parseEther("0.1"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       // Deactivate
@@ -582,7 +590,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Final spend",
         ethers.parseEther("0.5"),
-        recipient.address
+        recipient.address,
+        ""
       );
       await campaign.connect(donor1).approveRequest(0);
 
@@ -609,7 +618,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Test",
         ethers.parseEther("0.5"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       const summary = await campaign.getSummary();
@@ -624,10 +634,10 @@ describe("Campaign & Factory", function () {
     it("getRequestsCount returns correct count", async () => {
       expect(await campaign.getRequestsCount()).to.equal(0);
 
-      await campaign.createRequest("Req 1", 100, recipient.address);
+      await campaign.createRequest("Req 1", 100, recipient.address, "");
       expect(await campaign.getRequestsCount()).to.equal(1);
 
-      await campaign.createRequest("Req 2", 200, recipient.address);
+      await campaign.createRequest("Req 2", 200, recipient.address, "");
       expect(await campaign.getRequestsCount()).to.equal(2);
     });
   });
@@ -652,7 +662,8 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Development costs",
         ethers.parseEther("4"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       // 3. Donors vote (need > 50% = need at least 2 out of 3)
@@ -690,17 +701,20 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest(
         "Phase 1",
         ethers.parseEther("2"),
-        recipient.address
+        recipient.address,
+        ""
       );
       await campaign.createRequest(
         "Phase 2",
         ethers.parseEther("3"),
-        recipient.address
+        recipient.address,
+        ""
       );
       await campaign.createRequest(
         "Phase 3",
         ethers.parseEther("4"),
-        recipient.address
+        recipient.address,
+        ""
       );
 
       // Approve and finalize all
