@@ -23,6 +23,7 @@ error InsufficientFunds();
 error InvalidAddress();
 error InvalidRequestIndex();
 error EmptyDescription();
+error EmptyEvidenceHash();
 error TransferFailed();
 error InvalidSignature();
 error NotAuthorizedValidator();

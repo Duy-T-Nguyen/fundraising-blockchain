@@ -89,6 +89,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
         if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
         if (bytes(desc).length == 0) revert EmptyDescription();
+        if (bytes(evidenceHash).length == 0) revert EmptyEvidenceHash();
 
         RequestLib.Request storage r = requests.push();
         r.description = desc;

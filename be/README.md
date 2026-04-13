@@ -56,6 +56,20 @@ yarn run start:prod
   }
   ```
 
+## 📖 Swagger API Documentation
+
+Once the server is running, you can interactively test the APIs (like uploading evidence) without needing any external tools.
+
+- **URL**: [http://localhost:3000/api](http://localhost:3000/api)
+
+## 🔗 Testnet Interaction Flow
+
+When interacting with the Blockchain (Sepolia Testnet), the Backend serves as the secure bridge for evidence:
+
+1.  **Upload Evidence**: Use the Swagger UI or Frontend to upload an image to `POST /evidence/upload`.
+2.  **Get CID**: The API will return an IPFS `cid`.
+3.  **Link to Blockchain**: Pass this `cid` into the `evidenceHash` parameter of the `createRequest` function on the Smart Contract (e.g., via Etherscan).
+
 ## 📂 Project Structure
 
 - `src/evidence/`: Core logic for IPFS uploads.

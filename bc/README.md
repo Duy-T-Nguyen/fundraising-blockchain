@@ -1220,10 +1220,10 @@ npx hardhat verify --network sepolia <ĐỊA_CHỈ_FACTORY> "<ĐỊA_CHỈ_REGIS
 **Lệnh thực tế (với lần deploy gần nhất của bạn)**:
 ```bash
 # Verify SupplierRegistry
-npx hardhat verify --network sepolia 0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
+npx hardhat verify --network sepolia 0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
 
 # Verify CampaignFactory
-npx hardhat verify --network sepolia 0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b"
+npx hardhat verify --network sepolia 0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B "0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92"
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1237,9 +1237,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b` |
-| CampaignFactory Address | `0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#code) |
+| SupplierRegistry Address | `0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92` |
+| CampaignFactory Address | `0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1264,13 +1264,13 @@ Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận 
 ### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
 Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract](https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92#writeContract](https://sepolia.etherscan.io/address/0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92#writeContract)
 2.  Kết nối ví MetaMask (Connect to Web3).
 3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
 4.  Nhấn **"Write"** để xác nhận.
 
 ### Bước 1: Tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#writeContract](https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#writeContract)
 2.  Dùng hàm **`createCampaign`**: Nhập số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
 3.  Sau khi giao dịch thành công, sang tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign vừa tạo.
 
@@ -1302,8 +1302,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b";
-  const FACTORY_ADDR = "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D";
+  const REGISTRY_ADDR = "0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92";
+  const FACTORY_ADDR = "0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1338,7 +1338,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D");
+const factory = await ethers.getContractAt("CampaignFactory", "0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
