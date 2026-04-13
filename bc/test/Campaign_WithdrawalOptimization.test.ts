@@ -135,6 +135,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       );
       const request = await campaign.requests(0);
       expect(request.recipient).to.equal(supplier.address);
+      expect(request.evidenceHash).to.equal("QmTestHash");
     });
 
     it("Manager CANNOT create request for non-whitelisted address", async () => {

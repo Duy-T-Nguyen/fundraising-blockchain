@@ -232,6 +232,7 @@ describe("Campaign & Factory", function () {
       expect(request.recipient).to.equal(recipient.address);
       expect(request.complete).to.equal(false);
       expect(request.approvalCount).to.equal(0n);
+      expect(request.evidenceHash).to.equal("QmTestHash");
     });
 
     it("should emit RequestCreated event", async () => {
