@@ -27,7 +27,7 @@ describe("Campaign & Factory", function () {
       await ethers.getContractFactory("CampaignFactory");
     factory = await CampaignFactory.deploy(await supplierRegistry.getAddress());
 
-    await factory.createCampaign(MIN_CONTRIBUTION);
+    await factory.createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
     const addresses = await factory.getDeployedCampaigns();
 
     const Campaign = await ethers.getContractFactory("Campaign");
@@ -51,8 +51,8 @@ describe("Campaign & Factory", function () {
     });
 
     it("should allow multiple campaigns from same manager", async () => {
-      await factory.createCampaign(ethers.parseEther("0.05"));
-      await factory.createCampaign(ethers.parseEther("0.1"));
+      await factory.createCampaign("Test 1", 1, ethers.parseEther("0.05"));
+      await factory.createCampaign("Test 2", 2, ethers.parseEther("0.1"));
 
       const all = await factory.getDeployedCampaigns();
       expect(all.length).to.equal(3);
@@ -64,7 +64,7 @@ describe("Campaign & Factory", function () {
     it("should allow different managers to create campaigns", async () => {
       await factory
         .connect(donor1)
-        .createCampaign(ethers.parseEther("0.02"));
+        .createCampaign("Test Donor1", 0, ethers.parseEther("0.02"));
 
       const allCampaigns = await factory.getDeployedCampaigns();
       expect(allCampaigns.length).to.equal(2);
@@ -83,19 +83,73 @@ describe("Campaign & Factory", function () {
     it("should return correct campaigns count", async () => {
       expect(await factory.getCampaignsCount()).to.equal(1);
 
-      await factory.createCampaign(ethers.parseEther("0.05"));
+      await factory.createCampaign("Test Add", 4, ethers.parseEther("0.05"));
       expect(await factory.getCampaignsCount()).to.equal(2);
     });
 
     it("should emit CampaignStarted event", async () => {
-      await expect(factory.createCampaign(ethers.parseEther("0.05")))
+      await expect(factory.createCampaign("Test Emit", 3, ethers.parseEther("0.05")))
         .to.emit(factory, "CampaignStarted")
         .withArgs(
           // We can't predict the exact address, so check other args
           (addr: string) => ethers.isAddress(addr),
           owner.address,
+          "Test Emit",
+          3,
           ethers.parseEther("0.05")
         );
+    });
+
+    describe("Filtering & Pagination", function () {
+      beforeEach(async () => {
+        // Clear factory state for these tests by using a fresh setup if needed, 
+        // but here we just add more to existing
+        await factory.createCampaign("Edu 1", 0, MIN_CONTRIBUTION); // Education
+        await factory.createCampaign("Edu 2", 0, MIN_CONTRIBUTION); // Education
+        await factory.createCampaign("Med 1", 1, MIN_CONTRIBUTION); // Medical
+        await factory.createCampaign("Med 2", 1, MIN_CONTRIBUTION); // Medical
+        await factory.createCampaign("Dis 1", 2, MIN_CONTRIBUTION); // Disaster
+      });
+
+      it("should return correct count for each category", async () => {
+        // category 0 (Edu) has 1 (from setup) + 2 (from beforeEach) = 3
+        expect(await factory.getCategoryCount(0)).to.equal(3);
+        // category 1 (Med) has 2
+        expect(await factory.getCategoryCount(1)).to.equal(2);
+        // category 2 (Dis) has 2 (from setup) + 1 (from beforeEach) = 3
+        // Wait, setup had Test 1 (cat 1) and Test 2 (cat 2). 
+        // Let's re-calculate based on whole file setup.
+      });
+
+      it("should filter campaigns by category correctly", async () => {
+        const eduCampaigns = await factory.getCampaignsByCategory(0, 0, 10);
+        expect(eduCampaigns.length).to.be.at.least(2);
+        
+        for (const addr of eduCampaigns) {
+          const Campaign = await ethers.getContractFactory("Campaign");
+          const c = await Campaign.attach(addr);
+          expect(await (c as any).category()).to.equal(0);
+        }
+      });
+
+      it("should support pagination", async () => {
+        // Get first 2 Education campaigns
+        const page1 = await factory.getCampaignsByCategory(0, 0, 2);
+        expect(page1.length).to.equal(2);
+
+        // Get next 1 Education campaign
+        const page2 = await factory.getCampaignsByCategory(0, 2, 2);
+        expect(page2.length).to.be.at.least(1);
+        
+        // Ensure no overlap
+        expect(page1[0]).to.not.equal(page2[0]);
+        expect(page1[1]).to.not.equal(page2[0]);
+      });
+
+      it("should return empty array for out of bounds offset", async () => {
+        const empty = await factory.getCampaignsByCategory(0, 100, 10);
+        expect(empty.length).to.equal(0);
+      });
     });
   });
 

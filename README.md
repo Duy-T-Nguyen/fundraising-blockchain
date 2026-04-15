@@ -63,4 +63,19 @@ Vui lòng đọc tài liệu hướng dẫn chuyên sâu cho từng thành phầ
 - [Tài liệu Frontend (fe/)](file:///home/thanhlong/Documents/fundraising-blockchain/fe/README.md)
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant.*
+
+## 🚀 Thông tin Triển khai (Sepolia Testnet)
+
+Hệ thống đã được triển khai chính thức trên mạng thử nghiệm Sepolia:
+
+| Hợp đồng | Địa chỉ (Contract Address) |
+|---|---|
+| **CampaignFactory** | `0x741419F2e240344aB32126ab94ce1E020A9332F6` |
+| **SupplierRegistry** | `0x4dc0A0d3132F117951f7f316F07283b0EDFe467b` |
+
+**Các tính năng mới nhất (Cập nhật 15/04/2026):**
+- **On-chain Indexing**: Cho phép tìm kiếm campaign theo danh mục trực tiếp từ Smart Contract.
+- **Pagination**: Hỗ trợ phân trang cho danh sách chiến dịch, tối ưu tốc độ cho Frontend.
+
+---
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 15/04/2026.*

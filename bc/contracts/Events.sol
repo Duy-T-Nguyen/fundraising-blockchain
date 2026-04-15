@@ -6,6 +6,8 @@ pragma solidity ^0.8.28;
  * @notice Định nghĩa các sự kiện cho hệ thống Campaign.
  */
 contract Events {
+    enum Category { Education, Medical, Disaster, Environment, Others }
+
     /// @notice Phát ra khi có người đóng góp
     event Donation(address indexed donor, uint256 amount);
 
@@ -26,4 +28,13 @@ contract Events {
 
     /// @notice Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
+
+    /// @notice Phát ra khi chiến dịch mới được tạo (Dùng cho Factory)
+    event CampaignStarted(
+        address indexed campaignAddress,
+        address indexed manager,
+        string campaignName,
+        Category indexed category,
+        uint256 minContribution
+    );
 }

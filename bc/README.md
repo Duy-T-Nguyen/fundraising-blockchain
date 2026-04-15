@@ -382,11 +382,23 @@ contract Events {
     /// Phát ra khi donor biểu quyết cho yêu cầu
     event Voted(address indexed voter, uint256 indexed requestId);
 
-    /// Phát ra khi yêu cầu chi tiêu được giải ngân
-    event FundsReleased(uint256 indexed requestId);
+    /// Phát ra khi một milestone được giải ngân
+    event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount, string evidenceHash);
+
+    /// Phát ra khi validator pool được cập nhật
+    event ValidatorPoolUpdated(address indexed poolAddress);
 
     /// Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
+
+    /// Phát ra khi chiến dịch mới được tạo (Dùng cho Factory)
+    event CampaignStarted(
+        address indexed campaignAddress,
+        address indexed manager,
+        string campaignName,
+        Category indexed category,
+        uint256 minContribution
+    );
 }
 ```
 
@@ -497,21 +509,39 @@ contract CampaignFactory {
     event CampaignStarted(
         address indexed campaignAddress,
         address indexed manager,
+        string campaignName,
+        Category indexed category,
         uint256 minContribution
     );
 
+    /// Sổ cái Nhà cung cấp dùng chung
+    SupplierRegistry public supplierRegistry;
+
+    constructor(address _supplierRegistry) {
+        supplierRegistry = SupplierRegistry(_supplierRegistry);
+    }
+
     /// Tạo chiến dịch gây quỹ mới
-    function createCampaign(uint256 minimum) external {
-        // Tạo (deploy) một Campaign contract mới
-        Campaign newCampaign = new Campaign(minimum, msg.sender);
+    function createCampaign(string calldata name, Category category, uint256 minimum) external {
+        // Khởi tạo pool cho campaign mới
+        ValidatorPool pool = new ValidatorPool(msg.sender);
+        Campaign newCampaign = new Campaign(
+            name,
+            category,
+            minimum,
+            msg.sender,
+            address(pool),
+            address(supplierRegistry)
+        );
         address campaignAddr = address(newCampaign);
 
         // Lưu địa chỉ contract mới vào danh sách
         deployedCampaigns.push(campaignAddr);
         campaignsByManager[msg.sender].push(campaignAddr);
+        categoryToCampaigns[category].push(campaignAddr);
 
         // Phát sự kiện
-        emit CampaignStarted(campaignAddr, msg.sender, minimum);
+        emit CampaignStarted(campaignAddr, msg.sender, name, category, minimum);
     }
 
     /// Lấy toàn bộ danh sách campaigns
@@ -548,7 +578,7 @@ Thay vì mỗi người phải tự deploy contract (rất phức tạp), Factor
 
 | Hàm | Loại | Ai gọi? | Mục đích |
 |---|---|---|---|
-| `createCampaign(minimum)` | Write | Bất kỳ ai | Tạo chiến dịch mới |
+| `createCampaign(name, category, min)` | Write | Bất kỳ ai | Tạo chiến dịch mới với phân loại |
 | `getDeployedCampaigns()` | Read | Bất kỳ ai | Xem tất cả campaigns |
 | `getCampaignsByManager(addr)` | Read | Bất kỳ ai | Xem campaigns của 1 manager |
 | `getCampaignsCount()` | Read | Bất kỳ ai | Đếm tổng số campaigns |
@@ -571,16 +601,34 @@ uint256 public totalDonors;                      // Tổng số donors duy nhấ
 mapping(address => uint256) public contributions; // Mapping: donor → số tiền đã đóng góp
 RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu chi tiêu
 bool public active;                              // Chiến dịch có đang hoạt động không?
+
+string public campaignName;                      // Tên chiến dịch
+Category public category;                        // Danh mục
+ValidatorPool public validatorPool;              // Pool của Validators
+SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```
 
 **Constructor**:
 ```solidity
-constructor(uint256 _minimum, address _manager) {
-    if (_minimum == 0) revert InsufficientFunds();      // Minimum phải > 0
-    if (_manager == address(0)) revert InvalidAddress(); // Manager phải hợp lệ
-    manager = _manager;           // Gán manager
-    minimumContribution = _minimum; // Gán mức đóng góp tối thiểu
-    active = true;                 // Chiến dịch bắt đầu ở trạng thái hoạt động
+constructor(
+    string memory _name,
+    Category _category,
+    uint256 _minimum,
+    address _manager,
+    address _validatorPool,
+    address _supplierRegistry
+) {
+    if (_minimum == 0) revert InsufficientFunds();
+    if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
+        revert InvalidAddress();
+    
+    campaignName = _name;
+    category = _category;
+    manager = _manager;
+    minimumContribution = _minimum;
+    validatorPool = ValidatorPool(_validatorPool);
+    supplierRegistry = SupplierRegistry(_supplierRegistry);
+    active = true;
 }
 ```
 
@@ -896,9 +944,6 @@ main();
 - **Security**: Chống lạm quyền, xác thực Verifier, phòng chống Re-entrancy.
 
 #### 📌 `test/Campaign.ts` — Bộ test cơ bản (54 test cases)
-
-**Vai trò**: Kiểm tra **toàn bộ** chức năng của hệ thống. Bao gồm 8 nhóm test:
-
 | Nhóm test | Số test | Kiểm tra gì? |
 |---|---|---|
 | **CampaignFactory** | 6 | Tạo campaign, theo dõi theo manager, emit event |
@@ -949,7 +994,7 @@ beforeEach(async () => {
   factory = await CampaignFactory.deploy();
 
   // 3. Tạo 1 Campaign qua Factory
-  await factory.createCampaign(MIN_CONTRIBUTION);
+  await factory.createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
   const addresses = await factory.getDeployedCampaigns();
 
   // 4. Kết nối đến Campaign contract vừa tạo
@@ -1002,22 +1047,66 @@ File này là **mẫu mặc định** khi tạo dự án Hardhat mới. **Không
 ```
 Errors.sol ─────────────────────────┐
                                     ▼
-Events.sol ──────────────┐   AccessControl.sol
+Events.sol ──────────────┐   AccessControl.sol ──┐  ValidatorPool.sol
+                         │          │            │        │
+                         ▼          ▼            ▼        ▼
+RequestLib.sol ────────► Campaign.sol ◄──── CampaignFactory.sol
+                         ▲          ▲
                          │          │
-                         ▼          ▼
-RequestLib.sol ────────► Campaign.sol ◄──── ReentrancyGuard (OpenZeppelin)
-                              ▲
-                              │
-                    CampaignFactory.sol
+                  ReentrancyGuard  SupplierRegistry.sol
 ```
 
 ### Vai trò người dùng (Roles)
 
 | Vai trò | Quyền | Hạn chế |
 |---|---|---|
-| **Manager** (Người tạo chiến dịch) | Tạo request, finalize, deactivate | Không được vote |
-| **Donor** (Người đóng góp) | Donate, vote | Không thể tạo request hay finalize |
-| **Người ngoài** | Xem thông tin (getSummary) | Không thể donate/vote/finalize |
+| **Platform Admin** | Thẩm định & Whitelist Supplier | Không tham gia quản lý quỹ |
+| **Campaign Manager** | Tạo chiến dịch, Request, Finalize | Không được tự vote |
+| **Validator** | Duyệt các lệnh chi tiền nhỏ (<0.5%) | Phải được chọn ngẫu nhiên |
+| **Donor** | Quyên góp, Biểu quyết lệnh chi lớn | Không thể tạo request |
+| **Người ngoài** | Xem thông tin công khai | Không có quyền thao tác |
+
+---
+
+## 🔍 Tính năng Nâng cao: On-chain Indexing & Filtering
+
+Dự án hiện hỗ trợ việc phân loại và tìm kiếm chiến dịch trực tiếp trên Blockchain (không cần database riêng), giúp tối ưu hóa tốc độ và tính phi tập trung.
+
+### 1. Phân loại Chiến dịch (Category)
+Hệ thống sử dụng các danh mục cố định để người dùng dễ dàng tìm kiếm:
+- **0 - Education** (Giáo dục)
+- **1 - Medical** (Y tế)
+- **2 - Disaster** (Cứu trợ thiên tai)
+- **3 - Environment** (Môi trường)
+- **4 - Others** (Khác)
+
+### 2. Cách tạo Chiến dịch có phân loại
+Hàm `createCampaign` hiện yêu cầu 3 tham số thay vì 1 như trước:
+```solidity
+function createCampaign(string calldata name, Category category, uint256 minimum) external;
+```
+**Hướng dẫn tương tác:**
+- `name`: Nhập tên chiến dịch (ví dụ: "Cứu trợ lũ lụt Miền Trung").
+- `category`: Nhập số tương ứng (0-4).
+- `minimum`: Số tiền tối thiểu (Wei).
+
+### 3. Tìm kiếm và Phân trang (Pagination) — Hướng dẫn cho Frontend
+Để hiển thị danh sách chiến dịch theo danh mục mà không làm lag ứng dụng, Frontend nên dùng hàm sau:
+
+```javascript
+// Trả về một mảng địa chỉ các campaign thuộc danh mục mong muốn
+function getCampaignsByCategory(Category category, uint256 offset, uint256 limit) returns (address[] campaigns);
+```
+
+**Tham số:**
+- `category`: ID danh mục (0-4).
+- `offset`: Vị trí bắt đầu lấy (ví dụ: trang 1 là 0, trang 2 là 10).
+- `limit`: Số lượng mục mỗi trang (ví dụ: 10).
+
+**Ví dụ lấy 10 mục đầu tiên của danh mục Y tế:**
+`factory.getCampaignsByCategory(1, 0, 10);`
+
+---
 
 ---
 
@@ -1237,9 +1326,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92` |
-| CampaignFactory Address | `0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#code) |
+| SupplierRegistry Address | `0x4dc0A0d3132F117951f7f316F07283b0EDFe467b` |
+| CampaignFactory Address | `0x741419F2e240344aB32126ab94ce1E020A9332F6` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1264,14 +1353,17 @@ Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận 
 ### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
 Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92#writeContract](https://sepolia.etherscan.io/address/0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92#writeContract)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x4dc0A0d3132F117951f7f316F07283b0EDFe467b#writeContract](https://sepolia.etherscan.io/address/0x4dc0A0d3132F117951f7f316F07283b0EDFe467b#writeContract)
 2.  Kết nối ví MetaMask (Connect to Web3).
 3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
 4.  Nhấn **"Write"** để xác nhận.
 
 ### Bước 1: Tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#writeContract](https://sepolia.etherscan.io/address/0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B#writeContract)
-2.  Dùng hàm **`createCampaign`**: Nhập số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#writeContract](https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#writeContract)
+2.  Dùng hàm **`createCampaign`**: 
+    - `name`: Tên chiến dịch (ví dụ: "Cứu trợ lũ lụt").
+    - `category`: ID danh mục (0-4). Xem mục [Tính năng Nâng cao](# tính-năng-nâng-cao-on-chain-indexing--filtering) để biết chi tiết.
+    - `minimum`: Số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
 3.  Sau khi giao dịch thành công, sang tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign vừa tạo.
 
 ### Bước 2: Quyên góp (Donors)
@@ -1302,8 +1394,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92";
-  const FACTORY_ADDR = "0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B";
+  const REGISTRY_ADDR = "0x4dc0A0d3132F117951f7f316F07283b0EDFe467b";
+  const FACTORY_ADDR = "0x741419F2e240344aB32126ab94ce1E020A9332F6";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1312,7 +1404,11 @@ async function main() {
 
   // 2. Tạo Campaign
   const factory = await ethers.getContractAt("CampaignFactory", FACTORY_ADDR);
-  const createTx = await factory.createCampaign(ethers.parseEther("0.01"));
+  const createTx = await factory.createCampaign(
+    "Chiến dịch Y tế mẫu", // name
+    1,                    // category (Medical)
+    ethers.parseEther("0.01") // min donation
+  );
   await createTx.wait();
 
   // 3. Lấy Campaign mới nhất
@@ -1338,7 +1434,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B");
+const factory = await ethers.getContractAt("CampaignFactory", "0x741419F2e240344aB32126ab94ce1E020A9332F6");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
@@ -1558,7 +1654,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia <ADDRESS> # Verify contract
+npx hardhat verify --network sepolia 0x4dc0A0d3132F117951f7f316F07283b0EDFe467b "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
+npx hardhat verify --network sepolia 0x741419F2e240344aB32126ab94ce1E020A9332F6 "0x4dc0A0d3132F117951f7f316F07283b0EDFe467b" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví
@@ -1568,4 +1665,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 10/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 15/04/2026**

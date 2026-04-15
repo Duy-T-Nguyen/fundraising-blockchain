@@ -36,7 +36,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
     factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress());
 
     // 4. Campaign Manager creates a Campaign via Factory
-    await factory.connect(campaignManager).createCampaign(MIN_CONTRIBUTION);
+    await factory.connect(campaignManager).createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
     const campaignAddress = await factory.deployedCampaigns(0);
 
     const Campaign = await ethers.getContractFactory("Campaign");

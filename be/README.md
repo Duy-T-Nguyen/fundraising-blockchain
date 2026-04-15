@@ -68,7 +68,7 @@ When interacting with the Blockchain (Sepolia Testnet), the Backend serves as th
 
 1.  **Upload Evidence**: Use the Swagger UI or Frontend to upload an image to `POST /evidence/upload`.
 2.  **Get CID**: The API will return an IPFS `cid`.
-3.  **Link to Blockchain**: Pass this `cid` into the `evidenceHash` parameter of the `createRequest` function on the Smart Contract (e.g., via Etherscan).
+3.  **Link to Blockchain**: Pass this `cid` into the `evidenceHash` parameter of the `createRequest` OR use it when initializing a Campaign via `createCampaign(name, category, min)` on the Smart Contract.
 
 ## 📂 Project Structure
 

@@ -12,22 +12,20 @@ import "./SupplierRegistry.sol";
  * @dev Mỗi lần gọi createCampaign sẽ deploy một Campaign contract mới.
  *      SupplierRegistry được inject từ bên ngoài (deploy 1 lần, dùng chung).
  */
-contract CampaignFactory {
+contract CampaignFactory is Events {
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
 
     /// @notice Mapping từ manager address đến các campaigns họ đã tạo
     mapping(address => address[]) public campaignsByManager;
 
+    /// @notice Danh sách chiến dịch phân loại theo danh mục (On-chain Index)
+    mapping(Category => address[]) public categoryToCampaigns;
+
     /// @notice Sổ cái Nhà cung cấp dùng chung cho tất cả Campaign
     SupplierRegistry public supplierRegistry;
 
-    /// @notice Phát ra khi chiến dịch mới được tạo
-    event CampaignStarted(
-        address indexed campaignAddress,
-        address indexed manager,
-        uint256 minContribution
-    );
+
 
     /**
      * @notice Khởi tạo Factory với SupplierRegistry đã deploy sẵn.
@@ -39,12 +37,16 @@ contract CampaignFactory {
 
     /**
      * @notice Tạo chiến dịch gây quỹ mới.
+     * @param name Tên chiến dịch.
+     * @param category Danh mục chiến dịch.
      * @param minimum Số tiền tối thiểu để được coi là donor (wei).
      */
-    function createCampaign(uint256 minimum) external {
+    function createCampaign(string calldata name, Category category, uint256 minimum) external {
         // Khởi tạo pool cho campaign mới, manager là người quản trị pool ban đầu
         ValidatorPool pool = new ValidatorPool(msg.sender);
         Campaign newCampaign = new Campaign(
+            name,
+            category,
             minimum,
             msg.sender,
             address(pool),
@@ -54,8 +56,9 @@ contract CampaignFactory {
 
         deployedCampaigns.push(campaignAddr);
         campaignsByManager[msg.sender].push(campaignAddr);
+        categoryToCampaigns[category].push(campaignAddr);
 
-        emit CampaignStarted(campaignAddr, msg.sender, minimum);
+        emit CampaignStarted(campaignAddr, msg.sender, name, category, minimum);
     }
 
     /**
@@ -81,5 +84,40 @@ contract CampaignFactory {
      */
     function getCampaignsCount() external view returns (uint256) {
         return deployedCampaigns.length;
+    }
+
+    /**
+     * @notice Lấy danh sách chiến dịch theo danh mục (hỗ trợ phân trang).
+     * @param category Danh mục cần lọc.
+     * @param offset Vị trí bắt đầu lấy.
+     * @param limit Số lượng tối đa phần tử trả về.
+     * @return campaigns Mảng địa chỉ các campaign được tìm thấy.
+     */
+    function getCampaignsByCategory(Category category, uint256 offset, uint256 limit) 
+        external 
+        view 
+        returns (address[] memory campaigns) 
+    {
+        address[] storage allInCategory = categoryToCampaigns[category];
+        uint256 total = allInCategory.length;
+
+        if (offset >= total) return new address[](0);
+
+        uint256 size = limit;
+        if (offset + limit > total) {
+            size = total - offset;
+        }
+
+        campaigns = new address[](size);
+        for (uint256 i = 0; i < size; i++) {
+            campaigns[i] = allInCategory[offset + i];
+        }
+    }
+
+    /**
+     * @notice Lấy tổng số chiến dịch trong một danh mục cụ thể.
+     */
+    function getCategoryCount(Category category) external view returns (uint256) {
+        return categoryToCampaigns[category].length;
     }
 }

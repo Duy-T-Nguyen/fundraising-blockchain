@@ -28,6 +28,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     RequestLib.Request[] public requests;
     bool public active;
     
+    string public campaignName;
+    Category public category;
+    
     ValidatorPool public validatorPool;
     SupplierRegistry public supplierRegistry;
 
@@ -35,6 +38,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
 
     constructor(
+        string memory _name,
+        Category _category,
         uint256 _minimum,
         address _manager,
         address _validatorPool,
@@ -43,6 +48,10 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (_minimum == 0) revert InsufficientFunds();
         if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
             revert InvalidAddress();
+        if (bytes(_name).length == 0) revert EmptyDescription();
+
+        campaignName = _name;
+        category = _category;
         manager = _manager;
         minimumContribution = _minimum;
         validatorPool = ValidatorPool(_validatorPool);
