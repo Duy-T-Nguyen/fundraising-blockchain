@@ -20,9 +20,9 @@ describe("Optimization & Unified Indexing Tests", function () {
     const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
     validatorPool = await ValidatorPool.deploy(owner.address);
 
-    // Setup Factory
+    // Setup Factory with Admin (owner)
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress());
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
   });
 
   describe("SupplierRegistry O(1) Removal", function () {
@@ -78,9 +78,15 @@ describe("Optimization & Unified Indexing Tests", function () {
       // Manager: owner (default), donor1
       const donor1 = addrs[0];
       
-      await factory.createCampaign("C1", 0, 100); // Owner, Cat 0
-      await factory.createCampaign("C2", 1, 100); // Owner, Cat 1
-      await factory.connect(donor1).createCampaign("C3", 0, 100); // Donor1, Cat 0
+      const createAndApprove = async (mgr: any, name: string, cat: number) => {
+        const id = await factory.requestCount();
+        await factory.connect(mgr).submitCampaignRequest(name, cat, 100);
+        await factory.connect(owner).approveCampaignRequest(id);
+      };
+
+      await createAndApprove(owner, "C1", 0); // Owner, Cat 0
+      await createAndApprove(owner, "C2", 1); // Owner, Cat 1
+      await createAndApprove(donor1, "C3", 0); // Donor1, Cat 0
       
       // Query ALL
       const all = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
@@ -91,10 +97,26 @@ describe("Optimization & Unified Indexing Tests", function () {
       expect(byManager.length).to.equal(1);
       expect(await factory.getManagerCount(donor1.address)).to.equal(1);
 
-      // Query BY_CATEGORY (0)
       const byCategory = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 0, 10);
       expect(byCategory.length).to.equal(2);
       expect(await factory.getCategoryCount(0)).to.equal(2);
+
+      // Verify Global Stats
+      const [count, totalDonated, totalDonors] = await factory.getGlobalStats();
+      expect(count).to.equal(3);
+      expect(totalDonated).to.equal(0); // No donations yet
+      expect(totalDonors).to.equal(0);
+
+      // Simulate a donation to verify real-time tracking
+      const campaignAddr = all[0];
+      const Campaign = await ethers.getContractFactory("Campaign");
+      const campaign = await Campaign.attach(campaignAddr);
+      
+      await (campaign as any).donate({ value: ethers.parseEther("1") });
+      
+      const statsAfter = await factory.getGlobalStats();
+      expect(statsAfter[1]).to.equal(ethers.parseEther("1"));
+      expect(statsAfter[2]).to.equal(1);
     });
   });
 });

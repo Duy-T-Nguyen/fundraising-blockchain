@@ -9,10 +9,12 @@ import "./SupplierRegistry.sol";
  * @title CampaignFactory
  * @author Fundraising Blockchain Team
  * @notice Contract trung tâm để khởi tạo và quản lý các chiến dịch gây quỹ.
- * @dev Mỗi lần gọi createCampaign sẽ deploy một Campaign contract mới.
- *      SupplierRegistry được inject từ bên ngoài (deploy 1 lần, dùng chung).
+ * @dev Áp dụng quy trình: Gửi yêu cầu -> Admin duyệt -> Deploy.
  */
 contract CampaignFactory is Events {
+    /// @notice Địa chỉ Platform Admin (người deploy hoặc quản trị hệ thống)
+    address public admin;
+
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
 
@@ -22,44 +24,134 @@ contract CampaignFactory is Events {
     /// @notice Danh sách chiến dịch phân loại theo danh mục (On-chain Index)
     mapping(Category => address[]) public categoryToCampaigns;
 
-    /// @notice Sổ cái Nhà cung cấp dùng chungo cho tất cả Campaign
+    /// @notice Sổ cái Nhà cung cấp dùng chung cho tất cả Campaign
     SupplierRegistry public supplierRegistry;
 
+    /// @notice Thống kê toàn cục
+    uint256 public totalGlobalDonated; // Tổng tiền (Wei)
+    uint256 public totalGlobalDonationsCount; // Tổng lượt tham gia
+    
+    /// @notice Kiểm tra địa chỉ có phải là Campaign hợp lệ do Factory tạo ra không
+    mapping(address => bool) public isChildCampaign;
 
+    // =====================
+    // Approval Workflow
+    // =====================
+    enum RequestStatus { PENDING, APPROVED, REJECTED }
+
+    struct CampaignRequest {
+        address manager;
+        string name;
+        string description;
+        string imageHash;
+        Category category;
+        uint256 minimumContribution;
+        RequestStatus status;
+        address deployedAddress;
+    }
+
+    /// @notice Mapping ID yêu cầu -> Thông tin yêu cầu
+    mapping(uint256 => CampaignRequest) public campaignRequests;
+    
+    /// @notice Tổng số yêu cầu đã gửi
+    uint256 public requestCount;
+
+    /// @dev Chỉ cho phép Admin gọi
+    modifier onlyAdmin() {
+        if (msg.sender != admin) revert NotAdmin();
+        _;
+    }
 
     /**
      * @notice Khởi tạo Factory với SupplierRegistry đã deploy sẵn.
      * @param _supplierRegistry Địa chỉ của SupplierRegistry contract.
+     * @param _admin Địa chỉ quản trị viên.
      */
-    constructor(address _supplierRegistry) {
+    constructor(address _supplierRegistry, address _admin) {
+        if (_admin == address(0)) revert InvalidAddress();
         supplierRegistry = SupplierRegistry(_supplierRegistry);
+        admin = _admin;
     }
 
     /**
-     * @notice Tạo chiến dịch gây quỹ mới.
+     * @notice Gửi yêu cầu tạo chiến dịch mới.
      * @param name Tên chiến dịch.
      * @param category Danh mục chiến dịch.
-     * @param minimum Số tiền tối thiểu để được coi là donor (wei).
+     * @param minimum Số tiền tối thiểu (wei).
      */
-    function createCampaign(string calldata name, Category category, uint256 minimum) external {
-        // Khởi tạo pool cho campaign mới, manager là người quản trị pool ban đầu
-        ValidatorPool pool = new ValidatorPool(msg.sender);
+    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external {
+        if (bytes(name).length == 0) revert EmptyDescription();
+        if (minimum == 0) revert InsufficientFunds();
+
+        uint256 requestId = requestCount++;
+        campaignRequests[requestId] = CampaignRequest({
+            manager: msg.sender,
+            name: name,
+            description: description,
+            imageHash: imageHash,
+            category: category,
+            minimumContribution: minimum,
+            status: RequestStatus.PENDING,
+            deployedAddress: address(0)
+        });
+
+        emit CampaignRequestSubmitted(requestId, msg.sender, name, description, imageHash, category, minimum);
+    }
+
+    /**
+     * @notice Admin duyệt yêu cầu và chính thức deploy Campaign.
+     * @param requestId ID của yêu cầu cần duyệt.
+     */
+    function approveCampaignRequest(uint256 requestId) external onlyAdmin {
+        if (requestId >= requestCount) revert InvalidRequestIndex();
+        CampaignRequest storage req = campaignRequests[requestId];
+        if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
+
+        req.status = RequestStatus.APPROVED;
+        
+        // Deploy các contract liên quan
+        ValidatorPool pool = new ValidatorPool(req.manager);
         Campaign newCampaign = new Campaign(
-            name,
-            category,
-            minimum,
-            msg.sender,
+            req.name,
+            req.description,
+            req.imageHash,
+            req.category,
+            req.minimumContribution,
+            req.manager,
             address(pool),
             address(supplierRegistry)
         );
+        
         address campaignAddr = address(newCampaign);
+        req.deployedAddress = campaignAddr;
 
+        // Lưu trữ vào index
         deployedCampaigns.push(campaignAddr);
-        campaignsByManager[msg.sender].push(campaignAddr);
-        categoryToCampaigns[category].push(campaignAddr);
+        campaignsByManager[req.manager].push(campaignAddr);
+        categoryToCampaigns[req.category].push(campaignAddr);
+        isChildCampaign[campaignAddr] = true;
 
-        emit CampaignStarted(campaignAddr, msg.sender, name, category, minimum);
+        emit CampaignRequestApproved(requestId, campaignAddr);
+        emit CampaignStarted(campaignAddr, req.manager, req.name, req.description, req.imageHash, req.category, req.minimumContribution);
     }
+
+    /**
+     * @notice Admin từ chối yêu cầu tạo chiến dịch.
+     * @param requestId ID của yêu cầu.
+     */
+    function rejectCampaignRequest(uint256 requestId) external onlyAdmin {
+        if (requestId >= requestCount) revert InvalidRequestIndex();
+        CampaignRequest storage req = campaignRequests[requestId];
+        if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
+
+        req.status = RequestStatus.REJECTED;
+
+        emit CampaignRequestRejected(requestId);
+    }
+
+    // =====================
+    // VIEW FUNCTIONS
+    // =====================
 
     /// @notice Các kiểu truy vấn hỗ trợ
     enum QueryType { ALL, BY_MANAGER, BY_CATEGORY }
@@ -123,5 +215,38 @@ contract CampaignFactory is Events {
      */
     function getCampaignsCount() external view returns (uint256) {
         return deployedCampaigns.length;
+    }
+
+    // =====================
+    // GLOBAL STATS (UPDATE FROM CHILD)
+    // =====================
+
+    /**
+     * @notice Hàm để các Campaign con báo cáo số liệu quyên góp.
+     * @param amount Số tiền quyên góp mới.
+     */
+    function recordDonation(uint256 amount) external {
+        if (!isChildCampaign[msg.sender]) revert NotAuthorized();
+        
+        totalGlobalDonated += amount;
+        totalGlobalDonationsCount += 1;
+    }
+
+    /**
+     * @notice Lấy thông tin thống kê tổng quát của toàn hệ thống (cho Dashboard).
+     * @return campaignsCount Tổng số chiến dịch.
+     * @return globalDonated Tổng số tiền đã gây quỹ.
+     * @return globalDonationsCount Tổng số lượt quyên góp.
+     */
+    function getGlobalStats() external view returns (
+        uint256 campaignsCount,
+        uint256 globalDonated,
+        uint256 globalDonationsCount
+    ) {
+        return (
+            deployedCampaigns.length,
+            totalGlobalDonated,
+            totalGlobalDonationsCount
+        );
     }
 }

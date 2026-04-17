@@ -34,7 +34,26 @@ contract Events {
         address indexed campaignAddress,
         address indexed manager,
         string campaignName,
+        string description,
+        string imageHash,
         Category indexed category,
         uint256 minContribution
     );
+
+    /// @notice Phát ra khi có yêu cầu tạo chiến dịch mới được gửi
+    event CampaignRequestSubmitted(
+        uint256 indexed requestId,
+        address indexed manager,
+        string name,
+        string description,
+        string imageHash,
+        Category category,
+        uint256 minContribution
+    );
+
+    /// @notice Phát ra khi một yêu cầu tạo chiến dịch được duyệt
+    event CampaignRequestApproved(uint256 indexed requestId, address indexed campaignAddress);
+
+    /// @notice Phát ra khi một yêu cầu tạo chiến dịch bị từ chối
+    event CampaignRequestRejected(uint256 indexed requestId);
 }

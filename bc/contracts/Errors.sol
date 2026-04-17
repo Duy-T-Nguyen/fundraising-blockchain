@@ -7,6 +7,7 @@ pragma solidity ^0.8.28;
 error NotManager();
 error NotDonor();
 error ManagerCannotVote();
+error NotAuthorized();
 
 // =====================
 // State Errors
@@ -40,3 +41,4 @@ error NotAdmin();
 error RecipientNotWhitelisted();
 error AlreadyWhitelisted();
 error NotWhitelisted();
+error RequestAlreadyProcessed();

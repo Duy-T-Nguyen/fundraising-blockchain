@@ -31,12 +31,15 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
     // 2. Platform Admin whitelist Supplier
     await supplierRegistry.connect(platformAdmin).addSupplier(supplier.address);
 
-    // 3. Deploy CampaignFactory with SupplierRegistry
+    // 3. Deploy CampaignFactory with SupplierRegistry and Platform Admin as Admin
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress());
+    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress(), platformAdmin.address);
 
-    // 4. Campaign Manager creates a Campaign via Factory
-    await factory.connect(campaignManager).createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
+    // 4. Campaign Manager submits a Campaign Request and Platform Admin approves it
+    const requestId = await factory.requestCount();
+    await factory.connect(campaignManager).submitCampaignRequest("Test Campaign", 0, MIN_CONTRIBUTION);
+    await factory.connect(platformAdmin).approveCampaignRequest(requestId);
+    
     const campaignAddress = await factory.deployedCampaigns(0);
 
     const Campaign = await ethers.getContractFactory("Campaign");

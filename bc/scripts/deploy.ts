@@ -1,4 +1,8 @@
-import { ethers } from "hardhat";
+import { ethers, run } from "hardhat";
+
+async function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -11,16 +15,44 @@ async function main() {
   const registryAddress = await supplierRegistry.getAddress();
   console.log("SupplierRegistry deployed to:", registryAddress);
 
-  // 2. Deploy CampaignFactory (inject SupplierRegistry)
+  // 2. Deploy CampaignFactory (inject SupplierRegistry and set Admin)
   const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-  const factory = await CampaignFactory.deploy(registryAddress);
+  const factory = await CampaignFactory.deploy(registryAddress, deployer.address);
   await factory.waitForDeployment();
-  console.log("CampaignFactory deployed to:", await factory.getAddress());
+  const factoryAddress = await factory.getAddress();
+  console.log("CampaignFactory deployed to:", factoryAddress);
 
   console.log("\n--- Deployment Summary ---");
-  console.log("Platform Admin (SupplierRegistry):", deployer.address);
+  console.log("Platform Admin:", deployer.address);
   console.log("SupplierRegistry:", registryAddress);
-  console.log("CampaignFactory:", await factory.getAddress());
+  console.log("CampaignFactory:", factoryAddress);
+
+  // --- Auto-Verification ---
+  // We wait for about 30-60 seconds to ensure Etherscan has indexed the contracts
+  console.log("\nWaiting for Etherscan indexing (60s)...");
+  await delay(60000);
+
+  console.log("Starting verification...");
+
+  try {
+    await run("verify:verify", {
+      address: registryAddress,
+      constructorArguments: [deployer.address],
+    });
+    console.log("SupplierRegistry verified!");
+  } catch (e: any) {
+    console.log("SupplierRegistry verification failed:", e.message);
+  }
+
+  try {
+    await run("verify:verify", {
+      address: factoryAddress,
+      constructorArguments: [registryAddress, deployer.address],
+    });
+    console.log("CampaignFactory verified!");
+  } catch (e: any) {
+    console.log("CampaignFactory verification failed:", e.message);
+  }
 }
 
 main().catch((error) => {

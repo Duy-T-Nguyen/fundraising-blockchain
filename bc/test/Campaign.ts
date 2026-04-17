@@ -25,13 +25,22 @@ describe("Campaign & Factory", function () {
 
     const CampaignFactory =
       await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress());
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
 
-    await factory.createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
+    const createAndApprove = async (mgr: any, name: string, description: string, imageHash: string, cat: number, min: any) => {
+      const count = await factory.requestCount();
+      await factory.connect(mgr).submitCampaignRequest(name, description, imageHash, cat, min);
+      await factory.connect(owner).approveCampaignRequest(count);
+    };
+
+    await createAndApprove(owner, "Test Campaign", "Test Description", "QmTest", 0, MIN_CONTRIBUTION);
     const addresses = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10); // ALL
 
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
+
+    // Expose helper to tests
+    (factory as any).createAndApprove = createAndApprove;
   });
 
   // =========================================================
@@ -49,8 +58,8 @@ describe("Campaign & Factory", function () {
     });
 
     it("should allow multiple campaigns from same manager", async () => {
-      await factory.createCampaign("Test 1", 1, ethers.parseEther("0.05"));
-      await factory.createCampaign("Test 2", 2, ethers.parseEther("0.1"));
+      await factory.createAndApprove(owner, "Test 1", "Desc 1", "Qm1", 1, ethers.parseEther("0.05"));
+      await factory.createAndApprove(owner, "Test 2", "Desc 2", "Qm2", 2, ethers.parseEther("0.1"));
 
       const all = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
       expect(all.length).to.equal(3);
@@ -62,7 +71,8 @@ describe("Campaign & Factory", function () {
     it("should allow different managers to create campaigns", async () => {
       await factory
         .connect(donor1)
-        .createCampaign("Test Donor1", 0, ethers.parseEther("0.02"));
+        .submitCampaignRequest("Test Donor1", "Desc Donor1", "QmDonor1", 0, ethers.parseEther("0.02"));
+      await factory.approveCampaignRequest(await factory.requestCount() - 1n);
 
       const allCampaigns = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
       expect(allCampaigns.length).to.equal(2);
@@ -77,18 +87,23 @@ describe("Campaign & Factory", function () {
     it("should return correct campaigns count", async () => {
       expect(await factory.getCampaignsCount()).to.equal(1);
 
-      await factory.createCampaign("Test Add", 4, ethers.parseEther("0.05"));
+      await factory.createAndApprove(owner, "Test Add", "Desc Add", "QmAdd", 4, ethers.parseEther("0.05"));
       expect(await factory.getCampaignsCount()).to.equal(2);
     });
 
     it("should emit CampaignStarted event", async () => {
-      await expect(factory.createCampaign("Test Emit", 3, ethers.parseEther("0.05")))
+      await expect(factory.submitCampaignRequest("Test Emit", "Desc Emit", "QmEmit", 3, ethers.parseEther("0.05")))
+        .to.emit(factory, "CampaignRequestSubmitted");
+      
+      await expect(factory.approveCampaignRequest(await factory.requestCount() - 1n))
         .to.emit(factory, "CampaignStarted")
         .withArgs(
           // We can't predict the exact address, so check other args
           (addr: string) => ethers.isAddress(addr),
           owner.address,
           "Test Emit",
+          "Desc Emit",
+          "QmEmit",
           3,
           ethers.parseEther("0.05")
         );
@@ -98,11 +113,11 @@ describe("Campaign & Factory", function () {
       beforeEach(async () => {
         // Clear factory state for these tests by using a fresh setup if needed, 
         // but here we just add more to existing
-        await factory.createCampaign("Edu 1", 0, MIN_CONTRIBUTION); // Education
-        await factory.createCampaign("Edu 2", 0, MIN_CONTRIBUTION); // Education
-        await factory.createCampaign("Med 1", 1, MIN_CONTRIBUTION); // Medical
-        await factory.createCampaign("Med 2", 1, MIN_CONTRIBUTION); // Medical
-        await factory.createCampaign("Dis 1", 2, MIN_CONTRIBUTION); // Disaster
+        await factory.createAndApprove(owner, "Edu 1", "D1", "Q1", 0, MIN_CONTRIBUTION); // Education
+        await factory.createAndApprove(owner, "Edu 2", "D2", "Q2", 0, MIN_CONTRIBUTION); // Education
+        await factory.createAndApprove(owner, "Med 1", "D3", "Q3", 1, MIN_CONTRIBUTION); // Medical
+        await factory.createAndApprove(owner, "Med 2", "D4", "Q4", 1, MIN_CONTRIBUTION); // Medical
+        await factory.createAndApprove(owner, "Dis 1", "D5", "Q5", 2, MIN_CONTRIBUTION); // Disaster
       });
 
       it("should return correct count for each category", async () => {
@@ -110,9 +125,8 @@ describe("Campaign & Factory", function () {
         expect(await factory.getCategoryCount(0)).to.equal(3);
         // category 1 (Med) has 2
         expect(await factory.getCategoryCount(1)).to.equal(2);
-        // category 2 (Dis) has 2 (from setup) + 1 (from beforeEach) = 3
-        // Wait, setup had Test 1 (cat 1) and Test 2 (cat 2). 
-        // Let's re-calculate based on whole file setup.
+        // category 2 (Dis) has 1
+        expect(await factory.getCategoryCount(2)).to.equal(1);
       });
 
       it("should filter campaigns by category correctly", async () => {
@@ -683,6 +697,7 @@ describe("Campaign & Factory", function () {
       expect(summary.numRequests).to.equal(1n);
       expect(summary.donors).to.equal(1n);
       expect(summary.managerAddr).to.equal(owner.address);
+      expect(summary.imgHash).to.equal("QmTest");
       expect(summary.isActive).to.equal(true);
     });
 

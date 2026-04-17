@@ -18,6 +18,10 @@ import "./SupplierRegistry.sol";
  * @dev Tích hợp mô hình WFP: Tiền chỉ chảy đến Supplier đã được Platform Admin thẩm định.
  *      Manager KHÔNG có quyền thêm Supplier hoặc nhận tiền.
  */
+interface ICampaignFactory {
+    function recordDonation(uint256 amount) external;
+}
+
 contract Campaign is Events, AccessControl, ReentrancyGuard {
     using RequestLib for RequestLib.Request;
     using ECDSA for bytes32;
@@ -29,16 +33,21 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     bool public active;
     
     string public campaignName;
+    string public description;
+    string public imageHash;
     Category public category;
     
     ValidatorPool public validatorPool;
     SupplierRegistry public supplierRegistry;
+    address public factory;
 
     /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ tại thời điểm tạo)
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
 
     constructor(
         string memory _name,
+        string memory _description,
+        string memory _imageHash,
         Category _category,
         uint256 _minimum,
         address _manager,
@@ -51,11 +60,14 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (bytes(_name).length == 0) revert EmptyDescription();
 
         campaignName = _name;
+        description = _description;
+        imageHash = _imageHash;
         category = _category;
         manager = _manager;
         minimumContribution = _minimum;
         validatorPool = ValidatorPool(_validatorPool);
         supplierRegistry = SupplierRegistry(_supplierRegistry);
+        factory = msg.sender;
         active = true;
     }
 
@@ -74,6 +86,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             totalDonors++;
         }
         contributions[msg.sender] += msg.value;
+
+        // Báo cáo số liệu về Factory
+        ICampaignFactory(factory).recordDonation(msg.value);
 
         emit Donation(msg.sender, msg.value);
     }
@@ -306,6 +321,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             uint256 numRequests,
             uint256 donors,
             address managerAddr,
+            string memory imgHash,
             bool isActive
         )
     {
@@ -315,6 +331,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             requests.length,
             totalDonors,
             manager,
+            imageHash,
             active
         );
     }
