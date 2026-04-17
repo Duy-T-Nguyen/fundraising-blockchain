@@ -22,7 +22,7 @@ contract CampaignFactory is Events {
     /// @notice Danh sách chiến dịch phân loại theo danh mục (On-chain Index)
     mapping(Category => address[]) public categoryToCampaigns;
 
-    /// @notice Sổ cái Nhà cung cấp dùng chung cho tất cả Campaign
+    /// @notice Sổ cái Nhà cung cấp dùng chungo cho tất cả Campaign
     SupplierRegistry public supplierRegistry;
 
 
@@ -61,47 +61,37 @@ contract CampaignFactory is Events {
         emit CampaignStarted(campaignAddr, msg.sender, name, category, minimum);
     }
 
-    /**
-     * @notice Lấy toàn bộ danh sách các chiến dịch đã deploy.
-     * @return Mảng địa chỉ các Campaign contracts.
-     */
-    function getDeployedCampaigns() external view returns (address[] memory) {
-        return deployedCampaigns;
-    }
+    /// @notice Các kiểu truy vấn hỗ trợ
+    enum QueryType { ALL, BY_MANAGER, BY_CATEGORY }
 
     /**
-     * @notice Lấy danh sách các chiến dịch của một manager cụ thể.
-     * @param _manager Địa chỉ manager cần tra cứu.
-     * @return Mảng địa chỉ các Campaign của manager.
+     * @notice Truy vấn chiến dịch nâng cao với nhiều tiêu chí lọc và phân trang.
+     * @param queryType Kiểu truy vấn (ALL, BY_MANAGER, BY_CATEGORY).
+     * @param _manager Địa chỉ manager (nếu dùng BY_MANAGER).
+     * @param _category Danh mục (nếu dùng BY_CATEGORY).
+     * @param offset Vị trí bắt đầu.
+     * @param limit Số lượng tối đa.
+     * @return campaigns Mảng địa chỉ các campaign thỏa mãn điều kiện.
      */
-    function getCampaignsByManager(address _manager) external view returns (address[] memory) {
-        return campaignsByManager[_manager];
-    }
+    function getCampaigns(
+        QueryType queryType,
+        address _manager,
+        Category _category,
+        uint256 offset,
+        uint256 limit
+    ) external view returns (address[] memory campaigns) {
+        address[] storage source;
+        
+        if (queryType == QueryType.ALL) {
+            source = deployedCampaigns;
+        } else if (queryType == QueryType.BY_MANAGER) {
+            source = campaignsByManager[_manager];
+        } else {
+            source = categoryToCampaigns[_category];
+        }
 
-    /**
-     * @notice Lấy tổng số chiến dịch đã deploy.
-     * @return Số lượng chiến dịch.
-     */
-    function getCampaignsCount() external view returns (uint256) {
-        return deployedCampaigns.length;
-    }
-
-    /**
-     * @notice Lấy danh sách chiến dịch theo danh mục (hỗ trợ phân trang).
-     * @param category Danh mục cần lọc.
-     * @param offset Vị trí bắt đầu lấy.
-     * @param limit Số lượng tối đa phần tử trả về.
-     * @return campaigns Mảng địa chỉ các campaign được tìm thấy.
-     */
-    function getCampaignsByCategory(Category category, uint256 offset, uint256 limit) 
-        external 
-        view 
-        returns (address[] memory campaigns) 
-    {
-        address[] storage allInCategory = categoryToCampaigns[category];
-        uint256 total = allInCategory.length;
-
-        if (offset >= total) return new address[](0);
+        uint256 total = source.length;
+        if (offset >= total || limit == 0) return new address[](0);
 
         uint256 size = limit;
         if (offset + limit > total) {
@@ -110,14 +100,28 @@ contract CampaignFactory is Events {
 
         campaigns = new address[](size);
         for (uint256 i = 0; i < size; i++) {
-            campaigns[i] = allInCategory[offset + i];
+            campaigns[i] = source[offset + i];
         }
+    }
+
+    /**
+     * @notice Lấy tổng số chiến dịch của một manager cụ thể.
+     */
+    function getManagerCount(address _manager) external view returns (uint256) {
+        return campaignsByManager[_manager].length;
     }
 
     /**
      * @notice Lấy tổng số chiến dịch trong một danh mục cụ thể.
      */
-    function getCategoryCount(Category category) external view returns (uint256) {
-        return categoryToCampaigns[category].length;
+    function getCategoryCount(Category _category) external view returns (uint256) {
+        return categoryToCampaigns[_category].length;
+    }
+
+    /**
+     * @notice Lấy tổng số chiến dịch toàn hệ thống.
+     */
+    function getCampaignsCount() external view returns (uint256) {
+        return deployedCampaigns.length;
     }
 }

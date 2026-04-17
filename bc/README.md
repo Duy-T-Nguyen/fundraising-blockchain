@@ -1090,21 +1090,22 @@ function createCampaign(string calldata name, Category category, uint256 minimum
 - `category`: Nhập số tương ứng (0-4).
 - `minimum`: Số tiền tối thiểu (Wei).
 
-### 3. Tìm kiếm và Phân trang (Pagination) — Hướng dẫn cho Frontend
-Để hiển thị danh sách chiến dịch theo danh mục mà không làm lag ứng dụng, Frontend nên dùng hàm sau:
+### 3. Truy vấn nâng cao (Unified Indexing) — Hướng dẫn cho Frontend
+Hệ thống hiện cung cấp một hàm duy nhất để xử lý tất cả các loại truy vấn (Lấy tất cả, Lấy theo Manager, Lấy theo Danh mục) hỗ trợ phân trang:
 
 ```javascript
-// Trả về một mảng địa chỉ các campaign thuộc danh mục mong muốn
-function getCampaignsByCategory(Category category, uint256 offset, uint256 limit) returns (address[] campaigns);
+/**
+ * @param queryType: 0 (ALL), 1 (BY_MANAGER), 2 (BY_CATEGORY)
+ * @param manager: Địa chỉ ví (truyền ZeroAddress nếu không dùng)
+ * @param category: ID danh mục (truyền 0 nếu không dùng)
+ * @param offset: Vị trí bắt đầu
+ * @param limit: Số lượng mục mỗi trang
+ */
+function getCampaigns(QueryType queryType, address manager, Category category, uint256 offset, uint256 limit) returns (address[] campaigns);
 ```
 
-**Tham số:**
-- `category`: ID danh mục (0-4).
-- `offset`: Vị trí bắt đầu lấy (ví dụ: trang 1 là 0, trang 2 là 10).
-- `limit`: Số lượng mục mỗi trang (ví dụ: 10).
-
-**Ví dụ lấy 10 mục đầu tiên của danh mục Y tế:**
-`factory.getCampaignsByCategory(1, 0, 10);`
+**Ví dụ lấy 10 mục đầu tiên của danh mục Y tế (Category 1):**
+`factory.getCampaigns(2, "0x000...", 1, 0, 10);`
 
 ---
 
@@ -1309,10 +1310,10 @@ npx hardhat verify --network sepolia <ĐỊA_CHỈ_FACTORY> "<ĐỊA_CHỈ_REGIS
 **Lệnh thực tế (với lần deploy gần nhất của bạn)**:
 ```bash
 # Verify SupplierRegistry
-npx hardhat verify --network sepolia 0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
+npx hardhat verify --network sepolia 0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
 
 # Verify CampaignFactory
-npx hardhat verify --network sepolia 0x9813a1F0Aca6D5cfcd52e2aD002f6cf42f7c0a5B "0x49Ea64311e82b955f1E794C721eC3FeeBFC26e92"
+npx hardhat verify --network sepolia 0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f"
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1326,9 +1327,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0x4dc0A0d3132F117951f7f316F07283b0EDFe467b` |
-| CampaignFactory Address | `0x741419F2e240344aB32126ab94ce1E020A9332F6` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#code) |
+| SupplierRegistry Address | `0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f` |
+| CampaignFactory Address | `0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1353,13 +1354,13 @@ Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận 
 ### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
 Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x4dc0A0d3132F117951f7f316F07283b0EDFe467b#writeContract](https://sepolia.etherscan.io/address/0x4dc0A0d3132F117951f7f316F07283b0EDFe467b#writeContract)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f#writeContract](https://sepolia.etherscan.io/address/0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f#writeContract)
 2.  Kết nối ví MetaMask (Connect to Web3).
 3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
 4.  Nhấn **"Write"** để xác nhận.
 
 ### Bước 1: Tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#writeContract](https://sepolia.etherscan.io/address/0x741419F2e240344aB32126ab94ce1E020A9332F6#writeContract)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#writeContract](https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#writeContract)
 2.  Dùng hàm **`createCampaign`**: 
     - `name`: Tên chiến dịch (ví dụ: "Cứu trợ lũ lụt").
     - `category`: ID danh mục (0-4). Xem mục [Tính năng Nâng cao](# tính-năng-nâng-cao-on-chain-indexing--filtering) để biết chi tiết.
@@ -1394,8 +1395,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0x4dc0A0d3132F117951f7f316F07283b0EDFe467b";
-  const FACTORY_ADDR = "0x741419F2e240344aB32126ab94ce1E020A9332F6";
+  const REGISTRY_ADDR = "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f";
+  const FACTORY_ADDR = "0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1434,7 +1435,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0x741419F2e240344aB32126ab94ce1E020A9332F6");
+const factory = await ethers.getContractAt("CampaignFactory", "0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
@@ -1654,8 +1655,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia 0x4dc0A0d3132F117951f7f316F07283b0EDFe467b "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
-npx hardhat verify --network sepolia 0x741419F2e240344aB32126ab94ce1E020A9332F6 "0x4dc0A0d3132F117951f7f316F07283b0EDFe467b" # Verify Factory
+npx hardhat verify --network sepolia 0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
+npx hardhat verify --network sepolia 0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví
