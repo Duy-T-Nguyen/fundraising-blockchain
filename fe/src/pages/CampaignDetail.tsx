@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import CampaignInfo from '../components/campaigndetail/CampaignInfo';
 import DonateSidebar from '../components/campaigndetail/DonateSidebar';
-import SpendingRequests from '../components/campaigndetail/SpendingRequests';
+import DonorsTable from '../components/campaigndetail/DonorsTable';
 import { useCampaign } from '../hooks/useCampaign';
 
 const CampaignDetail: React.FC = () => {
@@ -43,7 +43,7 @@ const CampaignDetail: React.FC = () => {
             progressPercent={summary.balance !== '0' ? 100 : 0}
           />
           
-          <SpendingRequests requests={[]} />
+          <DonorsTable />
         </div>
 
         <div className="lg:col-span-1 self-start">
