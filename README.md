@@ -70,12 +70,12 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x741419F2e240344aB32126ab94ce1E020A9332F6` |
-| **SupplierRegistry** | `0x4dc0A0d3132F117951f7f316F07283b0EDFe467b` |
+| **CampaignFactory** | `0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce` |
+| **SupplierRegistry** | `0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f` |
 
-**Các tính năng mới nhất (Cập nhật 15/04/2026):**
-- **On-chain Indexing**: Cho phép tìm kiếm campaign theo danh mục trực tiếp từ Smart Contract.
-- **Pagination**: Hỗ trợ phân trang cho danh sách chiến dịch, tối ưu tốc độ cho Frontend.
+**Các tính năng mới nhất (Cập nhật 17/04/2026):**
+- **O(1) Efficiency**: Tối ưu hóa gas cho thao tác quản lý danh sách (Supplier/Validator) từ O(N) về O(1).
+- **Unified Indexing**: Hợp nhất hệ thống truy vấn on-chain vào một API duy nhất, hỗ trợ lọc đa điều kiện và phân trang mạnh mẽ.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 15/04/2026.*
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 17/04/2026.*

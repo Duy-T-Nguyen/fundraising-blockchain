@@ -28,7 +28,7 @@ describe("Campaign & Factory", function () {
     factory = await CampaignFactory.deploy(await supplierRegistry.getAddress());
 
     await factory.createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
-    const addresses = await factory.getDeployedCampaigns();
+    const addresses = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10); // ALL
 
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
@@ -39,14 +39,12 @@ describe("Campaign & Factory", function () {
   // =========================================================
   describe("CampaignFactory", function () {
     it("should deploy factory and create a campaign", async () => {
-      const campaigns = await factory.getDeployedCampaigns();
+      const campaigns = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
       expect(campaigns.length).to.equal(1);
     });
 
     it("should track campaigns by manager", async () => {
-      const managerCampaigns = await factory.getCampaignsByManager(
-        owner.address
-      );
+      const managerCampaigns = await factory.getCampaigns(1, owner.address, 0, 0, 10);
       expect(managerCampaigns.length).to.equal(1);
     });
 
@@ -54,10 +52,10 @@ describe("Campaign & Factory", function () {
       await factory.createCampaign("Test 1", 1, ethers.parseEther("0.05"));
       await factory.createCampaign("Test 2", 2, ethers.parseEther("0.1"));
 
-      const all = await factory.getDeployedCampaigns();
+      const all = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
       expect(all.length).to.equal(3);
 
-      const byManager = await factory.getCampaignsByManager(owner.address);
+      const byManager = await factory.getCampaigns(1, owner.address, 0, 0, 10);
       expect(byManager.length).to.equal(3);
     });
 
@@ -66,17 +64,13 @@ describe("Campaign & Factory", function () {
         .connect(donor1)
         .createCampaign("Test Donor1", 0, ethers.parseEther("0.02"));
 
-      const allCampaigns = await factory.getDeployedCampaigns();
+      const allCampaigns = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
       expect(allCampaigns.length).to.equal(2);
 
-      const ownerCampaigns = await factory.getCampaignsByManager(
-        owner.address
-      );
+      const ownerCampaigns = await factory.getCampaigns(1, owner.address, 0, 0, 10);
       expect(ownerCampaigns.length).to.equal(1);
 
-      const donor1Campaigns = await factory.getCampaignsByManager(
-        donor1.address
-      );
+      const donor1Campaigns = await factory.getCampaigns(1, donor1.address, 0, 0, 10);
       expect(donor1Campaigns.length).to.equal(1);
     });
 
@@ -122,7 +116,7 @@ describe("Campaign & Factory", function () {
       });
 
       it("should filter campaigns by category correctly", async () => {
-        const eduCampaigns = await factory.getCampaignsByCategory(0, 0, 10);
+        const eduCampaigns = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 0, 10);
         expect(eduCampaigns.length).to.be.at.least(2);
         
         for (const addr of eduCampaigns) {
@@ -134,11 +128,11 @@ describe("Campaign & Factory", function () {
 
       it("should support pagination", async () => {
         // Get first 2 Education campaigns
-        const page1 = await factory.getCampaignsByCategory(0, 0, 2);
+        const page1 = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 0, 2);
         expect(page1.length).to.equal(2);
 
-        // Get next 1 Education campaign
-        const page2 = await factory.getCampaignsByCategory(0, 2, 2);
+        // Get next Education campaigns
+        const page2 = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 2, 2);
         expect(page2.length).to.be.at.least(1);
         
         // Ensure no overlap
@@ -147,7 +141,7 @@ describe("Campaign & Factory", function () {
       });
 
       it("should return empty array for out of bounds offset", async () => {
-        const empty = await factory.getCampaignsByCategory(0, 100, 10);
+        const empty = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 100, 10);
         expect(empty.length).to.equal(0);
       });
     });

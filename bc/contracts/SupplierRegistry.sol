@@ -18,6 +18,9 @@ contract SupplierRegistry {
     /// @notice Mapping kiểm tra nhanh: địa chỉ có phải Supplier không
     mapping(address => bool) public suppliers;
 
+    /// @notice Mapping lưu vị trí của Supplier trong mảng (để xóa O(1))
+    mapping(address => uint256) private supplierIndex;
+
     /// @notice Danh sách tất cả địa chỉ Supplier (để truy vấn)
     address[] public supplierList;
 
@@ -46,6 +49,7 @@ contract SupplierRegistry {
         if (_supplier == address(0)) revert InvalidAddress();
         if (suppliers[_supplier]) revert AlreadyWhitelisted();
         
+        supplierIndex[_supplier] = supplierList.length;
         suppliers[_supplier] = true;
         supplierList.push(_supplier);
 
@@ -59,16 +63,18 @@ contract SupplierRegistry {
     function removeSupplier(address _supplier) external onlyAdmin {
         if (!suppliers[_supplier]) revert NotWhitelisted();
 
-        suppliers[_supplier] = false;
+        uint256 indexToRemove = supplierIndex[_supplier];
+        uint256 lastIndex = supplierList.length - 1;
 
-        // Xóa khỏi mảng supplierList
-        for (uint i = 0; i < supplierList.length; i++) {
-            if (supplierList[i] == _supplier) {
-                supplierList[i] = supplierList[supplierList.length - 1];
-                supplierList.pop();
-                break;
-            }
+        if (indexToRemove != lastIndex) {
+            address lastSupplier = supplierList[lastIndex];
+            supplierList[indexToRemove] = lastSupplier;
+            supplierIndex[lastSupplier] = indexToRemove;
         }
+
+        supplierList.pop();
+        delete supplierIndex[_supplier];
+        suppliers[_supplier] = false;
 
         emit SupplierRemoved(_supplier);
     }
