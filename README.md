@@ -18,7 +18,7 @@ Dự án được chia thành 3 phần chính để đảm bảo tính module h�
 
 Hệ thống hoạt động theo luồng khép kín để đảm bảo tiền được sử dụng đúng mục đích:
 
-1.  **Upload Bằng chứng**: Manager tải hóa đơn/bằng chứng lên **Backend (`be/`)**. Backend đẩy file lên **IPFS** và trả về mã **CID**.
+1.  **Upload Hình ảnh/Bằng chứng**: Manager tải ảnh đại diện chiến dịch hoặc hóa đơn/chứng từ lên **Backend (`be/`)**. Backend đẩy file lên **IPFS** và trả về mã **CID**.
 2.  **Tạo Yêu cầu**: Manager gửi giao dịch lên **Blockchain (`bc/`)** kèm theo mã **CID** đó.
 3.  **Duyệt chi**: Donors/Validators kiểm tra bằng chứng (qua CID) và thực hiện biểu quyết trên Blockchain.
 4.  **Giải ngân**: Nếu đủ phiếu bầu, Smart Contract tự động chuyển tiền cho **Supplier (Nhà cung cấp)**.
@@ -70,12 +70,14 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce` |
-| **SupplierRegistry** | `0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f` |
+| **CampaignFactory** | `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6` |
+| **SupplierRegistry** | `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F` |
 
 **Các tính năng mới nhất (Cập nhật 17/04/2026):**
 - **O(1) Efficiency**: Tối ưu hóa gas cho thao tác quản lý danh sách (Supplier/Validator) từ O(N) về O(1).
 - **Unified Indexing**: Hợp nhất hệ thống truy vấn on-chain vào một API duy nhất, hỗ trợ lọc đa điều kiện và phân trang mạnh mẽ.
+- **IPFS Image Support**: Mỗi chiến dịch giờ đây có thể có ảnh đại diện và mô tả chi tiết lưu trữ minh bạch trên IPFS và Blockchain.
+- **Auto-Verification**: Backend tự động kích hoạt xác thực mã nguồn trên Etherscan cho mỗi chiến dịch mới được tạo.
 
 ---
 *Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 17/04/2026.*

@@ -490,7 +490,7 @@ Ký hiệu `_;` trong modifier đánh dấu vị trí mà code của hàm gốc 
 
 #### 📌 `contracts/CampaignFactory.sol` — Factory Contract (⭐ Contract chính để deploy)
 
-**Vai trò**: Contract trung tâm — "nhà máy" tạo ra các chiến dịch. Đây là contract bạn deploy **DUY NHẤT** lên blockchain. Mỗi khi ai đó muốn tạo chiến dịch mới, họ gọi hàm `createCampaign()` và Factory sẽ deploy một Campaign contract mới.
+**Vai trò**: Contract trung tâm — "nhà máy" quản lý các chiến dịch. Đây là contract bạn deploy **DUY NHẤT** lên blockchain. Quy trình tạo chiến dịch mới: Người dùng gửi yêu cầu (`submitCampaignRequest`) -> Admin duyệt (`approveCampaignRequest`) -> Factory tự động deploy Campaign contract mới.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -521,27 +521,14 @@ contract CampaignFactory {
         supplierRegistry = SupplierRegistry(_supplierRegistry);
     }
 
-    /// Tạo chiến dịch gây quỹ mới
-    function createCampaign(string calldata name, Category category, uint256 minimum) external {
-        // Khởi tạo pool cho campaign mới
-        ValidatorPool pool = new ValidatorPool(msg.sender);
-        Campaign newCampaign = new Campaign(
-            name,
-            category,
-            minimum,
-            msg.sender,
-            address(pool),
-            address(supplierRegistry)
-        );
-        address campaignAddr = address(newCampaign);
+    /// Gửi yêu cầu tạo chiến dịch gây quỹ mới
+    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external {
+        // ... logic lưu yêu cầu chờ admin duyệt
+    }
 
-        // Lưu địa chỉ contract mới vào danh sách
-        deployedCampaigns.push(campaignAddr);
-        campaignsByManager[msg.sender].push(campaignAddr);
-        categoryToCampaigns[category].push(campaignAddr);
-
-        // Phát sự kiện
-        emit CampaignStarted(campaignAddr, msg.sender, name, category, minimum);
+    /// Admin duyệt yêu cầu và chính thức deploy Campaign
+    function approveCampaignRequest(uint256 requestId) external onlyAdmin {
+        // ... khởi tạo pool và deploy campaign mới
     }
 
     /// Lấy toàn bộ danh sách campaigns
@@ -578,7 +565,8 @@ Thay vì mỗi người phải tự deploy contract (rất phức tạp), Factor
 
 | Hàm | Loại | Ai gọi? | Mục đích |
 |---|---|---|---|
-| `createCampaign(name, category, min)` | Write | Bất kỳ ai | Tạo chiến dịch mới với phân loại |
+| `submitCampaignRequest(name, desc, img, cat, min)` | Write | Bất kỳ ai | Gửi yêu cầu tạo chiến dịch mới |
+| `approveCampaignRequest(id)` | Write | Admin | Duyệt và deploy chiến dịch |
 | `getDeployedCampaigns()` | Read | Bất kỳ ai | Xem tất cả campaigns |
 | `getCampaignsByManager(addr)` | Read | Bất kỳ ai | Xem campaigns của 1 manager |
 | `getCampaignsCount()` | Read | Bất kỳ ai | Đếm tổng số campaigns |
@@ -603,6 +591,8 @@ RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu
 bool public active;                              // Chiến dịch có đang hoạt động không?
 
 string public campaignName;                      // Tên chiến dịch
+string public description;                       // Mô tả chi tiết
+string public imageHash;                         // Mã IPFS CID của ảnh đại diện
 Category public category;                        // Danh mục
 ValidatorPool public validatorPool;              // Pool của Validators
 SupplierRegistry public supplierRegistry;        // Registry của Suppliers
@@ -642,7 +632,7 @@ constructor(
 | `finalizeRequest(index)` | Write | Chỉ Manager | Giải ngân khi đủ phiếu | ~60.000 |
 | `executeMilestone(...)` | Write | Manager/Verifier | Giải ngân theo giai đoạn + **Evidence** | ~120.000 |
 | `deactivateCampaign()` | Write | Chỉ Manager | Tạm dừng chiến dịch | ~30.000 |
-| `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan | 0 |
+| `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan (có imageHash) | 0 |
 | `getRequestsCount()` | Read (miễn phí) | Bất kỳ ai | Đếm số requests | 0 |
 
 **Chi tiết từng hàm**:
@@ -1327,9 +1317,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f` |
-| CampaignFactory Address | `0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#code) |
+| SupplierRegistry Address | `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F` |
+| CampaignFactory Address | `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1354,31 +1344,38 @@ Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận 
 ### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
 Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f#writeContract](https://sepolia.etherscan.io/address/0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f#writeContract)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F#writeContract](https://sepolia.etherscan.io/address/0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F#writeContract)
 2.  Kết nối ví MetaMask (Connect to Web3).
 3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
 4.  Nhấn **"Write"** để xác nhận.
 
-### Bước 1: Tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#writeContract](https://sepolia.etherscan.io/address/0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce#writeContract)
-2.  Dùng hàm **`createCampaign`**: 
+### Bước 1: Gửi yêu cầu tạo Chiến dịch (Campaign Manager)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract)
+2.  Dùng hàm **`submitCampaignRequest`**: 
     - `name`: Tên chiến dịch (ví dụ: "Cứu trợ lũ lụt").
-    - `category`: ID danh mục (0-4). Xem mục [Tính năng Nâng cao](# tính-năng-nâng-cao-on-chain-indexing--filtering) để biết chi tiết.
-    - `minimum`: Số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
-3.  Sau khi giao dịch thành công, sang tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign vừa tạo.
+    - `description`: Mô tả chi tiết chiến dịch.
+    - `imageHash`: Mã IPFS CID của ảnh đại diện (ví dụ: `QmXoyp...`).
+    - `category`: ID danh mục (0-4).
+    - `minimum`: Số Wei tối thiểu (ví dụ: `10000000000000000` cho 0.01 ETH).
+3.  Nhấn **"Write"** và đợi giao dịch thành công.
 
-### Bước 2: Quyên góp (Donors)
+### Bước 2: Phê duyệt Chiến dịch (Admin)
+1.  Admin vào tab **"Write Contract"** của Factory, dùng hàm **`approveCampaignRequest`** với `requestId` vừa tạo.
+2.  Sau khi duyệt, hệ thống mới chính thức deploy contract Campaign riêng biệt.
+3.  Vào tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign mới nhất.
+
+### Bước 3: Quyên góp (Donors)
 1.  Tìm kiếm địa chỉ Campaign vừa lấy được trên Etherscan.
 2.  Vào tab **"Write Contract"**, tìm hàm **`donate`**.
 3.  Ở mục `payableAmount`, nhập số ETH muốn gửi (ví dụ `0.05`).
 4.  Nhấn **"Write"**.
 
-### Bước 3: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
+### Bước 4: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
 1.  Tại trang Campaign, tìm hàm **`createRequest`**.
 2.  **Ô `evidenceHash`**: Bạn cần upload hóa đơn lên Backend (`be/`) trước để lấy mã CID (ví dụ: `Qm...`).
 3.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
 
-### Bước 4: Kiểm duyệt & Giải ngân (WFP Flow)
+### Bước 5: Kiểm duyệt & Giải ngân (WFP Flow)
 
 | Thao tác | Ai thực hiện | Hàm tương ứng | Ghi chú |
 | :--- | :--- | :--- | :--- |
@@ -1395,8 +1392,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f";
-  const FACTORY_ADDR = "0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce";
+  const REGISTRY_ADDR = "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F";
+  const FACTORY_ADDR = "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1435,7 +1432,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce");
+const factory = await ethers.getContractAt("CampaignFactory", "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
@@ -1655,8 +1652,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia 0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
-npx hardhat verify --network sepolia 0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f" # Verify Factory
+npx hardhat verify --network sepolia 0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
+npx hardhat verify --network sepolia 0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6 "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví

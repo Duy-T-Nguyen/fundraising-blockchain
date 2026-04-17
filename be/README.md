@@ -6,7 +6,8 @@ This is the backend component of the **Fundraising Blockchain** project. Its pri
 
 - **Evidence Management**: Securely upload invoices, delivery photos, and receipts to IPFS.
 - **Pinata Integration**: Seamlessly communicates with Pinata SDK for data pinning.
-- **Validation**: Ensures only authorized files are pinned to the IPFS network.
+- **Blockchain Listener**: Real-time monitoring of `CampaignStarted` events.
+- **Auto-Verification**: Automatically triggers Hardhat Etherscan verification for newly deployed campaigns.
 
 ## 🏗 Setup & Installation
 
@@ -19,7 +20,7 @@ This is the backend component of the **Fundraising Blockchain** project. Its pri
 Create a `.env` file in the `be/` directory:
 
 ```env
-PORT=3000
+PO1609900
 PINATA_API_KEY=your_api_key
 PINATA_SECRET_KEY=your_secret_key
 ACCESS_KEY=your_jwt_token (Optional but recommended)
@@ -42,6 +43,22 @@ yarn run start:dev
 yarn run start:prod
 ```
 
+### 5. Running with Docker 🐳
+For easy deployment and isolation, you can use Docker:
+
+```bash
+# Build and start with Docker Compose
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+```
+
+The Docker setup uses a multi-stage build to optimize image size and security:
+- **Base image**: Node.js 22 Alpine
+- **Security**: Runs as a non-root `nodejs` user
+- **Optimization**: Separates build dependencies from production runtime
+
 ## 📡 API Endpoints
 
 ### Evidence Upload
@@ -60,15 +77,17 @@ yarn run start:prod
 
 Once the server is running, you can interactively test the APIs (like uploading evidence) without needing any external tools.
 
-- **URL**: [http://localhost:3000/api](http://localhost:3000/api)
+- **URL**: [http://localhost:1609/api](http://localhost:1609/api)
 
 ## 🔗 Testnet Interaction Flow
 
 When interacting with the Blockchain (Sepolia Testnet), the Backend serves as the secure bridge for evidence:
 
-1.  **Upload Evidence**: Use the Swagger UI or Frontend to upload an image to `POST /evidence/upload`.
+1.  **Upload Evidence/Images**: Use the Swagger UI or Frontend to upload an image to `POST /evidence/upload`.
 2.  **Get CID**: The API will return an IPFS `cid`.
-3.  **Link to Blockchain**: Pass this `cid` into the `evidenceHash` parameter of the `createRequest` OR use it when initializing a Campaign via `createCampaign(name, category, min)` on the Smart Contract.
+3.  **Link to Blockchain**: 
+    - **Campaign Image**: Pass the `cid` into the `imageHash` parameter when calling `submitCampaignRequest`.
+    - **Request Evidence**: Pass the `cid` into the `evidenceHash` parameter of `createRequest`.
 
 ## 📂 Project Structure
 

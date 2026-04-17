@@ -1,75 +1,46 @@
-# React + TypeScript + Vite
+# 🌐 Fundraising Frontend (React + Vite + TS)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Giao diện người dùng của nền tảng **Fundraising Blockchain**, nơi các nhà hảo tâm và người quản lý chiến dịch tương tác trực tiếp với hệ thống.
 
-Currently, two official plugins are available:
+## 🛠 Tính năng chính
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Duyệt chiến dịch**: Hiển thị danh sách các chiến dịch từ thiện kèm theo hình ảnh và mô tả chi tiết từ Blockchain & IPFS.
+- **Quyên góp (Donate)**: Tích hợp ví MetaMask để quyên góp ETH trực tiếp cho chiến dịch.
+- **Quản lý chiến dịch (Manager Dashboard)**: 
+  - Gửi yêu cầu tạo chiến dịch mới (kèm upload ảnh lên IPFS).
+  - Tạo yêu cầu chi tiêu (Requests) kèm bằng chứng hóa đơn.
+- **Biểu quyết (Voting)**: Hệ thống bỏ phiếu cho Donors để duyệt các yêu cầu chi tiêu.
 
-## React Compiler
+## 🏗 Setup & Cài đặt
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### 1. Yêu cầu hệ thống
+- **Node.js**: v18+
+- **MetaMask Extension**: Đã cài đặt trên trình duyệt và chuyển sang mạng **Sepolia Testnet**.
 
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 2. Cài đặt thư viện
+```bash
+yarn install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 3. Chạy ứng dụng
+```bash
+yarn dev
 ```
+
+## 🔗 Liên kết với Hệ thống
+
+Frontend tương tác với 2 thành phần khác:
+- **Backend (be/)**: Gọi API `POST /evidence/upload` để lấy mã CID cho hình ảnh/hóa đơn.
+- **Blockchain (bc/)**: Sử dụng thư viện `ethers.js` để gọi các hàm của Smart Contract đã deploy tại:
+  - Factory: `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6`
+  - Registry: `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F`
+
+## 📂 Cấu trúc thư mục
+
+- `src/contracts/`: Chứa các file ABI của Smart Contracts.
+- `src/components/`: Các thành phần giao diện (Card, Modal, Button).
+- `src/hooks/`: Xử lý logic tương tác với MetaMask và Blockchain.
+- `src/pages/`: Các trang chức năng (Home, Create Campaign, Campaign Detail).
+
+---
+*Cập nhật lần cuối: 17/04/2026 bởi Antigravity AI Assistant.*
