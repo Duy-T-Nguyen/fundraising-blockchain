@@ -4,7 +4,7 @@ import { sepolia } from 'viem/chains';
 // Public client is for reading data from the blockchain (doesn't require a wallet)
 export const publicClient = createPublicClient({
   chain: sepolia,
-  transport: http(),
+  transport: http('https://ethereum-sepolia.publicnode.com'),
 });
 
 // Wallet client is for sending transactions (requires MetaMask/Wallet connection)

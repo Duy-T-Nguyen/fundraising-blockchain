@@ -56,7 +56,7 @@ const CampaignsSection = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-              {campaignAddresses.slice(0, 6).map((addr) => (
+              {[...campaignAddresses].reverse().slice(0, 6).map((addr) => (
                 <CampaignCard key={addr} address={addr} />
               ))}
             </div>

@@ -5,7 +5,7 @@ import metamaskLogo from '../assets/metamask.png';
 
 const navLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Campaigns', href: '/#campaigns' },
+  { label: 'Campaigns', href: '/campaigns' },
   { label: 'Resources', href: '/#resources' },
   { label: 'Contact', href: '/#contact' },
 ];

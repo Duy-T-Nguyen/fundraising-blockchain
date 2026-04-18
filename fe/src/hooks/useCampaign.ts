@@ -5,6 +5,8 @@ import { ABIS } from '../blockchain/constants';
 
 export interface CampaignSummary {
   title: string;
+  description: string;
+  imageHash: string;
   balance: string;
   minimumContribution: string;
   numRequests: number;
@@ -25,7 +27,7 @@ export function useCampaign(address: string | undefined) {
     setError(null);
     try {
       // Fetch summary and title in parallel
-      const [summaryData, title] = await Promise.all([
+      const [summaryData, title, description] = await Promise.all([
         publicClient.readContract({
           address: address as `0x${string}`,
           abi: ABIS.CAMPAIGN as any,
@@ -35,18 +37,28 @@ export function useCampaign(address: string | undefined) {
           address: address as `0x${string}`,
           abi: ABIS.CAMPAIGN as any,
           functionName: 'campaignName',
+        } as any),
+        publicClient.readContract({
+          address: address as `0x${string}`,
+          abi: ABIS.CAMPAIGN as any,
+          functionName: 'description',
         } as any)
-      ]) as [any, string];
+      ]) as [any, string, string];
 
       if (summaryData) {
+        // Handle both Array and Object responses from Viem readContract
+        const data: any = summaryData;
+        
         setSummary({
           title: title || 'Unnamed Campaign',
-          balance: formatEther(summaryData[0]),
-          minimumContribution: formatEther(summaryData[1]),
-          numRequests: Number(summaryData[2]),
-          donorsCount: Number(summaryData[3]),
-          manager: summaryData[4],
-          active: summaryData[5],
+          description: description || '',
+          imageHash: data.imgHash || data[5] || '',
+          balance: formatEther(data.balance || data[0]),
+          minimumContribution: formatEther(data.minContribution || data[1]),
+          numRequests: Number(data.numRequests || data[2]),
+          donorsCount: Number(data.donors || data[3]),
+          manager: data.managerAddr || data[4],
+          active: data.isActive !== undefined ? data.isActive : data[6],
         });
       }
     } catch (err) {

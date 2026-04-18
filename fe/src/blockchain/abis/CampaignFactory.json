@@ -2,54 +2,23 @@
   "abi": [
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "_supplierRegistry",
-          "type": "address"
-        }
+        { "internalType": "address", "name": "_supplierRegistry", "type": "address" },
+        { "internalType": "address", "name": "_admin", "type": "address" }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
-    {
-      "anonymous": false,
-      "inputs": [],
-      "name": "CampaignDeactivated",
-      "type": "event"
-    },
+    { "anonymous": false, "inputs": [], "name": "CampaignDeactivated", "type": "event" },
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "campaignAddress",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "manager",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "campaignName",
-          "type": "string"
-        },
-        {
-          "indexed": true,
-          "internalType": "enum Events.Category",
-          "name": "category",
-          "type": "uint8"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "minContribution",
-          "type": "uint256"
-        }
+        { "indexed": true, "internalType": "address", "name": "campaignAddress", "type": "address" },
+        { "indexed": true, "internalType": "address", "name": "manager", "type": "address" },
+        { "indexed": false, "internalType": "string", "name": "campaignName", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "imageHash", "type": "string" },
+        { "indexed": true, "internalType": "enum Events.Category", "name": "category", "type": "uint8" },
+        { "indexed": false, "internalType": "uint256", "name": "minContribution", "type": "uint256" }
       ],
       "name": "CampaignStarted",
       "type": "event"
@@ -57,260 +26,122 @@
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "donor",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
+        { "indexed": true, "internalType": "uint256", "name": "requestId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "manager", "type": "address" },
+        { "indexed": false, "internalType": "string", "name": "name", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "imageHash", "type": "string" },
+        { "indexed": false, "internalType": "enum Events.Category", "name": "category", "type": "uint8" },
+        { "indexed": false, "internalType": "uint256", "name": "minContribution", "type": "uint256" }
       ],
-      "name": "Donation",
+      "name": "CampaignRequestSubmitted",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "requestId",
-          "type": "uint256"
-        }
+        { "indexed": true, "internalType": "uint256", "name": "requestId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "campaignAddress", "type": "address" }
       ],
-      "name": "FundsReleased",
+      "name": "CampaignRequestApproved",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "requestId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "milestoneIndex",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "evidenceHash",
-          "type": "string"
-        }
+        { "indexed": true, "internalType": "uint256", "name": "requestId", "type": "uint256" }
       ],
-      "name": "MilestoneReleased",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "description",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "recipient",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "evidenceHash",
-          "type": "string"
-        }
-      ],
-      "name": "RequestCreated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "poolAddress",
-          "type": "address"
-        }
-      ],
-      "name": "ValidatorPoolUpdated",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "voter",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "requestId",
-          "type": "uint256"
-        }
-      ],
-      "name": "Voted",
+      "name": "CampaignRequestRejected",
       "type": "event"
     },
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "string", "name": "name", "type": "string" },
+        { "internalType": "string", "name": "description", "type": "string" },
+        { "internalType": "string", "name": "imageHash", "type": "string" },
+        { "internalType": "enum Events.Category", "name": "category", "type": "uint8" },
+        { "internalType": "uint256", "name": "minimum", "type": "uint256" }
       ],
-      "name": "campaignsByManager",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
+      "name": "submitCampaignRequest",
+      "outputs": [],
+      "stateMutability": "payable",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "enum Events.Category",
-          "name": "",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "uint256", "name": "requestId", "type": "uint256" }
       ],
-      "name": "categoryToCampaigns",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "enum Events.Category",
-          "name": "category",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint256",
-          "name": "minimum",
-          "type": "uint256"
-        }
-      ],
-      "name": "createCampaign",
+      "name": "approveCampaignRequest",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "uint256", "name": "requestId", "type": "uint256" }
       ],
-      "name": "deployedCampaigns",
+      "name": "rejectCampaignRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "enum CampaignFactory.QueryType", "name": "queryType", "type": "uint8" },
+        { "internalType": "address", "name": "_manager", "type": "address" },
+        { "internalType": "enum Events.Category", "name": "_category", "type": "uint8" },
+        { "internalType": "uint256", "name": "offset", "type": "uint256" },
+        { "internalType": "uint256", "name": "limit", "type": "uint256" }
+      ],
+      "name": "getCampaigns",
       "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
+        { "internalType": "address[]", "name": "campaigns", "type": "address[]" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getGlobalStats",
+      "outputs": [
+        { "internalType": "uint256", "name": "campaignsCount", "type": "uint256" },
+        { "internalType": "uint256", "name": "globalDonated", "type": "uint256" },
+        { "internalType": "uint256", "name": "globalDonationsCount", "type": "uint256" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "enum CampaignFactory.QueryType",
-          "name": "queryType",
-          "type": "uint8"
-        },
-        {
-          "internalType": "address",
-          "name": "_manager",
-          "type": "address"
-        },
-        {
-          "internalType": "enum Events.Category",
-          "name": "_category",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint256",
-          "name": "offset",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "limit",
-          "type": "uint256"
-        }
+        { "internalType": "address", "name": "", "type": "address" },
+        { "internalType": "uint256", "name": "", "type": "uint256" }
       ],
-      "name": "getCampaigns",
+      "name": "campaignsByManager",
       "outputs": [
-        {
-          "internalType": "address[]",
-          "name": "campaigns",
-          "type": "address[]"
-        }
+        { "internalType": "address", "name": "", "type": "address" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "enum Events.Category", "name": "", "type": "uint8" },
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "name": "categoryToCampaigns",
+      "outputs": [
+        { "internalType": "address", "name": "", "type": "address" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "name": "deployedCampaigns",
+      "outputs": [
+        { "internalType": "address", "name": "", "type": "address" }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -319,49 +150,29 @@
       "inputs": [],
       "name": "getCampaignsCount",
       "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "uint256", "name": "", "type": "uint256" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "enum Events.Category",
-          "name": "_category",
-          "type": "uint8"
-        }
+        { "internalType": "enum Events.Category", "name": "_category", "type": "uint8" }
       ],
       "name": "getCategoryCount",
       "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "uint256", "name": "", "type": "uint256" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "_manager",
-          "type": "address"
-        }
+        { "internalType": "address", "name": "_manager", "type": "address" }
       ],
       "name": "getManagerCount",
       "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
+        { "internalType": "uint256", "name": "", "type": "uint256" }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -370,11 +181,7 @@
       "inputs": [],
       "name": "supplierRegistry",
       "outputs": [
-        {
-          "internalType": "contract SupplierRegistry",
-          "name": "",
-          "type": "address"
-        }
+        { "internalType": "address", "name": "", "type": "address" }
       ],
       "stateMutability": "view",
       "type": "function"
