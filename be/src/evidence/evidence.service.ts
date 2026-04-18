@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import pinataSDK from '@pinata/sdk';
 import { Readable } from 'stream';
+import { ethers } from 'ethers';
 
 @Injectable()
 export class EvidenceService {
@@ -12,6 +13,20 @@ export class EvidenceService {
       process.env.PINATA_API_KEY,
       process.env.PINATA_SECRET_KEY,
     );
+  }
+
+  verifySignature(address: string, signature: string): void {
+    try {
+      const message = 'FundChain IPFS Upload';
+      const recoveredAddress = ethers.verifyMessage(message, signature);
+      
+      if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+        throw new UnauthorizedException('Chữ ký số không hợp lệ. Vui lòng ký đúng thông điệp "FundChain IPFS Upload".');
+      }
+    } catch (error) {
+      this.logger.error(`Signature verification failed: ${error.message}`);
+      throw new UnauthorizedException('Xác thực chữ ký thất bại.');
+    }
   }
 
   async uploadToIPFS(file: Express.Multer.File): Promise<{ cid: string; url: string }> {

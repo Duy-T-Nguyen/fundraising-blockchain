@@ -37,7 +37,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     // 4. Campaign Manager submits a Campaign Request and Platform Admin approves it
     const requestId = await factory.requestCount();
-    await factory.connect(campaignManager).submitCampaignRequest("Test Campaign", 0, MIN_CONTRIBUTION);
+    await factory.connect(campaignManager).submitCampaignRequest("Test Campaign", "Desc", "Hash", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
     await factory.connect(platformAdmin).approveCampaignRequest(requestId);
     
     const campaignAddress = await factory.deployedCampaigns(0);

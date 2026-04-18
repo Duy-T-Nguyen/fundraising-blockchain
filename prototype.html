@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundraising DApp - Unified Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; color: #e2e8f0; }
+        .sidebar-item { transition: all 0.2s; border-radius: 12px; margin-bottom: 4px; }
+        .sidebar-item:hover { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+        .sidebar-item.active { background: #4f46e5; color: white; }
+        .glass-card { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .input-field { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; font-size: 14px; outline: none; transition: border 0.2s; }
+        .input-field:focus { border-color: #6366f1; }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .view-animate { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 border-r border-white/5 p-6 flex flex-col glass-card">
+        <div class="mb-10 px-2">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">FundChain.</h1>
+        </div>
+
+        <nav class="flex-1 space-y-1">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-2">Menu chính</p>
+            <button onclick="changePage('explore')" id="btn-explore" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 text-sm font-medium">
+                <span>🌎</span> Khám phá
+            </button>
+            <button onclick="changePage('my-projects')" id="btn-projects" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium">
+                <span>📊</span> Dự án của tôi
+            </button>
+            <button onclick="changePage('supplier-tasks')" id="btn-supplier" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium">
+                <span>📦</span> Việc của Supplier
+            </button>
+            
+            <div class="pt-8">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-2">Hệ thống</p>
+                <button onclick="changePage('admin-panel')" id="btn-admin" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium">
+                    <span>🛡️</span> Admin Panel
+                </button>
+            </div>
+        </nav>
+
+        <div class="mt-auto p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+            <p class="text-[10px] text-indigo-400 font-bold mb-1">ĐANG KẾT NỐI VỚI</p>
+            <select id="wallet-sim" onchange="onWalletChange()" class="w-full bg-transparent text-xs font-mono outline-none cursor-pointer">
+                <option value="manager">0xManager...3a22</option>
+                <option value="admin">0xAdmin...2f06</option>
+                <option value="supplier">0xSupplier...066f</option>
+                <option value="donor">0xDonor...8888</option>
+            </select>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- TOP BAR -->
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-900/20">
+            <h2 id="page-title" class="text-lg font-semibold">Tất cả chiến dịch</h2>
+            <div class="flex items-center gap-4">
+                <div class="px-3 py-1 bg-slate-800 rounded-full text-xs font-medium border border-white/5">Sepolia Testnet</div>
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500"></div>
+            </div>
+        </header>
+
+        <!-- SCROLLABLE CONTENT -->
+        <div id="content-area" class="flex-1 overflow-y-auto p-8 custom-scrollbar view-animate">
+            <!-- Dynamic Content Injected Here -->
+        </div>
+    </main>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-8 right-8 transform translate-y-20 transition-transform duration-300 glass-card px-6 py-4 rounded-2xl border-l-4 border-rose-500 hidden z-50">
+        <p class="text-sm font-bold text-rose-400" id="toast-msg">Lỗi: Manager không được là Supplier!</p>
+    </div>
+
+    <script>
+        const mockSuppliers = ["Cửa hàng Gạo A", "Công ty Vận tải B", "Dược phẩm C"];
+        let currentPage = 'explore';
+        let currentWallet = 'manager';
+
+        function changePage(page) {
+            currentPage = page;
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`btn-${page.split('-')[0]}`).classList.add('active');
+            render();
+        }
+
+        function onWalletChange() {
+            currentWallet = document.getElementById('wallet-sim').value;
+            render();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-20');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 4000);
+        }
+
+        function render() {
+            const area = document.getElementById('content-area');
+            const title = document.getElementById('page-title');
+            
+            if (currentPage === 'explore') {
+                title.innerText = "Khám phá chiến dịch";
+                area.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div class="glass-card rounded-[2rem] overflow-hidden group">
+                            <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600" class="h-48 w-full object-cover">
+                            <div class="p-6">
+                                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Y tế & Sức khỏe</span>
+                                <h3 class="text-xl font-bold mt-2">Bữa cơm cho trẻ em nghèo</h3>
+                                <p class="text-sm text-slate-400 mt-2 line-clamp-2">Cung cấp nguồn thực phẩm sạch cho các em nhỏ vùng cao.</p>
+                                <div class="mt-6 flex justify-between items-end">
+                                    <div>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase">Tổng quyên góp</p>
+                                        <p class="text-2xl font-black text-white">45.2 ETH</p>
+                                    </div>
+                                    <button class="px-6 py-2 bg-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-500 transition">Chi tiết</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPage === 'my-projects') {
+                title.innerText = "Quản lý dự án của tôi";
+                if (currentWallet !== 'manager') {
+                    area.innerHTML = `<div class="text-center py-20"><p class="text-slate-500">Bạn chưa tạo chiến dịch nào với ví này.</p></div>`;
+                    return;
+                }
+                area.innerHTML = `
+                    <div class="space-y-8">
+                        <div class="glass-card p-8 rounded-[2rem] flex justify-between items-center">
+                            <div>
+                                <h3 class="text-2xl font-bold">Bữa cơm cho trẻ em nghèo</h3>
+                                <p class="text-sm text-slate-500 mt-1">Status: <span class="text-emerald-400">Đang hoạt động</span></p>
+                            </div>
+                            <button class="bg-indigo-600 px-6 py-3 rounded-2xl font-bold text-sm">+ Tạo yêu cầu chi</button>
+                        </div>
+
+                        <!-- FORM TẠO REQUEST -->
+                        <div class="max-w-2xl mx-auto glass-card p-8 rounded-[2rem] border-t-4 border-indigo-500">
+                            <h4 class="text-lg font-bold mb-6 italic">✨ Tạo yêu cầu giải ngân minh bạch</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 mb-2 block">Lý do chi tiêu (Description)</label>
+                                    <input type="text" placeholder="Ví dụ: Mua 2 tấn gạo..." class="input-field w-full">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-500 mb-2 block">Số tiền (ETH)</label>
+                                        <input type="number" placeholder="5.0" class="input-field w-full">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-slate-500 mb-2 block">Nhà cung cấp (Supplier)</label>
+                                        <select id="supplier-select" class="input-field w-full cursor-pointer">
+                                            <option value="">Chọn từ Registry</option>
+                                            ${mockSuppliers.map(s => `<option value="${s}">${s}</option>`).join('')}
+                                            <option value="self">Chính ví của tôi (Mô phỏng lỗi)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="pt-4">
+                                    <button onclick="simulateSubmitRequest()" class="w-full bg-indigo-600 py-4 rounded-2xl font-bold text-sm hover:shadow-lg hover:shadow-indigo-500/20 transition">Gửi yêu cầu lên Blockchain</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPage === 'supplier-tasks') {
+                title.innerText = "Cổng thông tin Nhà cung cấp";
+                if (currentWallet !== 'supplier') {
+                    area.innerHTML = `<div class="text-center py-20"><p class="text-slate-500">Ví này chưa được đăng ký làm Supplier. Vui lòng liên hệ Admin.</p></div>`;
+                    return;
+                }
+                area.innerHTML = `
+                    <div class="glass-card p-8 rounded-[2rem]">
+                        <h3 class="text-xl font-bold mb-6">📦 Danh sách đơn hàng cần xác thực</h3>
+                        <table class="w-full text-left">
+                            <thead class="text-[10px] text-slate-500 uppercase tracking-widest border-b border-white/5">
+                                <tr>
+                                    <th class="pb-4">Đơn hàng</th>
+                                    <th class="pb-4">Số tiền</th>
+                                    <th class="pb-4">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr>
+                                    <td class="py-6">Gạo ST25 - Dự án Bữa cơm trẻ em</td>
+                                    <td class="py-6 font-bold text-indigo-400">12.0 ETH</td>
+                                    <td class="py-6">
+                                        <button class="bg-orange-500/10 text-orange-400 border border-orange-500/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-orange-500 hover:text-white transition">Tải bằng chứng (IPFS)</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (currentPage === 'admin-panel') {
+                title.innerText = "Hệ thống quản trị (Admin Only)";
+                if (currentWallet !== 'admin') {
+                    area.innerHTML = `<div class="text-center py-20 text-rose-500 font-bold">⚠️ CẢNH BÁO: BẠN KHÔNG CÓ QUYỀN TRUY CẬP TRANG NÀY!</div>`;
+                    return;
+                }
+                area.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="glass-card p-6 rounded-[2rem] border-l-4 border-emerald-500">
+                            <h3 class="font-bold mb-4">Quản lý Supplier Registry</h3>
+                            <p class="text-xs text-slate-500 mb-6">Thẩm định và cấp quyền cho Nhà cung cấp mới tham gia hệ thống.</p>
+                            <input type="text" placeholder="Nhập địa chỉ ví (0x...)" class="input-field w-full mb-4">
+                            <button class="w-full bg-emerald-600 py-3 rounded-2xl font-bold text-xs">Add to Whitelist</button>
+                        </div>
+                        <div class="glass-card p-6 rounded-[2rem] border-l-4 border-indigo-500">
+                            <h3 class="font-bold mb-4">Duyệt Chiến dịch mới</h3>
+                            <div class="space-y-4">
+                                <div class="bg-slate-900/50 p-4 rounded-2xl flex justify-between items-center">
+                                    <span class="text-sm">Xây trường học vùng cao</span>
+                                    <div class="flex gap-2">
+                                        <button class="text-[10px] font-bold text-indigo-400">Approve</button>
+                                        <button class="text-[10px] font-bold text-rose-400">Reject</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function simulateSubmitRequest() {
+            const supplier = document.getElementById('supplier-select').value;
+            if (supplier === 'self') {
+                showToast("❌ Lỗi Blockchain: Manager không được là Supplier của chính mình!");
+            } else if (!supplier) {
+                showToast("⚠️ Vui lòng chọn một Supplier hợp lệ từ danh sách!");
+            } else {
+                showToast("✅ Giao dịch thành công! Yêu cầu giải ngân đã được gửi lên chuỗi.");
+            }
+        }
+
+        // Khởi tạo
+        render();
+    </script>
+</body>
+</html>

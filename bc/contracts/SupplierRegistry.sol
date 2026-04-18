@@ -97,7 +97,28 @@ contract SupplierRegistry {
     }
 
     /**
-     * @notice Lấy toàn bộ danh sách Supplier.
+     * @notice Lấy danh sách Supplier có phân trang (tối ưu cho FE).
+     * @param offset Vị trí bắt đầu.
+     * @param limit Số lượng tối đa.
+     * @return suppliersPage Mảng địa chỉ Supplier.
+     */
+    function getSuppliers(uint256 offset, uint256 limit) external view returns (address[] memory suppliersPage) {
+        uint256 total = supplierList.length;
+        if (offset >= total || limit == 0) return new address[](0);
+
+        uint256 size = limit;
+        if (offset + limit > total) {
+            size = total - offset;
+        }
+
+        suppliersPage = new address[](size);
+        for (uint256 i = 0; i < size; i++) {
+            suppliersPage[i] = supplierList[offset + i];
+        }
+    }
+
+    /**
+     * @notice Lấy toàn bộ danh sách Supplier (chỉ dùng khi danh sách nhỏ).
      * @return Mảng địa chỉ của tất cả Supplier.
      */
     function getAllSuppliers() external view returns (address[] memory) {

@@ -21,7 +21,7 @@ library RequestLib {
         uint256 value;          // Tổng tiền (nếu là SINGLE) hoặc mốc hiện tại (nếu là MULTI)
         address payable recipient;
         bool complete;
-        uint256 approvalCount;
+        uint256 totalApprovalWeight;
         string evidenceHash;    // IPFS Hash minh chứng
         mapping(address => bool) approvals;
         

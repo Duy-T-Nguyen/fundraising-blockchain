@@ -80,7 +80,7 @@ describe("Optimization & Unified Indexing Tests", function () {
       
       const createAndApprove = async (mgr: any, name: string, cat: number) => {
         const id = await factory.requestCount();
-        await factory.connect(mgr).submitCampaignRequest(name, cat, 100);
+        await factory.connect(mgr).submitCampaignRequest(name, "Desc", "Hash", cat, 100, { value: ethers.parseEther("0.005") });
         await factory.connect(owner).approveCampaignRequest(id);
       };
 

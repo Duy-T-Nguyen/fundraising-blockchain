@@ -29,7 +29,7 @@ describe("Campaign & Factory", function () {
 
     const createAndApprove = async (mgr: any, name: string, description: string, imageHash: string, cat: number, min: any) => {
       const count = await factory.requestCount();
-      await factory.connect(mgr).submitCampaignRequest(name, description, imageHash, cat, min);
+      await factory.connect(mgr).submitCampaignRequest(name, description, imageHash, cat, min, { value: ethers.parseEther("0.005") });
       await factory.connect(owner).approveCampaignRequest(count);
     };
 
@@ -71,7 +71,7 @@ describe("Campaign & Factory", function () {
     it("should allow different managers to create campaigns", async () => {
       await factory
         .connect(donor1)
-        .submitCampaignRequest("Test Donor1", "Desc Donor1", "QmDonor1", 0, ethers.parseEther("0.02"));
+        .submitCampaignRequest("Test Donor1", "Desc Donor1", "QmDonor1", 0, ethers.parseEther("0.02"), { value: ethers.parseEther("0.005") });
       await factory.approveCampaignRequest(await factory.requestCount() - 1n);
 
       const allCampaigns = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
@@ -92,7 +92,7 @@ describe("Campaign & Factory", function () {
     });
 
     it("should emit CampaignStarted event", async () => {
-      await expect(factory.submitCampaignRequest("Test Emit", "Desc Emit", "QmEmit", 3, ethers.parseEther("0.05")))
+      await expect(factory.submitCampaignRequest("Test Emit", "Desc Emit", "QmEmit", 3, ethers.parseEther("0.05"), { value: ethers.parseEther("0.005") }))
         .to.emit(factory, "CampaignRequestSubmitted");
       
       await expect(factory.approveCampaignRequest(await factory.requestCount() - 1n))
@@ -293,7 +293,7 @@ describe("Campaign & Factory", function () {
       expect(request.value).to.equal(ethers.parseEther("0.05"));
       expect(request.recipient).to.equal(recipient.address);
       expect(request.complete).to.equal(false);
-      expect(request.approvalCount).to.equal(0n);
+      expect(request.totalApprovalWeight).to.equal(0n);
       expect(request.evidenceHash).to.equal("QmTestHash");
     });
 
@@ -381,7 +381,7 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(0);
 
       const request = await campaign.requests(0);
-      expect(request.approvalCount).to.equal(1n);
+      expect(request.totalApprovalWeight).to.equal(ethers.parseEther("1"));
     });
 
     it("should emit Voted event", async () => {

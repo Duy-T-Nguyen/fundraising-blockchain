@@ -15,6 +15,9 @@ contract CampaignFactory is Events {
     /// @notice Địa chỉ Platform Admin (người deploy hoặc quản trị hệ thống)
     address public admin;
 
+    /// @notice Phí chống spam khi tạo chiến dịch (0.005 ETH)
+    uint256 public constant ANTI_SPAM_FEE = 0.005 ether;
+
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
 
@@ -79,8 +82,11 @@ contract CampaignFactory is Events {
      * @param category Danh mục chiến dịch.
      * @param minimum Số tiền tối thiểu (wei).
      */
-    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external {
+    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external payable {
+        if (msg.value < ANTI_SPAM_FEE) revert IncorrectFee();
         if (bytes(name).length == 0) revert EmptyDescription();
+        if (bytes(description).length == 0) revert EmptyDescription();
+        if (bytes(imageHash).length == 0) revert EmptyEvidenceHash();
         if (minimum == 0) revert InsufficientFunds();
 
         uint256 requestId = requestCount++;
@@ -147,6 +153,16 @@ contract CampaignFactory is Events {
         req.status = RequestStatus.REJECTED;
 
         emit CampaignRequestRejected(requestId);
+    }
+
+    /**
+     * @notice Admin rút tiền phí chống spam về ví.
+     */
+    function withdrawFees() external onlyAdmin {
+        uint256 balance = address(this).balance;
+        if (balance == 0) revert InsufficientFunds();
+        (bool success, ) = admin.call{value: balance}("");
+        if (!success) revert TransferFailed();
     }
 
     // =====================
