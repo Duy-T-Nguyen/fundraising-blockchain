@@ -8,6 +8,8 @@ This is the backend component of the **Fundraising Blockchain** project. Its pri
 - **Pinata Integration**: Seamlessly communicates with Pinata SDK for data pinning.
 - **Blockchain Listener**: Real-time monitoring of `CampaignStarted` events.
 - **Auto-Verification**: Automatically triggers Hardhat Etherscan verification for newly deployed campaigns.
+- **MongoDB Sync State**: Uses MongoDB to securely cache the `lastProcessedBlock`, ensuring no events are missed even if the server restarts.
+- **Signature Verification**: Requires cryptographic signatures (`ethers.verifyMessage`) to validate users uploading evidence to IPFS.
 
 ## 🏗 Setup & Installation
 
@@ -20,10 +22,13 @@ This is the backend component of the **Fundraising Blockchain** project. Its pri
 Create a `.env` file in the `be/` directory:
 
 ```env
-PO1609900
+PORT=1609
 PINATA_API_KEY=your_api_key
 PINATA_SECRET_KEY=your_secret_key
 ACCESS_KEY=your_jwt_token (Optional but recommended)
+RPC_URL=https://eth-sepolia.g.alchemy.com/v2/...
+CAMPAIGN_FACTORY_ADDRESS=0xf4901bBc7d340584120273F8db235cF5322CA344
+MONGODB_URI=mongodb://localhost:27017/fundchain
 ```
 
 > [!NOTE]
@@ -64,7 +69,10 @@ The Docker setup uses a multi-stage build to optimize image size and security:
 ### Evidence Upload
 - **URL**: `POST /evidence/upload`
 - **Body**: `multipart/form-data`
-- **Field**: `file` (Image/PDF)
+- **Fields**: 
+  - `file`: Image/PDF
+  - `address`: User's wallet address
+  - `signature`: Signature of message "FundChain IPFS Upload"
 - **Response**:
   ```json
   {
