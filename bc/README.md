@@ -428,7 +428,7 @@ library RequestLib {
         uint256 value;                   // Số tiền yêu cầu (wei)
         address payable recipient;       // Địa chỉ nhận tiền
         bool complete;                   // Đã giải ngân chưa? (true = đã xong)
-        uint256 approvalCount;           // Số phiếu đồng ý hiện tại
+        uint256 totalApprovalWeight;     // Tổng số lượng ETH đã vote đồng ý (Wei)
         mapping(address => bool) approvals; // Ai đã vote? (tránh vote 2 lần)
     }
 }
@@ -442,7 +442,7 @@ library RequestLib {
 | `value` | `uint256` | Số tiền yêu cầu giải ngân (đơn vị Wei) |
 | `recipient` | `address payable` | Địa chỉ ví nhận tiền. `payable` = có thể nhận ETH |
 | `complete` | `bool` | `false` = đang chờ, `true` = đã giải ngân |
-| `approvalCount` | `uint256` | Đếm số phiếu bầu đồng ý |
+| `totalApprovalWeight` | `uint256` | Tổng số lượng ETH của những người đã vote đồng ý |
 | `approvals` | `mapping` | Bản đồ: `địa chỉ → đã vote chưa` (tránh double-vote) |
 
 **Tại sao dùng `library`?**
@@ -683,7 +683,7 @@ function createRequest(
     r.value = value;
     r.recipient = recipient;
     r.complete = false;
-    r.approvalCount = 0;
+    r.totalApprovalWeight = 0;
 
     emit RequestCreated(requests.length - 1, desc, value, recipient);
 }
@@ -707,7 +707,7 @@ function approveRequest(uint256 index) external onlyActive {
     if (r.complete) revert RequestCompleted();                 // Request chưa hoàn thành
 
     r.approvals[msg.sender] = true;  // Đánh dấu đã vote
-    r.approvalCount++;               // Tăng đếm phiếu
+    r.totalApprovalWeight += contributions[msg.sender]; // Tăng tổng trọng số bằng số tiền đã donate
     emit Voted(msg.sender, index);
 }
 ```
@@ -725,8 +725,8 @@ function finalizeRequest(uint256 index) external onlyManager nonReentrant {
     if (r.complete) revert RequestCompleted();
     if (r.value > address(this).balance) revert InsufficientFunds();
 
-    // Cần NHIỀU HƠN 50% donors đồng ý
-    if (r.approvalCount <= totalDonors / 2) revert NotEnoughApprovals();
+    // Cần NHIỀU HƠN 50% tổng quỹ chiến dịch đồng ý (Weighted Voting)
+    if (r.totalApprovalWeight <= totalFundsRaised / 2) revert NotEnoughApprovals();
 
     r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền (pattern bảo mật)
 

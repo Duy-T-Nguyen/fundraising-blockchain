@@ -70,14 +70,14 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6` |
-| **SupplierRegistry** | `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F` |
+| **CampaignFactory** | `0xf4901bBc7d340584120273F8db235cF5322CA344` |
+| **SupplierRegistry** | `0xAAa0Ef20C1f96d3016b1B0E267761e7AE4EB8dD9` |
 
-**Các tính năng mới nhất (Cập nhật 17/04/2026):**
-- **O(1) Efficiency**: Tối ưu hóa gas cho thao tác quản lý danh sách (Supplier/Validator) từ O(N) về O(1).
-- **Unified Indexing**: Hợp nhất hệ thống truy vấn on-chain vào một API duy nhất, hỗ trợ lọc đa điều kiện và phân trang mạnh mẽ.
-- **IPFS Image Support**: Mỗi chiến dịch giờ đây có thể có ảnh đại diện và mô tả chi tiết lưu trữ minh bạch trên IPFS và Blockchain.
-- **Auto-Verification**: Backend tự động kích hoạt xác thực mã nguồn trên Etherscan cho mỗi chiến dịch mới được tạo.
+**Các tính năng mới nhất (Cập nhật Bảo mật v2.1 - 18/04/2026):**
+- **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
+- **Anti-spam Fee**: Cấu hình phí chống spam (`0.005 ETH`) khi gửi yêu cầu tạo chiến dịch, ngăn chặn lạm dụng và tạo rác trên mạng.
+- **MongoDB Internal State**: Backend (NestJS) sử dụng MongoDB làm bộ nhớ đệm an toàn (`SyncState`) giúp server không bị lọt sự kiện Blockchain sau khi khởi động lại, trong khi vẫn đảm bảo 100% dữ liệu gốc bất biến On-chain.
+- **Signature Verification**: Cổng tải bằng chứng IPFS giờ đây yêu cầu chữ ký số để xác thực người dùng.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 17/04/2026.*
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 18/04/2026.*
