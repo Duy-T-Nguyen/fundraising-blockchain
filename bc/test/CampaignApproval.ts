@@ -24,7 +24,7 @@ describe("Campaign Approval Workflow", function () {
   });
 
   it("should allow any user to submit a campaign request", async () => {
-    await expect(factory.connect(manager).submitCampaignRequest("Save the Trees", "Save the environment", "QmTest", 0, MIN_CONTRIBUTION))
+    await expect(factory.connect(manager).submitCampaignRequest("Save the Trees", "Save the environment", "QmTest", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") }))
       .to.emit(factory, "CampaignRequestSubmitted")
       .withArgs(0, manager.address, "Save the Trees", "Save the environment", "QmTest", 0, MIN_CONTRIBUTION);
 
@@ -35,7 +35,7 @@ describe("Campaign Approval Workflow", function () {
   });
 
   it("should allow admin to approve a request and deploy a campaign", async () => {
-    await factory.connect(manager).submitCampaignRequest("Save the Trees", "Save the environment", "QmTest", 0, MIN_CONTRIBUTION);
+    await factory.connect(manager).submitCampaignRequest("Save the Trees", "Save the environment", "QmTest", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
     
     await expect(factory.connect(admin).approveCampaignRequest(0))
       .to.emit(factory, "CampaignRequestApproved")
@@ -51,7 +51,7 @@ describe("Campaign Approval Workflow", function () {
   });
 
   it("should allow admin to reject a request", async () => {
-    await factory.connect(manager).submitCampaignRequest("Spam Campaign", "Spam", "QmSpam", 0, MIN_CONTRIBUTION);
+    await factory.connect(manager).submitCampaignRequest("Spam Campaign", "Spam", "QmSpam", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
     
     await expect(factory.connect(admin).rejectCampaignRequest(0))
       .to.emit(factory, "CampaignRequestRejected")
@@ -66,7 +66,7 @@ describe("Campaign Approval Workflow", function () {
   });
 
   it("should revert if non-admin tries to approve or reject", async () => {
-    await factory.connect(manager).submitCampaignRequest("Test", "Desc", "QmHash", 0, MIN_CONTRIBUTION);
+    await factory.connect(manager).submitCampaignRequest("Test", "Desc", "QmHash", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
 
     await expect(factory.connect(other).approveCampaignRequest(0))
       .to.be.revertedWithCustomError(factory, "NotAdmin");
@@ -76,7 +76,7 @@ describe("Campaign Approval Workflow", function () {
   });
 
   it("should revert if processing an already processed request", async () => {
-    await factory.connect(manager).submitCampaignRequest("Test", "Desc", "QmHash", 0, MIN_CONTRIBUTION);
+    await factory.connect(manager).submitCampaignRequest("Test", "Desc", "QmHash", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
     await factory.connect(admin).approveCampaignRequest(0);
 
     await expect(factory.connect(admin).approveCampaignRequest(0))

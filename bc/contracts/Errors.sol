@@ -32,6 +32,8 @@ error InvalidMilestoneIndex();
 error MilestoneAlreadyReleased();
 error MilestoneNotApproved();
 error ManagerNotAllowedAsRecipient();
+error ManagerNotAllowedAsVerifier();
+error RecipientNotAllowedAsVerifier();
 error AggregateMonthlyCapExceeded();
 
 // =====================
@@ -42,3 +44,4 @@ error RecipientNotWhitelisted();
 error AlreadyWhitelisted();
 error NotWhitelisted();
 error RequestAlreadyProcessed();
+error IncorrectFee();

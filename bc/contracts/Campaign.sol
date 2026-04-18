@@ -28,6 +28,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     uint256 public minimumContribution;
     uint256 public totalDonors;
+    uint256 public totalFundsRaised;
     mapping(address => uint256) public contributions;
     RequestLib.Request[] public requests;
     bool public active;
@@ -58,6 +59,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
             revert InvalidAddress();
         if (bytes(_name).length == 0) revert EmptyDescription();
+        if (bytes(_description).length == 0) revert EmptyDescription();
+        if (bytes(_imageHash).length == 0) revert EmptyEvidenceHash();
 
         campaignName = _name;
         description = _description;
@@ -86,6 +89,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             totalDonors++;
         }
         contributions[msg.sender] += msg.value;
+        totalFundsRaised += msg.value;
 
         // Báo cáo số liệu về Factory
         ICampaignFactory(factory).recordDonation(msg.value);
@@ -120,7 +124,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.value = value;
         r.recipient = recipient;
         r.complete = false;
-        r.approvalCount = 0;
+        r.totalApprovalWeight = 0;
         r.evidenceHash = evidenceHash;
         r.requestType = RequestLib.RequestType.SINGLE;
 
@@ -150,6 +154,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     ) external onlyManager onlyActive {
         if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (verifier == manager) revert ManagerNotAllowedAsVerifier();
+        if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
         if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
         if (milestoneValues.length == 0 || milestoneValues.length != milestoneDescriptions.length) revert InvalidRequestIndex();
 
@@ -157,7 +163,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.description = desc;
         r.recipient = recipient;
         r.complete = false;
-        r.approvalCount = 0;
+        r.totalApprovalWeight = 0;
         r.requestType = RequestLib.RequestType.MULTI;
         r.verifier = verifier;
         r.currentMilestone = 0;
@@ -194,7 +200,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (r.complete) revert RequestCompleted();
 
         r.approvals[msg.sender] = true;
-        r.approvalCount++;
+        r.totalApprovalWeight += contributions[msg.sender];
 
         emit Voted(msg.sender, index);
     }
@@ -250,8 +256,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             }
         }
         
-        // Luồng B: Donor duyệt (>50%)
-        if (!canFinalize && r.approvalCount > totalDonors / 2) {
+        // Luồng B: Donor duyệt (>50% tổng quỹ đã quyên góp)
+        if (!canFinalize && r.totalApprovalWeight > totalFundsRaised / 2) {
             canFinalize = true;
         }
 
@@ -275,7 +281,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
         if (r.requestType != RequestLib.RequestType.MULTI) revert InvalidRequestIndex();
         if (r.complete) revert RequestCompleted();
-        if (r.approvalCount <= totalDonors / 2) revert NotEnoughApprovals();
+        if (r.totalApprovalWeight <= totalFundsRaised / 2) revert NotEnoughApprovals();
 
         uint256 current = r.currentMilestone;
         if (current >= r.milestones.length) revert MilestoneAlreadyReleased();
