@@ -3,17 +3,24 @@ import { useParams } from 'react-router-dom';
 import CampaignHero from '../components/campaigndetail/CampaignHero';
 import DonorsTable from '../components/campaigndetail/DonorsTable';
 import { useCampaign } from '../hooks/useCampaign';
+import { useCampaignResolver } from '../hooks/useCampaignResolver';
 
 const CampaignDetail: React.FC = () => {
-  const { address } = useParams<{ address: string }>();
-  const { summary, isLoading, refresh } = useCampaign(address);
+  const { slug } = useParams<{ slug: string }>();
+  
+  // Resolve slug to address
+  const { address, isLoading: isResolving, error: resolutionError } = useCampaignResolver(slug);
+  
+  const { summary, isLoading, refresh } = useCampaign(address || undefined);
 
   // Auto-scroll to top when campaign address changes
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    if (address) {
+      window.scrollTo(0, 0);
+    }
   }, [address]);
 
-  if (isLoading) {
+  if (isResolving || (isLoading && !summary)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
         <div className="flex flex-col items-center gap-4">
@@ -24,13 +31,13 @@ const CampaignDetail: React.FC = () => {
     );
   }
 
-  if (!summary) {
+  if (resolutionError || (!isResolving && !address) || (!isLoading && !summary)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
         <div className="text-center space-y-4">
           <div className="text-red-500 text-7xl font-black">404</div>
-          <p className="text-gray-600 font-bold">Campaign Not Found</p>
-          <button onClick={() => window.history.back()} className="px-6 py-2 bg-gray-200 rounded-xl font-bold hover:bg-gray-300 transition">Go Back</button>
+          <p className="text-gray-600 font-bold">{resolutionError || 'Campaign Not Found'}</p>
+          <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-gray-200 rounded-xl font-bold hover:bg-gray-300 transition">Go to Home</button>
         </div>
       </div>
     );

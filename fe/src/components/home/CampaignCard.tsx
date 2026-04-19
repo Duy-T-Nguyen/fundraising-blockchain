@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCampaign } from '../../hooks/useCampaign';
 import { Users, Activity, ArrowRight } from 'lucide-react';
+import { slugify } from '../../utils/slugify';
 
 interface CampaignCardProps {
   address: string;
@@ -44,9 +45,12 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
     ? `https://gateway.pinata.cloud/ipfs/${summary.imageHash.replace('ipfs://', '')}`
     : getPlaceholderImage();
 
+  const slug = slugify(summary.title);
+  const detailUrl = `/campaign/${slug}`;
+
   return (
     <Link 
-      to={`/campaign/${address}`}
+      to={detailUrl}
       className="group bg-white rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[480px]"
     >
       {/* Image Section with Overlaid Stats */}

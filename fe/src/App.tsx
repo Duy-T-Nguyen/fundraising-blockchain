@@ -15,7 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/campaigns/create" element={<CreateCampaign />} />
-        <Route path="/campaign/:address" element={<CampaignDetail />} />
+        <Route path="/campaign/:slug" element={<CampaignDetail />} />
       </Routes>
       <Footer />
     </Router>
