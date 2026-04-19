@@ -18,15 +18,12 @@ import "./SupplierRegistry.sol";
  * @dev Tích hợp mô hình WFP: Tiền chỉ chảy đến Supplier đã được Platform Admin thẩm định.
  *      Manager KHÔNG có quyền thêm Supplier hoặc nhận tiền.
  */
-interface ICampaignFactory {
-    function recordDonation(address donor, uint256 amount) external;
-}
 
 contract Campaign is Events, AccessControl, ReentrancyGuard {
     using RequestLib for RequestLib.Request;
     using ECDSA for bytes32;
 
-    uint256 public minimumContribution;
+    uint256 public immutable minimumContribution;
     uint256 public totalDonors;
     uint256 public totalFundsRaised;
     mapping(address => uint256) public contributions;
@@ -36,13 +33,13 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     string public campaignName;
     string public description;
     string public imageHash;
-    Category public category;
+    Category public immutable category;
 
-    ValidatorPool public validatorPool;
-    SupplierRegistry public supplierRegistry;
-    address public factory;
+    ValidatorPool public immutable validatorPool;
+    SupplierRegistry public immutable supplierRegistry;
+    address public immutable factory;
 
-    /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ tại thời điểm tạo)
+    /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ)
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
 
     constructor(
@@ -61,7 +58,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             _validatorPool == address(0) ||
             _supplierRegistry == address(0)
         ) revert InvalidAddress();
-        if (bytes(_name).length == 0) revert EmptyDescription();
+        if (bytes(_name).length == 0) revert EmptyName(); // Fixed: Use specific error
         if (bytes(_description).length == 0) revert EmptyDescription();
         if (bytes(_imageHash).length == 0) revert EmptyEvidenceHash();
 
@@ -106,18 +103,20 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Tạo request bình thường (SINGLE)
-     * @dev Nếu số tiền < 0.5% quỹ, hệ thống tự động chọn 3 validator ngẫu nhiên.
-     *      Recipient PHẢI nằm trong SupplierRegistry (Whitelisted Supplier).
+     * @dev Nếu số tiền <= 0.5% TỔNG QUỸ, hệ thống tự động chọn 3 validator ngẫu nhiên.
      */
     function createRequest(
         string calldata desc,
         uint256 value,
         address payable recipient,
+        address verifier, // Added verifier
         string calldata evidenceHash
     ) external onlyManager onlyActive {
         if (value == 0) revert InsufficientFunds();
         if (recipient == address(0)) revert InvalidAddress();
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (verifier == manager) revert ManagerNotAllowedAsVerifier();
+        if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
         if (!supplierRegistry.isSupplier(recipient))
             revert RecipientNotWhitelisted();
         if (bytes(desc).length == 0) revert EmptyDescription();
@@ -131,11 +130,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.totalApprovalWeight = 0;
         r.evidenceHash = evidenceHash;
         r.requestType = RequestLib.RequestType.SINGLE;
+        r.verifier = verifier; // Store verifier
 
-        // Kiểm tra ngưỡng Validator (0.5%)
-        uint256 threshold = (address(this).balance * VALIDATOR_THRESHOLD_BPS) /
-            10000;
-        if (value <= threshold && address(this).balance > 0) {
+        // Tính toán ngưỡng dựa trên Tổng quỹ đã quyên góp (Ổn định hơn Balance)
+        uint256 threshold = (totalFundsRaised * VALIDATOR_THRESHOLD_BPS) / 10000;
+        
+        if (value <= threshold && totalFundsRaised > 0) {
             // Chọn ngẫu nhiên 3 Validator từ Pool
             address[] memory selected = validatorPool.getRandomValidators(
                 requests.length + block.timestamp
@@ -148,7 +148,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             desc,
             value,
             recipient,
-            evidenceHash
+            evidenceHash,
+            r.selectedValidators
         );
     }
 
@@ -205,7 +206,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             desc,
             totalBudget,
             recipient,
-            ""
+            "",
+            r.selectedValidators
         );
     }
 
@@ -262,10 +264,14 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     // =====================
 
     /**
-     * @notice Manager thực thi request (Tương thích cả Donor Path và Validator Path cho SINGLE)
-     * @dev Tiền chuyển thẳng cho Supplier — Manager KHÔNG nhận tiền.
+     * @notice Manager thực thi thanh toán sau khi đã giao hàng (Proof of Delivery)
+     * @dev Yêu cầu: (Đã đủ phiếu bầu) + (Chữ ký xác nhận của Verifier)
      */
-    function finalizeRequest(uint256 index) external onlyManager nonReentrant {
+    function finalizeRequest(
+        uint256 index,
+        bytes calldata signature,
+        string calldata finalEvidenceHash
+    ) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
@@ -274,27 +280,35 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (r.complete) revert RequestCompleted();
         if (r.value > address(this).balance) revert InsufficientFunds();
 
+        // 1. Kiểm tra điều kiện bỏ phiếu (Approval Check)
         bool canFinalize = false;
-
-        // Ưu tiên Luồng A: Validator duyệt (2/3)
         if (r.selectedValidators.length > 0) {
-            if (r.validatorApprovalCount >= 2) {
-                canFinalize = true;
-            }
+            if (r.validatorApprovalCount >= 2) canFinalize = true;
         }
-
-        // Luồng B: Donor duyệt (>50% tổng quỹ đã quyên góp)
         if (!canFinalize && r.totalApprovalWeight > totalFundsRaised / 2) {
             canFinalize = true;
         }
-
         if (!canFinalize) revert NotEnoughApprovals();
 
+        // 2. Kiểm tra bằng chứng giao hàng (Proof of Delivery Check)
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(address(this), index, "FINAL")
+        );
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(
+            messageHash
+        );
+        address signer = ECDSA.recover(ethSignedMessageHash, signature);
+        if (signer != r.verifier) revert InvalidSignature();
+
+        // 3. Thực thi thanh toán
         r.complete = true;
+        r.evidenceHash = finalEvidenceHash; // Lưu bằng chứng cuối cùng (Hóa đơn/Ảnh)
+
         (bool success, ) = r.recipient.call{value: r.value}("");
         if (!success) revert TransferFailed();
 
-        emit FundsReleased(index);
+        supplierRegistry.recordPayment(r.recipient, r.value);
+        emit FundsReleased(index, r.recipient);
     }
 
     /**
@@ -343,7 +357,10 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         (bool success, ) = r.recipient.call{value: m.value}("");
         if (!success) revert TransferFailed();
 
-        emit MilestoneReleased(index, current, m.value, evidenceHash);
+        // Ghi nhận thu nhập cho Supplier trên Registry
+        supplierRegistry.recordPayment(r.recipient, m.value);
+
+        emit MilestoneReleased(index, current, m.value, r.recipient, evidenceHash);
     }
 
     function deactivateCampaign() external onlyManager {
@@ -381,5 +398,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     function getRequestsCount() external view returns (uint256) {
         return requests.length;
+    }
+
+    /**
+     * @notice Kiểm tra một địa chỉ có phải là Supplier hợp lệ không (Dùng cho FE)
+     */
+    function checkRecipient(address _recipient) external view returns (bool) {
+        return supplierRegistry.isSupplier(_recipient);
     }
 }

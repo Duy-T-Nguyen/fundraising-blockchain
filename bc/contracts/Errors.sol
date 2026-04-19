@@ -23,6 +23,7 @@ error CampaignNotActive();
 error InsufficientFunds();
 error InvalidAddress();
 error InvalidRequestIndex();
+error EmptyName();
 error EmptyDescription();
 error EmptyEvidenceHash();
 error TransferFailed();

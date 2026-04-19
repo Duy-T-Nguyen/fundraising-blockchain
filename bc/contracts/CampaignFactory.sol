@@ -77,7 +77,7 @@ contract CampaignFactory is Events {
      * @param _admin Địa chỉ quản trị viên.
      */
     constructor(address _supplierRegistry, address _admin) {
-        if (_admin == address(0)) revert InvalidAddress();
+        if (_admin == address(0) || _supplierRegistry == address(0)) revert InvalidAddress();
         supplierRegistry = SupplierRegistry(_supplierRegistry);
         admin = _admin;
     }
