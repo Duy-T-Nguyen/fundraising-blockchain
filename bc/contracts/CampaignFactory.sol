@@ -36,6 +36,12 @@ contract CampaignFactory is Events {
     
     /// @notice Kiểm tra địa chỉ có phải là Campaign hợp lệ do Factory tạo ra không
     mapping(address => bool) public isChildCampaign;
+    
+    /// @notice Danh sách các Campaign mà một user đã donate
+    mapping(address => address[]) public userDonatedCampaigns;
+    
+    /// @notice Tránh lưu trùng lặp Campaign vào mảng của user để tiết kiệm Gas
+    mapping(address => mapping(address => bool)) private hasDonatedTo;
 
     // =====================
     // Approval Workflow
@@ -239,13 +245,63 @@ contract CampaignFactory is Events {
 
     /**
      * @notice Hàm để các Campaign con báo cáo số liệu quyên góp.
+     * @param donor Địa chỉ ví người quyên góp.
      * @param amount Số tiền quyên góp mới.
      */
-    function recordDonation(uint256 amount) external {
+    function recordDonation(address donor, uint256 amount) external {
         if (!isChildCampaign[msg.sender]) revert NotAuthorized();
         
+        // Chỉ lưu địa chỉ campaign vào danh sách của user nếu là lần đầu donate cho campaign này
+        if (!hasDonatedTo[donor][msg.sender]) {
+            userDonatedCampaigns[donor].push(msg.sender);
+            hasDonatedTo[donor][msg.sender] = true;
+        }
+
         totalGlobalDonated += amount;
         totalGlobalDonationsCount += 1;
+    }
+
+    /**
+     * @notice Lấy thông tin chi tiết lịch sử đóng góp của một user với phân trang.
+     * @param user Địa chỉ ví người dùng.
+     * @param offset Vị trí bắt đầu.
+     * @param limit Số lượng tối đa.
+     * @return campaigns Mảng các địa chỉ campaign.
+     * @return amounts Mảng các số tiền tương ứng đã đóng góp.
+     * @return total Tổng số lượng campaign người này đã tham gia.
+     */
+    function getUserDonationDetails(
+        address user,
+        uint256 offset,
+        uint256 limit
+    ) external view returns (
+        address[] memory campaigns,
+        uint256[] memory amounts,
+        uint256 total
+    ) {
+        address[] storage list = userDonatedCampaigns[user];
+        total = list.length;
+
+        if (offset >= total || limit == 0) {
+            return (new address[](0), new uint256[](0), total);
+        }
+
+        uint256 size = limit;
+        if (offset + limit > total) {
+            size = total - offset;
+        }
+
+        campaigns = new address[](size);
+        amounts = new uint256[](size);
+
+        for (uint256 i = 0; i < size; i++) {
+            address campaignAddr = list[offset + i];
+            campaigns[i] = campaignAddr;
+            // Truy vấn trực tiếp contribution từ campaign con
+            amounts[i] = Campaign(campaignAddr).contributions(user);
+        }
+
+        return (campaigns, amounts, total);
     }
 
     /**

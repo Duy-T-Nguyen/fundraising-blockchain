@@ -94,7 +94,7 @@ describe("Campaign & Factory", function () {
     it("should emit CampaignStarted event", async () => {
       await expect(factory.submitCampaignRequest("Test Emit", "Desc Emit", "QmEmit", 3, ethers.parseEther("0.05"), { value: ethers.parseEther("0.005") }))
         .to.emit(factory, "CampaignRequestSubmitted");
-      
+
       await expect(factory.approveCampaignRequest(await factory.requestCount() - 1n))
         .to.emit(factory, "CampaignStarted")
         .withArgs(
@@ -132,7 +132,7 @@ describe("Campaign & Factory", function () {
       it("should filter campaigns by category correctly", async () => {
         const eduCampaigns = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 0, 10);
         expect(eduCampaigns.length).to.be.at.least(2);
-        
+
         for (const addr of eduCampaigns) {
           const Campaign = await ethers.getContractFactory("Campaign");
           const c = await Campaign.attach(addr);
@@ -148,7 +148,7 @@ describe("Campaign & Factory", function () {
         // Get next Education campaigns
         const page2 = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 2, 2);
         expect(page2.length).to.be.at.least(1);
-        
+
         // Ensure no overlap
         expect(page1[0]).to.not.equal(page2[0]);
         expect(page1[1]).to.not.equal(page2[0]);
@@ -274,6 +274,75 @@ describe("Campaign & Factory", function () {
       );
       expect(balance).to.equal(ethers.parseEther("1"));
     });
+
+    describe("Donation History (On-chain tracking)", function () {
+      it("should track donated campaigns in Factory", async () => {
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(1);
+        expect(details.campaigns[0]).to.equal(await campaign.getAddress());
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION);
+        expect(details.total).to.equal(1);
+      });
+
+      it("should NOT duplicate campaigns in donor history", async () => {
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(1);
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION * 2n);
+        expect(details.total).to.equal(1);
+      });
+
+      it("should track multiple different campaigns for one user", async () => {
+        // Create another campaign
+        await (factory as any).createAndApprove(owner, "Second Cam", "Desc", "QmHash", 0, MIN_CONTRIBUTION);
+        const addresses = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
+        const secondCampaign = await ethers.getContractAt("Campaign", addresses[1]);
+
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        await secondCampaign.connect(donor1).donate({ value: MIN_CONTRIBUTION * 2n });
+
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(2);
+        expect(details.total).to.equal(2);
+        
+        // Order: first campaign then second campaign
+        expect(details.campaigns[0]).to.equal(await campaign.getAddress());
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION);
+        
+        expect(details.campaigns[1]).to.equal(await secondCampaign.getAddress());
+        expect(details.amounts[1]).to.equal(MIN_CONTRIBUTION * 2n);
+      });
+
+      it("should support pagination for donation history", async () => {
+        // Create 3 campaigns and donate to all
+        await (factory as any).createAndApprove(owner, "Cam 2", "D", "Q", 0, MIN_CONTRIBUTION);
+        await (factory as any).createAndApprove(owner, "Cam 3", "D", "Q", 0, MIN_CONTRIBUTION);
+        
+        const allAddrs = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
+        
+        for (let i = 0; i < 3; i++) {
+          const c = await ethers.getContractAt("Campaign", allAddrs[i]);
+          await c.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        }
+
+        // Get page 1 (size 2)
+        const page1 = await factory.getUserDonationDetails(donor1.address, 0, 2);
+        expect(page1.campaigns.length).to.equal(2);
+        expect(page1.total).to.equal(3);
+
+        // Get page 2 (size 2)
+        const page2 = await factory.getUserDonationDetails(donor1.address, 2, 2);
+        expect(page2.campaigns.length).to.equal(1);
+        expect(page2.total).to.equal(3);
+        
+        expect(page1.campaigns[0]).to.equal(allAddrs[0]);
+        expect(page2.campaigns[0]).to.equal(allAddrs[2]);
+      });
+    });
   });
 
   // =========================================================
@@ -303,8 +372,8 @@ describe("Campaign & Factory", function () {
           "Buy supplies",
           ethers.parseEther("0.05"),
           recipient.address,
-        "QmTestHash"
-      )
+          "QmTestHash"
+        )
       )
         .to.emit(campaign, "RequestCreated")
         .withArgs(
@@ -312,8 +381,8 @@ describe("Campaign & Factory", function () {
           "Buy supplies",
           ethers.parseEther("0.05"),
           recipient.address,
-        "QmTestHash"
-      );
+          "QmTestHash"
+        );
     });
 
     it("should track multiple requests", async () => {
