@@ -70,14 +70,14 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0xf4901bBc7d340584120273F8db235cF5322CA344` |
-| **SupplierRegistry** | `0xAAa0Ef20C1f96d3016b1B0E267761e7AE4EB8dD9` |
+| **CampaignFactory** | `0x4d272f0C39B18C09536392eAeA254A1e503639C5` |
+| **SupplierRegistry** | `0x358390a0a195C029632a2B045eBd28209DcC385c` |
 
-**Các tính năng mới nhất (Cập nhật Bảo mật v2.1 - 18/04/2026):**
+**Các tính năng mới nhất (Cập nhật WFP Standard v3.0 - 20/04/2026):**
+- **WFP 2-Stage Payment Logic**: Tích hợp chuẩn thanh toán của World Food Programme. Việc phê duyệt (Vote) chỉ có ý nghĩa "Duyệt Ngân sách". Tiền chỉ thực sự được giải ngân khi có chữ ký số (ECDSA Signature) nghiệm thu bằng chứng giao hàng từ một bên thứ 3 độc lập (`Verifier`).
 - **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
 - **Anti-spam Fee**: Cấu hình phí chống spam (`0.005 ETH`) khi gửi yêu cầu tạo chiến dịch, ngăn chặn lạm dụng và tạo rác trên mạng.
 - **MongoDB Internal State**: Backend (NestJS) sử dụng MongoDB làm bộ nhớ đệm an toàn (`SyncState`) giúp server không bị lọt sự kiện Blockchain sau khi khởi động lại, trong khi vẫn đảm bảo 100% dữ liệu gốc bất biến On-chain.
-- **Signature Verification**: Cổng tải bằng chứng IPFS giờ đây yêu cầu chữ ký số để xác thực người dùng.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 18/04/2026.*
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026.*

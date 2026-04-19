@@ -669,11 +669,16 @@ function donate() external payable onlyActive {
 function createRequest(
     string calldata desc,       // Mô tả
     uint256 value,              // Số tiền
-    address payable recipient,  // Người nhận
+    address payable recipient,  // Người nhận (Supplier)
+    address verifier,           // Người xác minh (Chuẩn WFP)
     string calldata evidenceHash // CID từ IPFS (hóa đơn, chứng từ)
 ) external onlyManager onlyActive {
     if (value == 0) revert InsufficientFunds();
     if (recipient == address(0)) revert InvalidAddress();
+    if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+    if (verifier == manager) revert ManagerNotAllowedAsVerifier();
+    if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
+    if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
     if (bytes(desc).length == 0) revert EmptyDescription();
     if (bytes(evidenceHash).length == 0) revert EmptyDescription();
 
@@ -684,8 +689,14 @@ function createRequest(
     r.recipient = recipient;
     r.complete = false;
     r.totalApprovalWeight = 0;
+    r.evidenceHash = evidenceHash;
+    r.requestType = RequestLib.RequestType.SINGLE;
+    r.verifier = verifier; // Lưu lại verifier
 
-    emit RequestCreated(requests.length - 1, desc, value, recipient);
+    // Logic chọn ngẫu nhiên Validator nếu số tiền nhỏ (bỏ qua chi tiết)
+    // ...
+
+    emit RequestCreated(requests.length - 1, desc, value, recipient, selectedValidators);
 }
 ```
 
@@ -717,7 +728,11 @@ function approveRequest(uint256 index) external onlyActive {
 ##### `finalizeRequest()` — Giải ngân
 
 ```solidity
-function finalizeRequest(uint256 index) external onlyManager nonReentrant {
+function finalizeRequest(
+    uint256 index,
+    bytes calldata signature,       // Chữ ký số của Verifier
+    string calldata finalEvidenceHash // Bằng chứng giao hàng cuối cùng
+) external onlyManager nonReentrant {
     if (index >= requests.length) revert InvalidRequestIndex();
 
     RequestLib.Request storage r = requests[index];
@@ -725,16 +740,27 @@ function finalizeRequest(uint256 index) external onlyManager nonReentrant {
     if (r.complete) revert RequestCompleted();
     if (r.value > address(this).balance) revert InsufficientFunds();
 
-    // Cần NHIỀU HƠN 50% tổng quỹ chiến dịch đồng ý (Weighted Voting)
-    if (r.totalApprovalWeight <= totalFundsRaised / 2) revert NotEnoughApprovals();
+    // 1. Kiểm tra đủ phiếu bầu (Weighted Voting / Validator)
+    // Cần > 50% tổng quỹ hoặc 2/3 validator đồng ý...
+    // ...
 
-    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền (pattern bảo mật)
+    // 2. Kiểm tra chữ ký của Verifier (Chuẩn WFP)
+    bytes32 messageHash = keccak256(abi.encodePacked(address(this), index, "FINAL"));
+    bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+    address signer = ECDSA.recover(ethSignedMessageHash, signature);
+
+    if (signer != r.verifier) revert InvalidSignature(); // Chỉ Verifier mới được ký duyệt chi!
+
+    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
+    
+    // Ghi nhận thu nhập cho Supplier
+    supplierRegistry.recordPayment(r.recipient, r.value);
 
     // Chuyển tiền bằng .call (an toàn hơn .transfer)
     (bool success, ) = r.recipient.call{value: r.value}("");
     if (!success) revert TransferFailed();
 
-    emit FundsReleased(index);
+    emit FundsReleased(index, r.recipient);
 }
 ```
 
@@ -1051,11 +1077,11 @@ RequestLib.sol ────────► Campaign.sol ◄──── Campaign
 | Vai trò | Quyền | Hạn chế |
 |---|---|---|
 | **Platform Admin** | Thẩm định & Whitelist Supplier | Không tham gia quản lý quỹ |
-| **Campaign Manager** | Tạo chiến dịch, Request, Finalize | Không được tự vote |
-| **Validator** | Duyệt các lệnh chi tiền nhỏ (<0.5%) | Phải được chọn ngẫu nhiên |
+| **Campaign Manager** | Tạo chiến dịch, Request, Finalize | Không được tự vote, không được làm Verifier |
+| **Validator** | Duyệt các lệnh chi tiền nhỏ (<0.5%) | Phải được chọn ngẫu nhiên từ Pool |
 | **Donor** | Quyên góp, Biểu quyết lệnh chi lớn | Không thể tạo request |
+| **Verifier (WFP)** | Xác minh giao hàng, cấp chữ ký số | Chỉ ký xác nhận, không cầm tiền quỹ |
 | **Người ngoài** | Xem thông tin công khai | Không có quyền thao tác |
-
 ---
 
 ## 🔍 Tính năng Nâng cao: On-chain Indexing & Filtering
@@ -1530,9 +1556,9 @@ Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi. Giải n
          │
          ▼
   ┌──────────────┐
-  │  BƯỚC 5      │     Oracle ký xác nhận (Proof of Delivery)
-  │  GIẢI NGÂN   │     → Gửi thẳng ETH cho Supplier bằng Smart Contract
-  │  TỰ ĐỘNG     │     (Manager KHÔNG BAO GIỜ chạm vào tiền quỹ)
+  │  BƯỚC 5      │     Verifier ký xác nhận (Proof of Delivery - ECDSA Signature)
+  │  GIẢI NGÂN   │     → Manager dùng chữ ký này để gọi `finalizeRequest`
+  │  TỰ ĐỘNG     │     → Gửi thẳng ETH cho Supplier bằng Smart Contract
   └──────────────┘
 ```
 
@@ -1542,15 +1568,16 @@ Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David. Platform Admin 
 
 | Bước | Ai thực hiện | Hành động | Kết quả |
 |---|---|---|---|
-| 0 | Eve | `SupplierRegistry.addSupplier(Shop)` | Đưa Shop vào Danh sách Trắng |
-| 1 | David | `createCampaign(0.01 ETH)` | Campaign mới được tạo, minimum = 0.01 ETH |
+| 0 | Eve (Admin) | `SupplierRegistry.addSupplier(Shop)` | Đưa Shop vào Danh sách Trắng |
+| 1 | David (Mgr) | `createCampaign(0.01 ETH)` | Campaign mới được tạo, minimum = 0.01 ETH |
 | 2 | Alice | `donate()` + 5 ETH | totalDonors = 1, balance = 5 ETH |
 | 3 | Bob | `donate()` + 3 ETH | totalDonors = 2, balance = 8 ETH |
 | 4 | Charlie | `donate()` + 2 ETH | totalDonors = 3, balance = 10 ETH |
-| 5 | David | `createRequest("Mua server", 4 ETH, Shop)` | Request #0 được khởi tạo (*không lỗi vì Shop đã duyệt*) |
-| 6 | Alice | `approveRequest(0)` | approvalCount = 1/3 |
-| 7 | Bob | `approveRequest(0)` | approvalCount = 2/3 (>50% ✅) |
-| 8 | David | `finalizeRequest(0)` | 4 ETH chuyển cho Shop, balance = 6 ETH |
+| 5 | David | `createRequest("Mua server", 4 ETH, Shop, Frank)` | Request #0 được tạo với Verifier là Frank |
+| 6 | Alice | `approveRequest(0)` | approvalCount = 1/3 (Weight = 5 ETH) |
+| 7 | Bob | `approveRequest(0)` | approvalCount = 2/3 (Weight = 8 ETH > 50% ✅) |
+| 8 | Frank (Verifier)| Kiểm tra Server tại Shop, ký chữ ký `eth_sign` | Trả về `signature` cho Manager |
+| 9 | David | `finalizeRequest(0, signature, "QmBằngChứng")` | 4 ETH chuyển cho Shop, balance = 6 ETH |
 
 ---
 
