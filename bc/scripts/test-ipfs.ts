@@ -45,10 +45,6 @@ async function main() {
   // addSupplier: address, name, metadata
   await sr.addSupplier(recipient.address, "Supplier 1", "ipfs://metadata");
 
-  // Cần một ValidatorPool thực tế để qua được check constructor
-  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-  const vp = await ValidatorPool.deploy(manager.address, forwarderAddress);
-
   console.log("3. Đang deploy Campaign...");
   const Campaign = await ethers.getContractFactory("Campaign");
   const campaign = await Campaign.deploy(
@@ -58,7 +54,6 @@ async function main() {
     0, // Category
     ethers.parseEther("0.01"), 
     manager.address, 
-    await vp.getAddress(), 
     await sr.getAddress(),
     forwarderAddress
   );

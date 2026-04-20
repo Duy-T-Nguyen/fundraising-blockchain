@@ -10,7 +10,6 @@ import "./RequestLib.sol";
 import "./Events.sol";
 import "./Errors.sol";
 import "./modifiers/AccessControl.sol";
-import "./ValidatorPool.sol";
 import "./SupplierRegistry.sol";
 
 /**
@@ -30,6 +29,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     uint256 public totalFundsRaised;
     mapping(address => uint256) public contributions;
     mapping(address => uint256) public donorId; // Gắn ID cho mỗi donor theo thứ tự tham gia
+    mapping(uint256 => address) public donorAtId; // NEW: Map ID ngược lại địa chỉ ví để bốc thăm
     
     RequestLib.Request[] public requests;
     bool public active;
@@ -39,7 +39,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     string public imageHash;
     Category public immutable category;
 
-    ValidatorPool public immutable validatorPool;
     SupplierRegistry public immutable supplierRegistry;
     address public immutable factory;
     
@@ -62,14 +61,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         Category _category,
         uint256 _minimum,
         address _manager,
-        address _validatorPool,
         address _supplierRegistry,
         address trustedForwarder
     ) ERC2771Context(trustedForwarder) {
         if (_minimum == 0) revert InsufficientFunds();
         if (
             _manager == address(0) ||
-            _validatorPool == address(0) ||
             _supplierRegistry == address(0)
         ) revert InvalidAddress();
         if (bytes(_name).length == 0) revert EmptyName();
@@ -82,7 +79,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         category = _category;
         manager = _manager;
         minimumContribution = _minimum;
-        validatorPool = ValidatorPool(_validatorPool);
         supplierRegistry = SupplierRegistry(_supplierRegistry);
         factory = _msgSender();
         active = true;
@@ -150,7 +146,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
 
         if (contributions[_msgSender()] == 0) {
             totalDonors++;
-            donorId[_msgSender()] = totalDonors; // FIX C: Assign ID for joining order
+            donorId[_msgSender()] = totalDonors;
+            donorAtId[totalDonors] = _msgSender();
         }
         contributions[_msgSender()] += msg.value;
         totalFundsRaised += msg.value;
@@ -192,19 +189,19 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         r.snapshotTotalFunds = totalFundsRaised;
         r.snapshotDonorCount = totalDonors;
 
-        // Tính toán ngưỡng dựa trên Tổng quỹ đã quyên góp
         uint256 threshold = (r.snapshotTotalFunds * VALIDATOR_THRESHOLD_BPS) / 10000;
-        
-        if (value <= threshold && r.snapshotTotalFunds > 0) {
-            // Chọn ngẫu nhiên 3 Validator từ Pool
-            address[] memory selected = validatorPool.getRandomValidators(
-                requests.length + block.timestamp
+        uint256 requestIndex = requests.length - 1;
+
+        if (value <= threshold && r.snapshotTotalFunds > 0 && r.snapshotDonorCount >= 3) {
+            // Chọn ngẫu nhiên 3 Validator từ chính Donors của campaign
+            r.selectedValidators = _getRandomValidators(
+                requests.length + block.timestamp,
+                r.snapshotDonorCount,
+                new address[](0),
+                requestIndex
             );
-            r.selectedValidators = selected;
             r.lastValidatorSelection = block.timestamp;
         }
-
-        uint256 requestIndex = requests.length - 1;
 
         emit RequestCreated(
             requestIndex,
@@ -483,6 +480,11 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         return requests.length;
     }
 
+    function getSelectedValidators(uint256 index) external view returns (address[] memory) {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        return requests[index].selectedValidators;
+    }
+
     function _validateRequest(uint256 value, address recipient, address verifier, string calldata desc) private view {
         if (value == 0) revert InsufficientFunds();
         if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
@@ -504,14 +506,21 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         if (r.selectedValidators.length == 0) revert MilestoneNotApproved();
         if (block.timestamp < r.lastValidatorSelection + RESELECTION_TIMEOUT) revert ActionTooSoon();
 
+        // Đánh dấu đội cũ là "failed" để không chọn lại
+        for (uint i = 0; i < r.selectedValidators.length; i++) {
+            r.failedValidators[r.selectedValidators[i]] = true;
+        }
+
         // Reset vote cũ
         r.resetApprovals();
 
-        // Chọn đội mới
-        address[] memory newSelected = validatorPool.getRandomValidators(
-            index + block.timestamp
+        // Chọn đội mới (loại trừ những người đã fail)
+        r.selectedValidators = _getRandomValidators(
+            index + block.timestamp,
+            r.snapshotDonorCount,
+            r.selectedValidators,
+            index
         );
-        r.selectedValidators = newSelected;
         r.lastValidatorSelection = block.timestamp;
 
         emit RequestCreated(
@@ -524,6 +533,62 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
             r.selectedValidators,
             r.lastValidatorSelection
         );
+    }
+
+    /**
+     * @dev Hỗ trợ bốc thăm ngẫu nhiên 3 validator từ danh sách donors.
+     */
+    function _getRandomValidators(
+        uint256 seed,
+        uint256 maxId,
+        address[] memory previousValidators,
+        uint256 requestIndex
+    ) internal view returns (address[] memory) {
+        // Nếu số lượng donor khả dụng ít hơn 3 (trừ đi những người đã bị loại), có thể gặp vấn đề.
+        // Tuy nhiên ở đây ta giả định maxId là snapshotDonorCount.
+        
+        address[] memory result = new address[](3);
+        uint256[] memory indices = new uint256[](3);
+        
+        for (uint i = 0; i < 3; i++) {
+            uint256 idx = (uint256(keccak256(abi.encodePacked(
+                block.prevrandao,
+                block.timestamp,
+                seed,
+                i
+            ))) % maxId) + 1;
+
+            // Kiểm tra trùng lặp và loại trừ người cũ
+            address candidate = donorAtId[idx];
+            uint256 attempts = 0;
+            while (
+                _contains(indices, i, idx) || 
+                _isBlacklistedForRequest(candidate, requestIndex) ||
+                candidate == manager ||
+                candidate == address(0)
+            ) {
+                idx = (idx % maxId) + 1;
+                candidate = donorAtId[idx];
+                attempts++;
+                if (attempts > maxId) break; // Tránh loop vô tận nếu không đủ người
+            }
+            
+            indices[i] = idx;
+            result[i] = candidate;
+        }
+        
+        return result;
+    }
+
+    function _contains(uint256[] memory arr, uint256 len, uint256 val) internal pure returns (bool) {
+        for (uint i = 0; i < len; i++) {
+            if (arr[i] == val) return true;
+        }
+        return false;
+    }
+
+    function _isBlacklistedForRequest(address validator, uint256 requestIndex) internal view returns (bool) {
+        return requests[requestIndex].failedValidators[validator];
     }
 
     // =====================

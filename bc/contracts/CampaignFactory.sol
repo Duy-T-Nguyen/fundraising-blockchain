@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 
 import "./Campaign.sol";
-import "./ValidatorPool.sol";
 import "./SupplierRegistry.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
@@ -155,8 +154,7 @@ contract CampaignFactory is Events, ERC2771Context {
 
         req.status = RequestStatus.APPROVED;
         
-        // Deploy các contract liên quan
-        ValidatorPool pool = new ValidatorPool(admin, campaignTrustedForwarder);
+        // Deploy Campaign trực tiếp (không cần ValidatorPool global)
         Campaign newCampaign = new Campaign(
             req.name,
             req.description,
@@ -164,7 +162,6 @@ contract CampaignFactory is Events, ERC2771Context {
             req.category,
             req.minimumContribution,
             req.manager,
-            address(pool),
             address(supplierRegistry),
             campaignTrustedForwarder
         );

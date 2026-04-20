@@ -1,11 +1,10 @@
 import { run } from "hardhat";
 
 /**
- * Utility function to verify a Campaign and its associated ValidatorPool.
+ * Utility function to verify a Campaign.
  */
 async function verifyCampaign(
   campaignAddress: string,
-  poolAddress: string,
   args: {
     name: string;
     description: string;
@@ -14,27 +13,12 @@ async function verifyCampaign(
     minimum: string;
     manager: string;
     supplierRegistry: string;
+    forwarder: string;
   }
 ) {
   console.log(`\n--- Verifying Campaign at ${campaignAddress} ---`);
 
-  // 1. Verify ValidatorPool
-  try {
-    console.log(`Verifying ValidatorPool at ${poolAddress}...`);
-    await run("verify:verify", {
-      address: poolAddress,
-      constructorArguments: [args.manager],
-    });
-    console.log("ValidatorPool verified!");
-  } catch (e: any) {
-    if (e.message.includes("Already Verified")) {
-      console.log("ValidatorPool is already verified.");
-    } else {
-      console.log("ValidatorPool verification failed:", e.message);
-    }
-  }
-
-  // 2. Verify Campaign
+  // Verify Campaign
   try {
     console.log(`Verifying Campaign at ${campaignAddress}...`);
     await run("verify:verify", {
@@ -46,8 +30,8 @@ async function verifyCampaign(
         args.category,
         args.minimum,
         args.manager,
-        poolAddress,
         args.supplierRegistry,
+        args.forwarder,
       ],
     });
     console.log("Campaign verified!");
@@ -61,11 +45,8 @@ async function verifyCampaign(
 }
 
 async function main() {
-  // If run via CLI, parse arguments from environment variables for simplicity
-  // This allows the Backend to easily pass complex data
   const {
     VERIFY_CAMPAIGN_ADDR,
-    VERIFY_POOL_ADDR,
     VERIFY_NAME,
     VERIFY_DESC,
     VERIFY_IMAGE_HASH,
@@ -73,6 +54,7 @@ async function main() {
     VERIFY_MIN,
     VERIFY_MANAGER,
     VERIFY_REGISTRY,
+    VERIFY_FORWARDER,
   } = process.env;
 
   if (!VERIFY_CAMPAIGN_ADDR) {
@@ -80,7 +62,7 @@ async function main() {
     return;
   }
 
-  await verifyCampaign(VERIFY_CAMPAIGN_ADDR, VERIFY_POOL_ADDR!, {
+  await verifyCampaign(VERIFY_CAMPAIGN_ADDR, {
     name: VERIFY_NAME!,
     description: VERIFY_DESC!,
     imageHash: VERIFY_IMAGE_HASH!,
@@ -88,6 +70,7 @@ async function main() {
     minimum: VERIFY_MIN!,
     manager: VERIFY_MANAGER!,
     supplierRegistry: VERIFY_REGISTRY!,
+    forwarder: VERIFY_FORWARDER!,
   });
 }
 

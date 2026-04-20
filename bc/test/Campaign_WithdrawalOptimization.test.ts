@@ -5,16 +5,11 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   let factory: any;
   let campaign: any;
-  let validatorPool: any;
   let supplierRegistry: any;
   let platformAdmin: HardhatEthersSigner;
   let campaignManager: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
-  let validator1: HardhatEthersSigner;
-  let validator2: HardhatEthersSigner;
-  let validator3: HardhatEthersSigner;
-  let validator4: HardhatEthersSigner;
   let verifier: HardhatEthersSigner;
   let supplier: HardhatEthersSigner;
   let nonSupplier: HardhatEthersSigner;
@@ -23,7 +18,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   const MIN_CONTRIBUTION = ethers.parseEther("0.1");
 
   beforeEach(async function () {
-    [platformAdmin, campaignManager, donor1, donor2, validator1, validator2, validator3, validator4, verifier, supplier, nonSupplier] = await ethers.getSigners();
+    [platformAdmin, campaignManager, donor1, donor2, verifier, supplier, nonSupplier] = await ethers.getSigners();
 
     const Forwarder = await ethers.getContractFactory("Forwarder");
     const forwarder = await Forwarder.connect(platformAdmin).deploy();
@@ -49,19 +44,11 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(campaignAddress);
 
-    const validatorPoolAddress = await campaign.validatorPool();
-    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.attach(validatorPoolAddress);
-
-    // 5. Setup Validators (managed by platform admin)
-    await (validatorPool.connect(platformAdmin) as any).addValidator(validator1.address);
-    await (validatorPool.connect(platformAdmin) as any).addValidator(validator2.address);
-    await (validatorPool.connect(platformAdmin) as any).addValidator(validator3.address);
-    await (validatorPool.connect(platformAdmin) as any).addValidator(validator4.address);
-
     // 6. Add funds to the campaign
-    await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
-    await campaign.connect(donor2).donate({ value: ethers.parseEther("10") });
+    await campaign.connect(donor1).donate({ value: ethers.parseEther("7") });
+    await campaign.connect(donor2).donate({ value: ethers.parseEther("7") });
+    const donor3 = (await ethers.getSigners())[12];
+    await campaign.connect(donor3).donate({ value: ethers.parseEther("6") });
 
     // Helper for FINAL signatures
     getFinalSignature = async (signer: HardhatEthersSigner, campaignAddr: string, index: number) => {
@@ -162,8 +149,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
           ethers.parseEther("0.05"),
           nonSupplier.address,
           verifier.address,
-        "QmTestHash"
-      )
+          "QmTestHash"
+        )
       ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
     });
 
@@ -187,8 +174,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
           100,
           campaignManager.address,
           verifier.address,
-        "QmTestHash"
-      )
+          "QmTestHash"
+        )
       ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
     });
   });
@@ -201,19 +188,20 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const amount = ethers.parseEther("0.05");
       await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address, verifier.address, "QmTestHash");
 
-      // Find selected validators and approve
-      const selected: string[] = [];
-      for (const v of [validator1, validator2, validator3, validator4]) {
-        try {
-          await campaign.connect(v).approveAsValidator(0);
-          selected.push(v.address);
-        } catch (e) {
-          // Not selected
-        }
-      }
+      const request = await campaign.requests(0);
+      const selected = await campaign.getSelectedValidators(0);
       expect(selected.length).to.equal(3);
 
-      // 2 approved (first 2 in selected) + manager finalizes
+      // Signers for selected validators
+      const [v1, v2] = await Promise.all([
+        ethers.getSigner(selected[0]),
+        ethers.getSigner(selected[1])
+      ]);
+
+      await campaign.connect(v1).approveAsValidator(0);
+      await campaign.connect(v2).approveAsValidator(0);
+
+      // 2 approved + manager finalizes
       const beforeBalance = await ethers.provider.getBalance(supplier.address);
       const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
       await campaign.connect(campaignManager).finalizeRequest(0, signature, "QmProof");
@@ -226,7 +214,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const largeAmount = ethers.parseEther("0.2"); // 1% of 20 ETH
       await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address, verifier.address, "QmTestHash");
 
-      await expect(campaign.connect(validator1).approveAsValidator(0))
+      // Donors who are not selected as validators (because it's not a small request)
+      await expect(campaign.connect(donor1).approveAsValidator(0))
         .to.be.revertedWithCustomError(campaign, "MilestoneNotApproved");
     });
   });

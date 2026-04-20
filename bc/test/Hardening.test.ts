@@ -6,7 +6,6 @@ describe("Security Hardening & Snapshot Logic", function () {
   let factory: any;
   let campaign: any;
   let supplierRegistry: any;
-  let validatorPool: any;
   let owner: HardhatEthersSigner;
   let manager: HardhatEthersSigner;
   let donorOld: HardhatEthersSigner;
@@ -50,17 +49,10 @@ describe("Security Hardening & Snapshot Logic", function () {
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(campaigns[0]);
 
-    const vpAddr = await campaign.validatorPool();
-    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.attach(vpAddr);
-
-    // Add validators to the pool
-    await validatorPool.connect(admin).addValidator(owner.address);
-    await validatorPool.connect(admin).addValidator(donorOld.address);
-    await validatorPool.connect(admin).addValidator(donorNew.address);
-
     // Pre-donate and create a request for all tests
     await campaign.connect(donorOld).donate({ value: ethers.parseEther("10") });
+    await campaign.connect(owner).donate({ value: ethers.parseEther("1") });
+    await campaign.connect(donorNew).donate({ value: ethers.parseEther("1") });
     
     await campaign.connect(manager).createRequest("Initial Req", 100, recipient.address, owner.address, "QmEvidence");
   });
@@ -82,30 +74,21 @@ describe("Security Hardening & Snapshot Logic", function () {
     });
   });
 
-  describe("Validator Pool Management (Issue A)", function () {
-    it("should prevent manager from adding validators to the pool", async () => {
-      await expect(validatorPool.connect(manager).addValidator(donorNew.address))
-        .to.be.revertedWithCustomError(validatorPool, "NotAdmin");
-    });
-
-    it("should allow platform admin to add validators", async () => {
-      const newValidator = ethers.Wallet.createRandom().address;
-      await expect(validatorPool.connect(admin).addValidator(newValidator))
-        .to.not.be.reverted;
-      expect(await validatorPool.isValidator(newValidator)).to.be.true;
-    });
-  });
-
   describe("Snapshot & Eligibility Logic (Issue C)", function () {
     it("should only allow donors who joined BEFORE request to vote", async () => {
-      // donorNew joins after Initial Req
-      await campaign.connect(donorNew).donate({ value: ethers.parseEther("1") });
+      // Create new request so we can test someone joining after it
+      await campaign.connect(manager).createRequest("New Req", 100, recipient.address, owner.address, "QmEvidence");
+      const reqIdx = 1;
+
+      // Another donor joins after New Req
+      const donorLate = (await ethers.getSigners())[7];
+      await campaign.connect(donorLate).donate({ value: MIN_CONTRIBUTION });
       
       // donorOld should be able to vote
-      await expect(campaign.connect(donorOld).approveRequest(0)).to.not.be.reverted;
+      await expect(campaign.connect(donorOld).approveRequest(reqIdx)).to.not.be.reverted;
       
-      // donorNew should be blocked
-      await expect(campaign.connect(donorNew).approveRequest(0))
+      // donorLate should be blocked
+      await expect(campaign.connect(donorLate).approveRequest(reqIdx))
         .to.be.revertedWithCustomError(campaign, "JoinedAfterRequest");
     });
 
@@ -127,13 +110,10 @@ describe("Security Hardening & Snapshot Logic", function () {
       // Create request 1
       await campaign.connect(manager).createRequest("Req 1", ethers.parseEther("0.1"), recipient.address, owner.address, "QmEvidence");
       
-      // Snapshot funds for Req 1 should be around 10.1 ETH.
-      
       // New donor joins with 100 ETH. 
       await campaign.connect(donorNew).donate({ value: ethers.parseEther("100") });
       
-      // donorOld has enough weight for snapshot threshold (10.1 ETH > 5.05 ETH)
-      // but not for dynamic threshold (10.1 ETH < 55 ETH)
+      // donorOld has enough weight for snapshot threshold
       await campaign.connect(donorOld).approveRequest(1); 
       
       const messageHash = ethers.solidityPackedKeccak256(

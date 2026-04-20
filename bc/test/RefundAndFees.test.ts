@@ -85,13 +85,6 @@ describe("Refund & Fee Optimization", function () {
       // Total = 4 ETH
 
       // Manager spends 1 ETH via a request
-      const vpAddr = await campaign.validatorPool();
-      const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-      const validatorPool = await ValidatorPool.attach(vpAddr);
-      await (validatorPool.connect(admin) as any).addValidator(owner.address);
-      await (validatorPool.connect(admin) as any).addValidator(donor1.address);
-      await (validatorPool.connect(admin) as any).addValidator(donor2.address);
-
       await campaign.connect(manager).createRequest(
         "Spend", ethers.parseEther("1"), recipient.address, owner.address, "QmEvidence"
       );

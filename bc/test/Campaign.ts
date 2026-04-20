@@ -7,7 +7,6 @@ describe("Campaign & Factory", function () {
   let factory: any;
   let campaign: any;
   let supplierRegistry: any;
-  let validatorPool: any;
   let forwarder: any;
   let forwarderAddress: string;
   let owner: HardhatEthersSigner;
@@ -48,15 +47,6 @@ describe("Campaign & Factory", function () {
 
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
-
-    // Setup ValidatorPool for this campaign
-    const validatorPoolAddress = await campaign.validatorPool();
-    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.attach(validatorPoolAddress);
-    
-    await validatorPool.connect(owner).addValidator(donor1.address);
-    await validatorPool.connect(owner).addValidator(donor2.address);
-    await validatorPool.connect(owner).addValidator(donor3.address);
 
     // Expose helper to tests
     (factory as any).createAndApprove = createAndApprove;
@@ -474,7 +464,9 @@ describe("Campaign & Factory", function () {
 
     it("should allow manager to re-select validators after timeout", async () => {
         // Donate first to enable validator path
-        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("0.5") });
+        await campaign.connect(donor2).donate({ value: ethers.parseEther("0.3") });
+        await campaign.connect(donor3).donate({ value: ethers.parseEther("0.2") });
         
         // Create small request
         await campaign.createRequest("Small", 100, recipient.address, donor2.address, "QmTest");
@@ -494,7 +486,9 @@ describe("Campaign & Factory", function () {
 
     it("should include selectedValidators in RequestCreated event for small requests", async () => {
       // Cần có donor donate đủ lớn để totalFundsRaised > 0 và value <= threshold
-      await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("5") });
+      await campaign.connect(donor2).donate({ value: ethers.parseEther("3") });
+      await campaign.connect(donor3).donate({ value: ethers.parseEther("2") });
 
       // Value nhỏ (0.01 ETH) <= 0.5% of 10 ETH (0.05 ETH) -> sẽ kích hoạt validator selection
       const tx = await campaign.createRequest("Small purchase", ethers.parseEther("0.01"), recipient.address, donor2.address, "QmEvidence");

@@ -398,7 +398,7 @@ contract Events {
     event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount, string evidenceHash);
 
     /// Phát ra khi validator pool được cập nhật
-    event ValidatorPoolUpdated(address indexed poolAddress);
+    event ValidatorPoolUpdated(address indexed poolAddress); // Trình xác thực (Donors) được chọn
 
     /// Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
@@ -605,8 +605,8 @@ bool public active;                              // Chiến dịch có đang ho�
 string public campaignName;                      // Tên chiến dịch
 string public description;                       // Mô tả chi tiết
 string public imageHash;                         // Mã IPFS CID của ảnh đại diện
-Category public category;                        // Danh mục
-ValidatorPool public validatorPool;              // Pool của Validators
+uint256 public snapshotDonorCount;              // Số lượng donor tại thời điểm tạo request
+mapping(uint256 => address) public donorAtId;   // Indexing donor phục vụ bốc thăm ngẫu nhiên
 SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```
 
@@ -614,21 +614,24 @@ SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```solidity
 constructor(
     string memory _name,
+    string memory _description,
+    string memory _imageHash,
     Category _category,
     uint256 _minimum,
     address _manager,
-    address _validatorPool,
-    address _supplierRegistry
+    address _supplierRegistry,
+    address trustedForwarder
 ) {
     if (_minimum == 0) revert InsufficientFunds();
-    if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
+    if (_manager == address(0) || _supplierRegistry == address(0))
         revert InvalidAddress();
     
     campaignName = _name;
+    description = _description;
+    imageHash = _imageHash;
     category = _category;
     manager = _manager;
     minimumContribution = _minimum;
-    validatorPool = ValidatorPool(_validatorPool);
     supplierRegistry = SupplierRegistry(_supplierRegistry);
     active = true;
 }

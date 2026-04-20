@@ -39,6 +39,7 @@ library RequestLib {
         // Cấu trúc cho Validator path (Small Request)
         uint256 validatorApprovalCount;
         mapping(address => bool) validatorApprovals;
+        mapping(address => bool) failedValidators; // NEW: Những người đã từng được chọn nhưng không làm việc
         address[] selectedValidators;
         uint256 lastValidatorSelection;
     }

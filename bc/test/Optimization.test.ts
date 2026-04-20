@@ -4,7 +4,6 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("Optimization & Unified Indexing Tests", function () {
   let supplierRegistry: any;
-  let validatorPool: any;
   let factory: any;
   let owner: HardhatEthersSigner;
   let addrs: HardhatEthersSigner[];
@@ -19,10 +18,6 @@ describe("Optimization & Unified Indexing Tests", function () {
     // Setup SupplierRegistry
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
     supplierRegistry = await SupplierRegistry.deploy(owner.address, forwarderAddress);
-
-    // Setup ValidatorPool
-    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.deploy(owner.address, forwarderAddress);
 
     // Setup Factory with Admin (owner)
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
@@ -56,28 +51,6 @@ describe("Optimization & Unified Indexing Tests", function () {
     });
   });
 
-  describe("ValidatorPool O(1) Removal", function () {
-    it("should correctly remove validators using swap and pop", async () => {
-      // Add 5 validators
-      const validators = addrs.slice(5, 10);
-      for (const v of validators) {
-        await validatorPool.addValidator(v.address);
-      }
-      expect(await validatorPool.getValidatorsCount()).to.equal(5);
-
-      // Remove the 1st one (index 0)
-      const toRemove = validators[0].address;
-      const lastOne = validators[4].address;
-      await validatorPool.removeValidator(toRemove);
-
-      expect(await validatorPool.getValidatorsCount()).to.equal(4);
-      expect(await validatorPool.isValidator(toRemove)).to.be.false;
-      
-      const all = await validatorPool.validators(0);
-      expect(all).to.equal(lastOne); // Last one should now be at index 0
-    });
-  });
-
   describe("CampaignFactory Unified Indexing (Advanced)", function () {
     it("should handle mixed queries through getCampaigns", async () => {
       // Create campaigns with mixed managers and categories
@@ -86,7 +59,6 @@ describe("Optimization & Unified Indexing Tests", function () {
       
       const createAndApprove = async (mgr: any, name: string, cat: number) => {
         const id = await factory.requestCount();
-        const amount = ethers.parseEther("0.1");
         const verifier = addrs[6];
         await factory.connect(mgr).submitCampaignRequest(name, "Desc", "Hash", cat, 100, { value: ethers.parseEther("0.005") });
         await factory.connect(owner).approveCampaignRequest(id);
