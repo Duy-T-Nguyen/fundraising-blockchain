@@ -16,14 +16,20 @@ describe("Refund & Fee Optimization", function () {
   const MIN_CONTRIBUTION = ethers.parseEther("0.1");
   const ANTI_SPAM_FEE = ethers.parseEther("0.005");
 
+  let forwarder: any;
+
   beforeEach(async function () {
     [owner, manager, donor1, donor2, recipient, admin] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    forwarder = await Forwarder.deploy();
+    const forwarderAddr = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(admin.address);
+    supplierRegistry = await SupplierRegistry.deploy(admin.address, forwarderAddr);
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address, forwarderAddr);
 
     await supplierRegistry.connect(admin).setFactory(await factory.getAddress());
     await supplierRegistry.connect(admin).addSupplier(recipient.address, "Supplier 1", "ipfs://meta");
@@ -69,7 +75,7 @@ describe("Refund & Fee Optimization", function () {
       const balanceAfter = await ethers.provider.getBalance(donor1.address);
 
       // Full refund (minus gas)
-      expect(balanceAfter + gasUsed - balanceBefore).to.equal(donateAmount);
+      expect(BigInt(balanceAfter) + BigInt(gasUsed) - BigInt(balanceBefore)).to.equal(donateAmount);
     });
 
     it("should refund pro-rata when some funds were spent", async () => {
@@ -82,9 +88,9 @@ describe("Refund & Fee Optimization", function () {
       const vpAddr = await campaign.validatorPool();
       const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
       const validatorPool = await ValidatorPool.attach(vpAddr);
-      await validatorPool.connect(admin).addValidator(owner.address);
-      await validatorPool.connect(admin).addValidator(donor1.address);
-      await validatorPool.connect(admin).addValidator(donor2.address);
+      await (validatorPool.connect(admin) as any).addValidator(owner.address);
+      await (validatorPool.connect(admin) as any).addValidator(donor1.address);
+      await (validatorPool.connect(admin) as any).addValidator(donor2.address);
 
       await campaign.connect(manager).createRequest(
         "Spend", ethers.parseEther("1"), recipient.address, owner.address, "QmEvidence"
@@ -111,7 +117,7 @@ describe("Refund & Fee Optimization", function () {
       const gasUsed = receipt!.gasUsed * receipt!.gasPrice;
       const balanceAfter = await ethers.provider.getBalance(donor1.address);
 
-      const refundReceived = balanceAfter + gasUsed - balanceBefore;
+      const refundReceived = BigInt(balanceAfter) + BigInt(gasUsed) - BigInt(balanceBefore);
       expect(refundReceived).to.equal(ethers.parseEther("1.5"));
     });
 

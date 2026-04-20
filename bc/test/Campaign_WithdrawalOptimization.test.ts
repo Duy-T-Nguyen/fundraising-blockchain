@@ -53,11 +53,11 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
     const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
     validatorPool = await ValidatorPool.attach(validatorPoolAddress);
 
-    // 5. Setup Validators (managed by campaign manager who is also ValidatorPool admin)
-    await validatorPool.connect(campaignManager).addValidator(validator1.address);
-    await validatorPool.connect(campaignManager).addValidator(validator2.address);
-    await validatorPool.connect(campaignManager).addValidator(validator3.address);
-    await validatorPool.connect(campaignManager).addValidator(validator4.address);
+    // 5. Setup Validators (managed by platform admin)
+    await (validatorPool.connect(platformAdmin) as any).addValidator(validator1.address);
+    await (validatorPool.connect(platformAdmin) as any).addValidator(validator2.address);
+    await (validatorPool.connect(platformAdmin) as any).addValidator(validator3.address);
+    await (validatorPool.connect(platformAdmin) as any).addValidator(validator4.address);
 
     // 6. Add funds to the campaign
     await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
@@ -174,7 +174,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
           nonSupplier.address,
           verifier.address,
           [ethers.parseEther("1")],
-          ["Phase 1"]
+          ["Phase 1"],
+          "ipfs://initial"
         )
       ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
     });
@@ -244,7 +245,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         supplier.address,
         verifier.address,
         milestoneValues,
-        milestoneDescs
+        milestoneDescs,
+        "ipfs://initial"
       );
 
       // 2. Donors approve once
@@ -283,7 +285,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         supplier.address,
         verifier.address,
         milestoneValues,
-        milestoneDescs
+        milestoneDescs,
+        "ipfs://initial"
       );
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
@@ -315,7 +318,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         supplier.address,
         verifier.address,
         [ethers.parseEther("2"), ethers.parseEther("3")],
-        ["500 food kits", "750 food kits"]
+        ["500 food kits", "750 food kits"],
+        "ipfs://initial"
       );
 
       // 3. Donors vote ONCE for total budget

@@ -16,14 +16,20 @@ describe("Security Hardening & Snapshot Logic", function () {
 
   const MIN_CONTRIBUTION = ethers.parseEther("0.1");
 
+  let forwarder: any;
+
   beforeEach(async function () {
     [owner, manager, donorOld, donorNew, recipient, admin] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    forwarder = await Forwarder.deploy();
+    const forwarderAddr = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(admin.address);
+    supplierRegistry = await SupplierRegistry.deploy(admin.address, forwarderAddr);
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address, forwarderAddr);
 
     await supplierRegistry.connect(admin).setFactory(await factory.getAddress());
     await supplierRegistry.connect(admin).addSupplier(recipient.address, "Supplier 1", "ipfs://meta");
@@ -67,7 +73,7 @@ describe("Security Hardening & Snapshot Logic", function () {
 
     it("should prevent manager from voting as a donor", async () => {
       await expect(campaign.connect(manager).approveRequest(0))
-        .to.be.revertedWithCustomError(campaign, "ManagerCannotVote");
+        .to.be.revertedWithCustomError(campaign, "NotDonor");
     });
 
     it("should prevent manager from voting as a validator", async () => {

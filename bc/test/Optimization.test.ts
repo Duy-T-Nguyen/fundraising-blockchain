@@ -119,7 +119,8 @@ describe("Optimization & Unified Indexing Tests", function () {
       const Campaign = await ethers.getContractFactory("Campaign");
       const campaign = await Campaign.attach(campaignAddr);
       
-      await (campaign as any).donate({ value: ethers.parseEther("1") });
+      const donor2 = addrs[1];
+      await (campaign.connect(donor2) as any).donate({ value: ethers.parseEther("1") });
       
       const statsAfter = await factory.getGlobalStats();
       expect(statsAfter[1]).to.equal(ethers.parseEther("1"));

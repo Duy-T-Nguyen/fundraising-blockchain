@@ -156,7 +156,7 @@ contract CampaignFactory is Events, ERC2771Context {
         req.status = RequestStatus.APPROVED;
         
         // Deploy các contract liên quan
-        ValidatorPool pool = new ValidatorPool(req.manager, campaignTrustedForwarder);
+        ValidatorPool pool = new ValidatorPool(admin, campaignTrustedForwarder);
         Campaign newCampaign = new Campaign(
             req.name,
             req.description,

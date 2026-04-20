@@ -145,12 +145,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     // DONATE
     // =====================
     function donate() external payable onlyActive {
-        if (msg.sender == manager) revert ManagerCannotDonate(); // FIX B: Ban manager donation
+        if (_msgSender() == manager) revert ManagerCannotDonate(); // FIX B: Ban manager donation
         if (msg.value < minimumContribution) revert InsufficientFunds();
 
         if (contributions[_msgSender()] == 0) {
             totalDonors++;
-            donorId[msg.sender] = totalDonors; // FIX C: Assign ID for joining order
+            donorId[_msgSender()] = totalDonors; // FIX C: Assign ID for joining order
         }
         contributions[_msgSender()] += msg.value;
         totalFundsRaised += msg.value;
@@ -177,8 +177,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     ) external onlyManager onlyActive {
         _validateRequest(value, recipient, verifier, desc);
         if (bytes(evidenceHash).length == 0) revert EmptyEvidenceHash();
-        if (value > address(this).balance) revert InsufficientFunds(); // FIX: Cap at current balance
-
+        
         RequestLib.Request storage r = requests.push();
         r.description = desc;
         r.value = value;
@@ -242,8 +241,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         }
 
         _validateRequest(totalBudget, recipient, verifier, desc);
-        if (totalBudget > address(this).balance) revert InsufficientFunds();
-
+        
         RequestLib.Request storage r = requests.push();
         r.description = desc;
         r.recipient = recipient;
@@ -296,7 +294,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         RequestLib.Request storage r = requests[index];
 
         if (contributions[_msgSender()] == 0) revert NotDonor();
-        if (r.approvals[_msgSender()]) revert AlreadyVoted();
         if (_msgSender() == manager) revert ManagerCannotVote();
         if (r.complete) revert RequestCompleted();
         
@@ -322,13 +319,13 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
      * @notice Validator biểu quyết cho yêu cầu nhỏ (Luồng A)
      */
     function approveAsValidator(uint256 index) external onlyActive {
-        if (msg.sender == manager) revert ManagerCannotVote(); // FIX B: Security Hardening
+        if (_msgSender() == manager) revert ManagerCannotVote(); // FIX B: Security Hardening
         
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
         if (r.selectedValidators.length == 0) revert MilestoneNotApproved(); // Không phải luồng validator
-        if (r.validatorApprovals[msg.sender]) revert AlreadyVoted();
+        if (r.validatorApprovals[_msgSender()]) revert AlreadyVoted();
 
         // Kiểm tra xem msg.sender có nằm trong danh sách 3 người được chọn không
         bool isSelected = false;
@@ -540,7 +537,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
      */
     function claimRefund() external nonReentrant {
         if (active) revert CampaignStillActive();
-        uint256 contributed = contributions[msg.sender];
+        uint256 contributed = contributions[_msgSender()];
         if (contributed == 0) revert NoContributionFound();
 
         // Tính số tiền hoàn lại theo tỷ lệ pro-rata
@@ -548,13 +545,13 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         uint256 refundAmount = (contributed * currentBalance) / totalFundsRaised;
 
         // Cập nhật state trước khi chuyển tiền (CEI pattern)
-        contributions[msg.sender] = 0;
+        contributions[_msgSender()] = 0;
 
         if (refundAmount > 0) {
-            (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
+            (bool success, ) = payable(_msgSender()).call{value: refundAmount}("");
             if (!success) revert TransferFailed();
         }
 
-        emit RefundClaimed(msg.sender, refundAmount);
+        emit RefundClaimed(_msgSender(), refundAmount);
     }
 }

@@ -61,7 +61,8 @@ describe("Security Validations", function () {
                 manager.address, 
                 verifier.address, 
                 [ethers.parseEther("1")], 
-                ["Stage 1"]
+                ["Stage 1"],
+                "ipfs://initial"
             )
         ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
     });
@@ -73,7 +74,8 @@ describe("Security Validations", function () {
                 supplier.address, 
                 manager.address, 
                 [ethers.parseEther("1")], 
-                ["Stage 1"]
+                ["Stage 1"],
+                "ipfs://initial"
             )
         ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsVerifier");
     });
@@ -85,7 +87,8 @@ describe("Security Validations", function () {
                 supplier.address, 
                 supplier.address, 
                 [ethers.parseEther("1")], 
-                ["Stage 1"]
+                ["Stage 1"],
+                "ipfs://initial"
             )
         ).to.be.revertedWithCustomError(campaign, "RecipientNotAllowedAsVerifier");
     });

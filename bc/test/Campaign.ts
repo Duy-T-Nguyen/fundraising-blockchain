@@ -605,15 +605,16 @@ describe("Campaign & Factory", function () {
       ).to.be.revertedWithCustomError(campaign, "AlreadyVoted");
     });
 
-    it("should revert if manager tries to vote", async () => {
-      // Manager donates first to become a donor
-      await campaign
-        .connect(owner)
-        .donate({ value: ethers.parseEther("1") });
+    it("should prevent manager from donating and voting", async () => {
+      // Manager cannot even donate to become a donor
+      await expect(
+        campaign.connect(owner).donate({ value: ethers.parseEther("1") })
+      ).to.be.revertedWithCustomError(campaign, "ManagerCannotDonate");
 
+      // Even if they try to vote directly, they are not a donor
       await expect(
         campaign.connect(owner).approveRequest(0)
-      ).to.be.revertedWithCustomError(campaign, "ManagerCannotVote");
+      ).to.be.revertedWithCustomError(campaign, "NotDonor");
     });
 
     it("should revert for invalid request index", async () => {
@@ -1061,7 +1062,8 @@ describe("Campaign & Factory", function () {
       const verifier = donor2;
       await campaign.createMultiStageRequest(
         "Phase 1", recipient.address, verifier.address, 
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")], ["M1", "M2"]
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")], ["M1", "M2"],
+        "ipfs://initial"
       );
       
       await campaign.connect(donor1).approveRequest(0);
