@@ -27,6 +27,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     uint256 public totalDonors;
     uint256 public totalFundsRaised;
     mapping(address => uint256) public contributions;
+    mapping(address => uint256) public donorId; // Gắn ID cho mỗi donor theo thứ tự tham gia
+    
     RequestLib.Request[] public requests;
     bool public active;
 
@@ -59,7 +61,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             _validatorPool == address(0) ||
             _supplierRegistry == address(0)
         ) revert InvalidAddress();
-        if (bytes(_name).length == 0) revert EmptyName(); // Fixed: Use specific error
+        if (bytes(_name).length == 0) revert EmptyName();
         if (bytes(_description).length == 0) revert EmptyDescription();
         if (bytes(_imageHash).length == 0) revert EmptyEvidenceHash();
 
@@ -84,10 +86,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     // DONATE
     // =====================
     function donate() external payable onlyActive {
+        if (msg.sender == manager) revert ManagerCannotDonate(); // FIX B: Ban manager donation
         if (msg.value < minimumContribution) revert InsufficientFunds();
 
         if (contributions[msg.sender] == 0) {
             totalDonors++;
+            donorId[msg.sender] = totalDonors; // FIX C: Assign ID for joining order
         }
         contributions[msg.sender] += msg.value;
         totalFundsRaised += msg.value;
@@ -97,7 +101,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
         emit Donation(msg.sender, msg.value);
     }
-
     // =====================
     // REQUEST CREATION
     // =====================
@@ -110,11 +113,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         string calldata desc,
         uint256 value,
         address payable recipient,
-        address verifier, // Added verifier
+        address verifier,
         string calldata evidenceHash
     ) external onlyManager onlyActive {
         _validateRequest(value, recipient, verifier, desc);
         if (bytes(evidenceHash).length == 0) revert EmptyEvidenceHash();
+        if (value > address(this).balance) revert InsufficientFunds(); // FIX: Cap at current balance
 
         RequestLib.Request storage r = requests.push();
         r.description = desc;
@@ -124,12 +128,16 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.totalApprovalWeight = 0;
         r.evidenceHash = evidenceHash;
         r.requestType = RequestLib.RequestType.SINGLE;
-        r.verifier = verifier; // Store verifier
-
-        // Tính toán ngưỡng dựa trên Tổng quỹ đã quyên góp (Ổn định hơn Balance)
-        uint256 threshold = (totalFundsRaised * VALIDATOR_THRESHOLD_BPS) / 10000;
+        r.verifier = verifier;
         
-        if (value <= threshold && totalFundsRaised > 0) {
+        // Snapshot bảo mật (FIX C)
+        r.snapshotTotalFunds = totalFundsRaised;
+        r.snapshotDonorCount = totalDonors;
+
+        // Tính toán ngưỡng dựa trên Tổng quỹ đã quyên góp
+        uint256 threshold = (r.snapshotTotalFunds * VALIDATOR_THRESHOLD_BPS) / 10000;
+        
+        if (value <= threshold && r.snapshotTotalFunds > 0) {
             // Chọn ngẫu nhiên 3 Validator từ Pool
             address[] memory selected = validatorPool.getRandomValidators(
                 requests.length + block.timestamp
@@ -154,17 +162,16 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Tạo request theo giai đoạn (MULTI) — Proof of Delivery
-     * @dev Dành cho quỹ dự án lớn hoặc chương trình cứu trợ nhiều đợt.
-     *      Recipient PHẢI nằm trong SupplierRegistry.
-     *      Verifier (Oracle) ký xác nhận mỗi đợt giao hàng.
      */
     function createMultiStageRequest(
         string calldata desc,
         address payable recipient,
         address verifier,
         uint256[] calldata milestoneValues,
-        string[] calldata milestoneDescriptions
+        string[] calldata milestoneDescriptions,
+        string calldata initialEvidenceHash // Added initial evidence for transparency
     ) external onlyManager onlyActive {
+        if (bytes(initialEvidenceHash).length == 0) revert EmptyEvidenceHash(); // FIX D: Transparency
         if (
             milestoneValues.length == 0 ||
             milestoneValues.length != milestoneDescriptions.length
@@ -176,6 +183,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         }
 
         _validateRequest(totalBudget, recipient, verifier, desc);
+        if (totalBudget > address(this).balance) revert InsufficientFunds();
 
         RequestLib.Request storage r = requests.push();
         r.description = desc;
@@ -185,6 +193,11 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.requestType = RequestLib.RequestType.MULTI;
         r.verifier = verifier;
         r.currentMilestone = 0;
+        r.evidenceHash = initialEvidenceHash;
+
+        // Snapshot bảo mật
+        r.snapshotTotalFunds = totalFundsRaised;
+        r.snapshotDonorCount = totalDonors;
 
         for (uint i = 0; i < milestoneValues.length; i++) {
             r.milestones.push(
@@ -206,7 +219,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             totalBudget,
             recipient,
             verifier,
-            "",
+            initialEvidenceHash,
             r.selectedValidators,
             r.lastValidatorSelection
         );
@@ -223,13 +236,23 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (contributions[msg.sender] == 0) revert NotDonor();
-        if (r.approvals[msg.sender]) revert AlreadyVoted();
         if (msg.sender == manager) revert ManagerCannotVote();
         if (r.complete) revert RequestCompleted();
+        
+        // FIX C: Eligibility Check (Only donors joined BEFORE request)
+        if (donorId[msg.sender] == 0 || donorId[msg.sender] > r.snapshotDonorCount) 
+            revert JoinedAfterRequest();
 
+        uint256 currentContribution = contributions[msg.sender];
+        uint256 alreadyVoted = r.votedAmount[msg.sender];
+        
+        if (currentContribution <= alreadyVoted) revert AlreadyVoted();
+
+        // FIX C: Delta Voting (Support top-up donations)
+        uint256 delta = currentContribution - alreadyVoted;
+        r.votedAmount[msg.sender] = currentContribution;
         r.approvals[msg.sender] = true;
-        r.totalApprovalWeight += contributions[msg.sender];
+        r.totalApprovalWeight += delta;
 
         emit Voted(msg.sender, index);
     }
@@ -238,13 +261,14 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
      * @notice Validator biểu quyết cho yêu cầu nhỏ (Luồng A)
      */
     function approveAsValidator(uint256 index) external onlyActive {
+        if (msg.sender == manager) revert ManagerCannotVote(); // FIX B: Security Hardening
+        
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (r.selectedValidators.length == 0) revert MilestoneNotApproved(); // Không phải luồng validator
+        if (r.selectedValidators.length == 0) revert MilestoneNotApproved();
         if (r.validatorApprovals[msg.sender]) revert AlreadyVoted();
 
-        // Kiểm tra xem msg.sender có nằm trong danh sách 3 người được chọn không
         bool isSelected = false;
         for (uint i = 0; i < r.selectedValidators.length; i++) {
             if (r.selectedValidators[i] == msg.sender) {
@@ -266,7 +290,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Manager thực thi thanh toán sau khi đã giao hàng (Proof of Delivery)
-     * @dev Yêu cầu: (Đã đủ phiếu bầu) + (Chữ ký xác nhận của Verifier)
      */
     function finalizeRequest(
         uint256 index,
@@ -286,7 +309,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (r.selectedValidators.length > 0) {
             if (r.validatorApprovalCount >= 2) canFinalize = true;
         }
-        if (!canFinalize && r.totalApprovalWeight > totalFundsRaised / 2) {
+        // FIX C: Use snapshot total funds for threshold consistency
+        if (!canFinalize && r.totalApprovalWeight > r.snapshotTotalFunds / 2) {
             canFinalize = true;
         }
         if (!canFinalize) revert NotEnoughApprovals();
@@ -303,7 +327,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
         // 3. Thực thi thanh toán
         r.complete = true;
-        r.evidenceHash = finalEvidenceHash; // Lưu bằng chứng cuối cùng (Hóa đơn/Ảnh)
+        r.evidenceHash = finalEvidenceHash;
 
         (bool success, ) = r.recipient.call{value: r.value}("");
         if (!success) revert TransferFailed();
@@ -314,8 +338,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Thực thi từng đợt giao hàng (Milestone / Proof of Delivery)
-     * @dev Verifier (Oracle) ký chữ ký số xác nhận hàng đã giao.
-     *      Tiền tự động chuyển thẳng cho Supplier đã whitelist.
      */
     function executeMilestone(
         uint256 index,
@@ -328,7 +350,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (r.requestType != RequestLib.RequestType.MULTI)
             revert InvalidRequestIndex();
         if (r.complete) revert RequestCompleted();
-        if (r.totalApprovalWeight <= totalFundsRaised / 2)
+        
+        // FIX C: Snapshot threshold
+        if (r.totalApprovalWeight <= r.snapshotTotalFunds / 2)
             revert NotEnoughApprovals();
 
         uint256 current = r.currentMilestone;
@@ -358,7 +382,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         (bool success, ) = r.recipient.call{value: m.value}("");
         if (!success) revert TransferFailed();
 
-        // Ghi nhận thu nhập cho Supplier trên Registry
         supplierRegistry.recordPayment(r.recipient, m.value);
 
         emit MilestoneReleased(index, current, m.value, r.recipient, evidenceHash);
@@ -413,7 +436,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Chọn lại danh sách Validator nếu đội cũ không phản hồi sau 48h.
-     * @param index Index của request.
      */
     function reselectValidators(uint256 index) external onlyManager {
         if (index >= requests.length) revert InvalidRequestIndex();
@@ -423,7 +445,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (r.selectedValidators.length == 0) revert MilestoneNotApproved();
         if (block.timestamp < r.lastValidatorSelection + RESELECTION_TIMEOUT) revert ActionTooSoon();
 
-        // Reset vote cũ để tránh xung đột dữ liệu
+        // Reset vote cũ
         r.resetApprovals();
 
         // Chọn đội mới
@@ -443,5 +465,34 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
             r.selectedValidators,
             r.lastValidatorSelection
         );
+    }
+
+    // =====================
+    // REFUND
+    // =====================
+
+    /**
+     * @notice Cho phép Donor rút lại tiền theo tỷ lệ khi chiến dịch đã bị dừng.
+     * @dev Tính toán pro-rata: (contributions / totalFundsRaised) * address(this).balance
+     *      Đảm bảo công bằng nếu một phần tiền đã được chi tiêu hợp lệ.
+     */
+    function claimRefund() external nonReentrant {
+        if (active) revert CampaignStillActive();
+        uint256 contributed = contributions[msg.sender];
+        if (contributed == 0) revert NoContributionFound();
+
+        // Tính số tiền hoàn lại theo tỷ lệ pro-rata
+        uint256 currentBalance = address(this).balance;
+        uint256 refundAmount = (contributed * currentBalance) / totalFundsRaised;
+
+        // Cập nhật state trước khi chuyển tiền (CEI pattern)
+        contributions[msg.sender] = 0;
+
+        if (refundAmount > 0) {
+            (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
+            if (!success) revert TransferFailed();
+        }
+
+        emit RefundClaimed(msg.sender, refundAmount);
     }
 }
