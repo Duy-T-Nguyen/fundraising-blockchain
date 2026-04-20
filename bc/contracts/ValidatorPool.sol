@@ -2,13 +2,14 @@
 pragma solidity ^0.8.28;
 
 import "./Errors.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title ValidatorPool
  * @notice Quản lý danh sách các validator được cộng đồng tin tưởng.
  * @dev Hỗ trợ cơ chế chọn ngẫu nhiên validator cho các request nhỏ.
  */
-contract ValidatorPool {
+contract ValidatorPool is ERC2771Context {
     /// @notice Mapping để kiểm tra nhanh một địa chỉ có phải validator không
     mapping(address => bool) public isValidator;
 
@@ -22,11 +23,11 @@ contract ValidatorPool {
     address public admin;
 
     modifier onlyAdmin() {
-        if (msg.sender != admin) revert NotAdmin();
+        if (_msgSender() != admin) revert NotAdmin();
         _;
     }
 
-    constructor(address _admin) {
+    constructor(address _admin, address trustedForwarder) ERC2771Context(trustedForwarder) {
         admin = _admin;
     }
 

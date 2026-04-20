@@ -8,6 +8,8 @@ describe("Campaign & Factory", function () {
   let campaign: any;
   let supplierRegistry: any;
   let validatorPool: any;
+  let forwarder: any;
+  let forwarderAddress: string;
   let owner: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
@@ -22,11 +24,15 @@ describe("Campaign & Factory", function () {
     [owner, donor1, donor2, donor3, recipient, nonDonor] =
       await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    forwarder = await Forwarder.deploy();
+    forwarderAddress = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(owner.address);
+    supplierRegistry = await SupplierRegistry.deploy(owner.address, forwarderAddress);
     const CampaignFactory =
       await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address, forwarderAddress);
 
     await supplierRegistry.setFactory(await factory.getAddress());
     await supplierRegistry.addSupplier(recipient.address, "Tech Global", "ipfs://techglobal");

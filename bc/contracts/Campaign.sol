@@ -2,8 +2,10 @@
 pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./RequestLib.sol";
 import "./Events.sol";
 import "./Errors.sol";
@@ -19,7 +21,7 @@ import "./SupplierRegistry.sol";
  *      Manager KHÔNG có quyền thêm Supplier hoặc nhận tiền.
  */
 
-contract Campaign is Events, AccessControl, ReentrancyGuard {
+contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     using RequestLib for RequestLib.Request;
     using ECDSA for bytes32;
 
@@ -38,6 +40,14 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     ValidatorPool public immutable validatorPool;
     SupplierRegistry public immutable supplierRegistry;
     address public immutable factory;
+    
+    /// @notice Số dư tiền xăng Manager nạp để trả hộ cho user
+    uint256 public gasBalance;
+
+    /// @notice Phát ra khi Manager nạp thêm tiền xăng
+    event GasRefilled(address indexed manager, uint256 amount);
+    /// @notice Phát ra khi Admin rút tiền xăng để nạp cho Bot Relayer
+    event GasWithdrawn(address indexed admin, uint256 amount);
 
     /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ)
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
@@ -51,8 +61,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         uint256 _minimum,
         address _manager,
         address _validatorPool,
-        address _supplierRegistry
-    ) {
+        address _supplierRegistry,
+        address trustedForwarder
+    ) ERC2771Context(trustedForwarder) {
         if (_minimum == 0) revert InsufficientFunds();
         if (
             _manager == address(0) ||
@@ -71,13 +82,61 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         minimumContribution = _minimum;
         validatorPool = ValidatorPool(_validatorPool);
         supplierRegistry = SupplierRegistry(_supplierRegistry);
-        factory = msg.sender;
+        factory = _msgSender();
         active = true;
+    }
+
+    /**
+     * @notice Nạp ETH để tài trợ phí Gas cho các giao dịch Meta-transaction (Eco Mode).
+     * @dev Chỉ Manager mới nên nạp, nhưng cho phép bất kỳ ai tài trợ cho chiến dịch.
+     */
+    function depositGas() external payable {
+        if (msg.value == 0) revert InsufficientFunds();
+        gasBalance += msg.value;
+        emit GasRefilled(_msgSender(), msg.value);
+    }
+
+    /**
+     * @notice Rút tiền xăng về để nạp cho ví Relayer (Chỉ Admin Factory/Registry gọi).
+     */
+    function withdrawGasFunds() external {
+        // Trong demo, ta giả định Platform Admin có quyền rút tiền này để nạp cho Bot
+        // Ở đây ta check đơn giản: chỉ địa chỉ tạo ra Campaign (Factory) hoặc Admin của Factory mới được rút
+        if (_msgSender() != factory) revert NotAdmin();
+        
+        uint256 amount = gasBalance;
+        gasBalance = 0;
+        
+        (bool success, ) = _msgSender().call{value: amount}("");
+        if (!success) revert TransferFailed();
+        
+        emit GasWithdrawn(_msgSender(), amount);
     }
 
     modifier onlyActive() {
         if (!active) revert CampaignNotActive();
         _;
+    }
+
+    /**
+     * @dev Override _msgSender() to use ERC2771Context implementation.
+     */
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    /**
+     * @dev Override _msgData() to use ERC2771Context implementation.
+     */
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    /**
+     * @dev Override _contextSuffixLength() to use ERC2771Context implementation.
+     */
+    function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
     }
 
     // =====================
@@ -86,16 +145,16 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
     function donate() external payable onlyActive {
         if (msg.value < minimumContribution) revert InsufficientFunds();
 
-        if (contributions[msg.sender] == 0) {
+        if (contributions[_msgSender()] == 0) {
             totalDonors++;
         }
-        contributions[msg.sender] += msg.value;
+        contributions[_msgSender()] += msg.value;
         totalFundsRaised += msg.value;
 
         // Báo cáo số liệu về Factory
-        ICampaignFactory(factory).recordDonation(msg.sender, msg.value);
+        ICampaignFactory(factory).recordDonation(_msgSender(), msg.value);
 
-        emit Donation(msg.sender, msg.value);
+        emit Donation(_msgSender(), msg.value);
     }
 
     // =====================
@@ -223,15 +282,15 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (contributions[msg.sender] == 0) revert NotDonor();
-        if (r.approvals[msg.sender]) revert AlreadyVoted();
-        if (msg.sender == manager) revert ManagerCannotVote();
+        if (contributions[_msgSender()] == 0) revert NotDonor();
+        if (r.approvals[_msgSender()]) revert AlreadyVoted();
+        if (_msgSender() == manager) revert ManagerCannotVote();
         if (r.complete) revert RequestCompleted();
 
-        r.approvals[msg.sender] = true;
-        r.totalApprovalWeight += contributions[msg.sender];
+        r.approvals[_msgSender()] = true;
+        r.totalApprovalWeight += contributions[_msgSender()];
 
-        emit Voted(msg.sender, index);
+        emit Voted(_msgSender(), index);
     }
 
     /**
@@ -242,22 +301,22 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         RequestLib.Request storage r = requests[index];
 
         if (r.selectedValidators.length == 0) revert MilestoneNotApproved(); // Không phải luồng validator
-        if (r.validatorApprovals[msg.sender]) revert AlreadyVoted();
+        if (r.validatorApprovals[_msgSender()]) revert AlreadyVoted();
 
-        // Kiểm tra xem msg.sender có nằm trong danh sách 3 người được chọn không
+        // Kiểm tra xem _msgSender() có nằm trong danh sách 3 người được chọn không
         bool isSelected = false;
         for (uint i = 0; i < r.selectedValidators.length; i++) {
-            if (r.selectedValidators[i] == msg.sender) {
+            if (r.selectedValidators[i] == _msgSender()) {
                 isSelected = true;
                 break;
             }
         }
         if (!isSelected) revert NotAuthorizedValidator();
 
-        r.validatorApprovals[msg.sender] = true;
+        r.validatorApprovals[_msgSender()] = true;
         r.validatorApprovalCount++;
 
-        emit Voted(msg.sender, index);
+        emit Voted(_msgSender(), index);
     }
 
     // =====================

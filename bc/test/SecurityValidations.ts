@@ -17,11 +17,15 @@ describe("Security Validations", function () {
   beforeEach(async () => {
     [owner, manager, donor1, supplier, verifier] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    const forwarder = await Forwarder.deploy();
+    const forwarderAddress = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(owner.address);
+    supplierRegistry = await SupplierRegistry.deploy(owner.address, forwarderAddress);
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address, forwarderAddress);
 
     await supplierRegistry.setFactory(await factory.getAddress());
     await supplierRegistry.addSupplier(supplier.address, "Supplier 1", "ipfs://s1");

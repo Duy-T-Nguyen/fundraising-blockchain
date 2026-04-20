@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
     container_name: fundraising-backend
     expose:
-      - "1609"
+      - "1609:1609"
     env_file:
       - .env
     environment:

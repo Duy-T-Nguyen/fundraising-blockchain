@@ -12,17 +12,21 @@ describe("Optimization & Unified Indexing Tests", function () {
   beforeEach(async () => {
     [owner, ...addrs] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    const forwarder = await Forwarder.deploy();
+    const forwarderAddress = await forwarder.getAddress();
+
     // Setup SupplierRegistry
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(owner.address);
+    supplierRegistry = await SupplierRegistry.deploy(owner.address, forwarderAddress);
 
     // Setup ValidatorPool
     const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.deploy(owner.address);
+    validatorPool = await ValidatorPool.deploy(owner.address, forwarderAddress);
 
     // Setup Factory with Admin (owner)
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address, forwarderAddress);
   });
 
   describe("SupplierRegistry O(1) Removal", function () {

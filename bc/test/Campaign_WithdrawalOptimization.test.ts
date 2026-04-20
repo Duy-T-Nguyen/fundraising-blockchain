@@ -25,12 +25,16 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   beforeEach(async function () {
     [platformAdmin, campaignManager, donor1, donor2, validator1, validator2, validator3, validator4, verifier, supplier, nonSupplier] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    const forwarder = await Forwarder.connect(platformAdmin).deploy();
+    const forwarderAddress = await forwarder.getAddress();
+
     // 1. Platform Admin deploys SupplierRegistry
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.connect(platformAdmin).deploy(platformAdmin.address);
+    supplierRegistry = await SupplierRegistry.connect(platformAdmin).deploy(platformAdmin.address, forwarderAddress);
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress(), platformAdmin.address);
+    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress(), platformAdmin.address, forwarderAddress);
 
     await supplierRegistry.setFactory(await factory.getAddress());
     await supplierRegistry.connect(platformAdmin).addSupplier(supplier.address, "Supplier 1", "ipfs://s1");
