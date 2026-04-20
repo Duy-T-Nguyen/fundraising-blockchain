@@ -23,18 +23,20 @@ error CampaignNotActive();
 error InsufficientFunds();
 error InvalidAddress();
 error InvalidRequestIndex();
+error EmptyName();
 error EmptyDescription();
 error EmptyEvidenceHash();
 error TransferFailed();
 error InvalidSignature();
 error NotAuthorizedValidator();
-error InvalidMilestoneIndex();
+
 error MilestoneAlreadyReleased();
 error MilestoneNotApproved();
 error ManagerNotAllowedAsRecipient();
 error ManagerNotAllowedAsVerifier();
 error RecipientNotAllowedAsVerifier();
-error AggregateMonthlyCapExceeded();
+error ActionTooSoon();
+
 
 // =====================
 // Supplier Registry Errors

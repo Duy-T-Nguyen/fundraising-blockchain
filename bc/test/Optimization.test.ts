@@ -29,9 +29,10 @@ describe("Optimization & Unified Indexing Tests", function () {
     it("should correctly remove elements from the middle of the list", async () => {
       // Add 5 suppliers
       const suppliers = addrs.slice(0, 5);
-      for (const s of suppliers) {
-        await supplierRegistry.addSupplier(s.address);
-      }
+    await supplierRegistry.setFactory(await factory.getAddress());
+    for (const s of suppliers) {
+        await supplierRegistry.addSupplier(s.address, "Supplier", "ipfs://s");
+    }
       expect(await supplierRegistry.getSupplierCount()).to.equal(5);
 
       // Remove the 3rd one (index 2)
@@ -44,7 +45,8 @@ describe("Optimization & Unified Indexing Tests", function () {
       expect(await supplierRegistry.isSupplier(lastOne)).to.be.true;
 
       // Check if last one moved to the gap correctly
-      const all = await supplierRegistry.getAllSuppliers();
+      const result = await supplierRegistry.getSuppliers(0, 100);
+      const all = result.addresses;
       expect(all).to.not.contain(toRemove);
       expect(all[2]).to.equal(lastOne);
     });
@@ -80,6 +82,8 @@ describe("Optimization & Unified Indexing Tests", function () {
       
       const createAndApprove = async (mgr: any, name: string, cat: number) => {
         const id = await factory.requestCount();
+        const amount = ethers.parseEther("0.1");
+        const verifier = addrs[6];
         await factory.connect(mgr).submitCampaignRequest(name, "Desc", "Hash", cat, 100, { value: ethers.parseEther("0.005") });
         await factory.connect(owner).approveCampaignRequest(id);
       };
@@ -102,10 +106,9 @@ describe("Optimization & Unified Indexing Tests", function () {
       expect(await factory.getCategoryCount(0)).to.equal(2);
 
       // Verify Global Stats
-      const [count, totalDonated, totalDonors] = await factory.getGlobalStats();
+      const [count, totalDonated] = await factory.getGlobalStats();
       expect(count).to.equal(3);
       expect(totalDonated).to.equal(0); // No donations yet
-      expect(totalDonors).to.equal(0);
 
       // Simulate a donation to verify real-time tracking
       const campaignAddr = all[0];
@@ -116,7 +119,6 @@ describe("Optimization & Unified Indexing Tests", function () {
       
       const statsAfter = await factory.getGlobalStats();
       expect(statsAfter[1]).to.equal(ethers.parseEther("1"));
-      expect(statsAfter[2]).to.equal(1);
     });
   });
 });

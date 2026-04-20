@@ -19,12 +19,12 @@ describe("Security Validations", function () {
 
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
     supplierRegistry = await SupplierRegistry.deploy(owner.address);
-    await supplierRegistry.addSupplier(supplier.address);
-    // Manager tries to whitelist themselves (should fail if not admin, but here we test the check in Campaign)
-    // For testing purposes, we assume admin is honest and doesn't whitelist manager as supplier
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
     factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+
+    await supplierRegistry.setFactory(await factory.getAddress());
+    await supplierRegistry.addSupplier(supplier.address, "Supplier 1", "ipfs://s1");
 
     await factory.connect(manager).submitCampaignRequest("Security Test", "Test Desc", "QmTest", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
     await factory.connect(owner).approveCampaignRequest(0);
@@ -35,12 +35,18 @@ describe("Security Validations", function () {
   });
 
   describe("Recipient & Verifier Constraints", function () {
+    it("should NOT allow manager to be the verifier in createRequest", async () => {
+        await expect(
+            campaign.connect(manager).createRequest("Self Verify", ethers.parseEther("1"), supplier.address, manager.address, "QmEvidence")
+        ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsVerifier");
+    });
+
     it("should NOT allow manager to be the recipient in createRequest", async () => {
         // Manager cannot be recipient even if they are whitelisted as supplier (extra safety)
-        await supplierRegistry.connect(owner).addSupplier(manager.address);
+        await supplierRegistry.connect(owner).addSupplier(manager.address, "Manager As Supplier", "ipfs://m1");
         
         await expect(
-            campaign.connect(manager).createRequest("Self Deal", ethers.parseEther("1"), manager.address, "QmEvidence")
+            campaign.connect(manager).createRequest("Self Deal", ethers.parseEther("1"), manager.address, verifier.address, "QmEvidence")
         ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
     });
 
@@ -85,7 +91,7 @@ describe("Security Validations", function () {
     it("should NOT allow creating a campaign with empty name", async () => {
         await expect(
             factory.connect(manager).submitCampaignRequest("", "Desc", "Img", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") })
-        ).to.be.revertedWithCustomError(factory, "EmptyDescription");
+        ).to.be.revertedWithCustomError(factory, "EmptyName");
     });
 
     it("should NOT allow creating a campaign with empty description", async () => {

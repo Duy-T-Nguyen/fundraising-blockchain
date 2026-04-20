@@ -1,31 +1,35 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 describe("Campaign & Factory", function () {
   let factory: any;
   let campaign: any;
   let supplierRegistry: any;
+  let validatorPool: any;
   let owner: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
   let donor3: HardhatEthersSigner;
   let recipient: HardhatEthersSigner;
   let nonDonor: HardhatEthersSigner;
+  let getFinalSignature: (signer: HardhatEthersSigner, campaignAddr: string, index: number) => Promise<string>;
 
   const MIN_CONTRIBUTION = ethers.parseEther("0.01");
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     [owner, donor1, donor2, donor3, recipient, nonDonor] =
       await ethers.getSigners();
 
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
     supplierRegistry = await SupplierRegistry.deploy(owner.address);
-    await supplierRegistry.addSupplier(recipient.address);
-
     const CampaignFactory =
       await ethers.getContractFactory("CampaignFactory");
     factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+
+    await supplierRegistry.setFactory(await factory.getAddress());
+    await supplierRegistry.addSupplier(recipient.address, "Tech Global", "ipfs://techglobal");
 
     const createAndApprove = async (mgr: any, name: string, description: string, imageHash: string, cat: number, min: any) => {
       const count = await factory.requestCount();
@@ -39,8 +43,26 @@ describe("Campaign & Factory", function () {
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
 
+    // Setup ValidatorPool for this campaign
+    const validatorPoolAddress = await campaign.validatorPool();
+    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
+    validatorPool = await ValidatorPool.attach(validatorPoolAddress);
+    
+    await validatorPool.connect(owner).addValidator(donor1.address);
+    await validatorPool.connect(owner).addValidator(donor2.address);
+    await validatorPool.connect(owner).addValidator(donor3.address);
+
     // Expose helper to tests
     (factory as any).createAndApprove = createAndApprove;
+
+    // Helper for FINAL signatures
+    getFinalSignature = async (signer: HardhatEthersSigner, campaignAddr: string, index: number) => {
+        const messageHash = ethers.solidityPackedKeccak256(
+            ["address", "uint256", "string"],
+            [campaignAddr, index, "FINAL"]
+        );
+        return await signer.signMessage(ethers.toBeArray(messageHash));
+    };
   });
 
   // =========================================================
@@ -94,7 +116,7 @@ describe("Campaign & Factory", function () {
     it("should emit CampaignStarted event", async () => {
       await expect(factory.submitCampaignRequest("Test Emit", "Desc Emit", "QmEmit", 3, ethers.parseEther("0.05"), { value: ethers.parseEther("0.005") }))
         .to.emit(factory, "CampaignRequestSubmitted");
-      
+
       await expect(factory.approveCampaignRequest(await factory.requestCount() - 1n))
         .to.emit(factory, "CampaignStarted")
         .withArgs(
@@ -132,7 +154,7 @@ describe("Campaign & Factory", function () {
       it("should filter campaigns by category correctly", async () => {
         const eduCampaigns = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 0, 10);
         expect(eduCampaigns.length).to.be.at.least(2);
-        
+
         for (const addr of eduCampaigns) {
           const Campaign = await ethers.getContractFactory("Campaign");
           const c = await Campaign.attach(addr);
@@ -148,7 +170,7 @@ describe("Campaign & Factory", function () {
         // Get next Education campaigns
         const page2 = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 2, 2);
         expect(page2.length).to.be.at.least(1);
-        
+
         // Ensure no overlap
         expect(page1[0]).to.not.equal(page2[0]);
         expect(page1[1]).to.not.equal(page2[0]);
@@ -157,6 +179,65 @@ describe("Campaign & Factory", function () {
       it("should return empty array for out of bounds offset", async () => {
         const empty = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 100, 10);
         expect(empty.length).to.equal(0);
+      });
+    });
+
+    describe("System Governance & Admin API", function () {
+      it("should allow admin to update anti-spam fee", async () => {
+        const newFee = ethers.parseEther("0.01");
+        await expect(factory.updateAntiSpamFee(newFee))
+          .to.emit(factory, "AntiSpamFeeUpdated")
+          .withArgs(ethers.parseEther("0.005"), newFee);
+        
+        expect(await factory.antiSpamFee()).to.equal(newFee);
+      });
+
+      it("should prevent non-admin from updating anti-spam fee", async () => {
+        const newFee = ethers.parseEther("0.01");
+        await expect(factory.connect(donor1).updateAntiSpamFee(newFee))
+          .to.be.revertedWithCustomError(factory, "NotAdmin");
+      });
+
+      it("should allow admin to transfer admin rights", async () => {
+        await expect(factory.transferAdmin(donor1.address))
+          .to.emit(factory, "AdminTransferred")
+          .withArgs(owner.address, donor1.address);
+        
+        expect(await factory.admin()).to.equal(donor1.address);
+
+        // Old admin can no longer update fee
+        await expect(factory.updateAntiSpamFee(ethers.parseEther("0.02")))
+          .to.be.revertedWithCustomError(factory, "NotAdmin");
+        
+        // Restore for other tests
+        await factory.connect(donor1).transferAdmin(owner.address);
+      });
+
+      it("should support paginated queries for campaign requests (Admin)", async () => {
+        // We already have 1 request from setup, let's add 2 more
+        await factory.connect(donor1).submitCampaignRequest("R1", "D1", "Q1", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+        await factory.connect(donor2).submitCampaignRequest("R2", "D2", "Q2", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+
+        const [requests, total] = await factory.getCampaignRequests(0, 2);
+        expect(requests.length).to.equal(2);
+        expect(total).to.be.at.least(3n);
+        expect(requests[0].manager).to.equal(owner.address); // First one is from setup
+      });
+
+      it("should support paginated queries for a specific manager", async () => {
+        const [ownerRequests, ownerIds, ownerTotal] = await factory.getManagerRequests(owner.address, 0, 10);
+        expect(ownerRequests.length).to.equal(1);
+        expect(ownerTotal).to.equal(1n);
+        expect(ownerRequests[0].manager).to.equal(owner.address);
+        expect(ownerIds[0]).to.equal(0n);
+
+        // Submit one request for donor1
+        await factory.connect(donor1).submitCampaignRequest("R3", "D3", "Q3", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+
+        const [donor1Requests, donor1Ids, donor1Total] = await factory.getManagerRequests(donor1.address, 0, 10);
+        expect(donor1Requests.length).to.equal(1); // Should be 1, not 2
+        expect(donor1Total).to.equal(1n);
+        expect(donor1Requests[0].manager).to.equal(donor1.address);
       });
     });
   });
@@ -274,19 +355,84 @@ describe("Campaign & Factory", function () {
       );
       expect(balance).to.equal(ethers.parseEther("1"));
     });
+
+    describe("Donation History (On-chain tracking)", function () {
+      it("should track donated campaigns in Factory", async () => {
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(1);
+        expect(details.campaigns[0]).to.equal(await campaign.getAddress());
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION);
+        expect(details.total).to.equal(1);
+      });
+
+      it("should NOT duplicate campaigns in donor history", async () => {
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(1);
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION * 2n);
+        expect(details.total).to.equal(1);
+      });
+
+      it("should track multiple different campaigns for one user", async () => {
+        // Create another campaign
+        await (factory as any).createAndApprove(owner, "Second Cam", "Desc", "QmHash", 0, MIN_CONTRIBUTION);
+        const addresses = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
+        const secondCampaign = await ethers.getContractAt("Campaign", addresses[1]);
+
+        await campaign.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        await secondCampaign.connect(donor1).donate({ value: MIN_CONTRIBUTION * 2n });
+
+        const details = await factory.getUserDonationDetails(donor1.address, 0, 10);
+        expect(details.campaigns.length).to.equal(2);
+        expect(details.total).to.equal(2);
+        
+        // Order: first campaign then second campaign
+        expect(details.campaigns[0]).to.equal(await campaign.getAddress());
+        expect(details.amounts[0]).to.equal(MIN_CONTRIBUTION);
+        
+        expect(details.campaigns[1]).to.equal(await secondCampaign.getAddress());
+        expect(details.amounts[1]).to.equal(MIN_CONTRIBUTION * 2n);
+      });
+
+      it("should support pagination for donation history", async () => {
+        // Create 3 campaigns and donate to all
+        await (factory as any).createAndApprove(owner, "Cam 2", "D", "Q", 0, MIN_CONTRIBUTION);
+        await (factory as any).createAndApprove(owner, "Cam 3", "D", "Q", 0, MIN_CONTRIBUTION);
+        
+        const allAddrs = await factory.getCampaigns(0, ethers.ZeroAddress, 0, 0, 10);
+        
+        for (let i = 0; i < 3; i++) {
+          const c = await ethers.getContractAt("Campaign", allAddrs[i]);
+          await c.connect(donor1).donate({ value: MIN_CONTRIBUTION });
+        }
+
+        // Get page 1 (size 2)
+        const page1 = await factory.getUserDonationDetails(donor1.address, 0, 2);
+        expect(page1.campaigns.length).to.equal(2);
+        expect(page1.total).to.equal(3);
+
+        // Get page 2 (size 2)
+        const page2 = await factory.getUserDonationDetails(donor1.address, 2, 2);
+        expect(page2.campaigns.length).to.equal(1);
+        expect(page2.total).to.equal(3);
+        
+        expect(page1.campaigns[0]).to.equal(allAddrs[0]);
+        expect(page2.campaigns[0]).to.equal(allAddrs[2]);
+      });
+    });
   });
 
   // =========================================================
   // CREATE REQUEST
   // =========================================================
   describe("Create Request", function () {
-    it("manager can create a request", async () => {
-      await campaign.createRequest(
-        "Buy supplies",
-        ethers.parseEther("0.05"),
-        recipient.address,
-        "QmTestHash"
-      );
+    it("should allow manager to create a request", async () => {
+      const verifier = donor2;
+      await campaign.createRequest("Buy supplies", ethers.parseEther("0.05"), recipient.address, verifier.address, "QmTestHash");
 
       const request = await campaign.requests(0);
       expect(request.description).to.equal("Buy supplies");
@@ -303,8 +449,9 @@ describe("Campaign & Factory", function () {
           "Buy supplies",
           ethers.parseEther("0.05"),
           recipient.address,
-        "QmTestHash"
-      )
+          donor2.address,
+          "QmTestHash"
+        )
       )
         .to.emit(campaign, "RequestCreated")
         .withArgs(
@@ -312,14 +459,62 @@ describe("Campaign & Factory", function () {
           "Buy supplies",
           ethers.parseEther("0.05"),
           recipient.address,
-        "QmTestHash"
-      );
+          donor2.address,
+          "QmTestHash",
+          [],
+          anyValue
+        );
+    });
+
+    it("should allow manager to re-select validators after timeout", async () => {
+        // Donate first to enable validator path
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        
+        // Create small request
+        await campaign.createRequest("Small", 100, recipient.address, donor2.address, "QmTest");
+        
+        // Try to re-select immediately (should fail)
+        await expect(campaign.connect(owner).reselectValidators(0))
+            .to.be.revertedWithCustomError(campaign, "ActionTooSoon");
+            
+        // Fast forward 48 hours + 1 second
+        await ethers.provider.send("evm_increaseTime", [48 * 3600 + 1]);
+        await ethers.provider.send("evm_mine", []);
+        
+        // Now it should work
+        await expect(campaign.connect(owner).reselectValidators(0))
+            .to.emit(campaign, "RequestCreated");
+    });
+
+    it("should include selectedValidators in RequestCreated event for small requests", async () => {
+      // Cần có donor donate đủ lớn để totalFundsRaised > 0 và value <= threshold
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
+
+      // Value nhỏ (0.01 ETH) <= 0.5% of 10 ETH (0.05 ETH) -> sẽ kích hoạt validator selection
+      const tx = await campaign.createRequest("Small purchase", ethers.parseEther("0.01"), recipient.address, donor2.address, "QmEvidence");
+      const receipt = await tx.wait();
+
+      // Lọc event RequestCreated và kiểm tra selectedValidators
+      const requestCreatedEvents = receipt!.logs.filter((log: any) => {
+        try {
+          const parsed = campaign.interface.parseLog({ topics: log.topics as string[], data: log.data });
+          return parsed?.name === "RequestCreated";
+        } catch { return false; }
+      });
+
+      expect(requestCreatedEvents.length).to.equal(1);
+      const parsed = campaign.interface.parseLog({
+        topics: requestCreatedEvents[0].topics as string[],
+        data: requestCreatedEvents[0].data
+      });
+      // selectedValidators phải có đúng 3 validator
+      expect(parsed!.args.selectedValidators.length).to.equal(3);
     });
 
     it("should track multiple requests", async () => {
-      await campaign.createRequest("Request 1", 100, recipient.address, "QmTestHash");
-      await campaign.createRequest("Request 2", 200, recipient.address, "QmTestHash");
-      await campaign.createRequest("Request 3", 300, recipient.address, "QmTestHash");
+      await campaign.createRequest("Req 1", 100, recipient.address, donor2.address, "QmTestHash");
+      await campaign.createRequest("Req 2", 200, recipient.address, donor2.address, "QmTestHash");
+      await campaign.createRequest("Request 3", 300, recipient.address, donor2.address, "QmTestHash");
 
       expect(await campaign.getRequestsCount()).to.equal(3);
     });
@@ -328,31 +523,31 @@ describe("Campaign & Factory", function () {
       await expect(
         campaign
           .connect(donor1)
-          .createRequest("Buy supplies", 100, recipient.address, "QmTestHash")
+          .createRequest("Buy supplies", 100, recipient.address, donor2.address, "QmTestHash")
       ).to.be.revertedWithCustomError(campaign, "NotManager");
     });
 
     it("should revert with zero value", async () => {
       await expect(
-        campaign.createRequest("Buy supplies", 0, recipient.address, "QmTestHash")
+        campaign.createRequest("Buy supplies", 0, recipient.address, donor2.address, "QmTestHash")
       ).to.be.revertedWithCustomError(campaign, "InsufficientFunds");
     });
 
     it("should revert with zero-address recipient", async () => {
       await expect(
-        campaign.createRequest("Buy supplies", 100, ethers.ZeroAddress, "QmTestHash")
+        campaign.createRequest("Buy supplies", 100, ethers.ZeroAddress, donor2.address, "QmTestHash")
       ).to.be.revertedWithCustomError(campaign, "InvalidAddress");
     });
 
     it("should revert with empty description", async () => {
       await expect(
-        campaign.createRequest("", 100, recipient.address, "QmTestHash")
+        campaign.createRequest("", 100, recipient.address, donor2.address, "QmTestHash")
       ).to.be.revertedWithCustomError(campaign, "EmptyDescription");
     });
 
     it("should revert with empty evidence hash", async () => {
       await expect(
-        campaign.createRequest("Buy supplies", 100, recipient.address, "")
+        campaign.createRequest("Buy supplies", 100, recipient.address, donor2.address, "")
       ).to.be.revertedWithCustomError(campaign, "EmptyEvidenceHash");
     });
   });
@@ -373,6 +568,7 @@ describe("Campaign & Factory", function () {
         "Spend money",
         ethers.parseEther("0.5"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
     });
@@ -424,7 +620,8 @@ describe("Campaign & Factory", function () {
       // Get 100% vote and finalize
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      await campaign.finalizeRequest(0);
+      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, signature, "QmProof");
 
       // donor3 joins and tries to vote on completed request
       await campaign
@@ -452,6 +649,7 @@ describe("Campaign & Factory", function () {
         "Spend money",
         ethers.parseEther("1"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
     });
@@ -461,19 +659,19 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor2).approveRequest(0);
 
       const before = await ethers.provider.getBalance(recipient.address);
-      await campaign.finalizeRequest(0);
+      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, signature, "QmProof");
       const after = await ethers.provider.getBalance(recipient.address);
 
       expect(after - before).to.equal(ethers.parseEther("1"));
     });
 
-    it("should revert with exactly 50% votes (1 out of 2)", async () => {
-      await campaign.connect(donor1).approveRequest(0);
-
-      // 1/2 = 50% which is NOT > 50%
-      await expect(
-        campaign.finalizeRequest(0)
-      ).to.be.revertedWithCustomError(campaign, "NotEnoughApprovals");
+    it("should fail if not enough approvals", async () => {
+      const verifier = donor2;
+      await campaign.createRequest("Big Buy", ethers.parseEther("1"), recipient.address, verifier.address, "QmEvidence");
+      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
+      await expect(campaign.finalizeRequest(0, signature, "QmProof"))
+        .to.be.revertedWithCustomError(campaign, "NotEnoughApprovals");
     });
 
     it("should finalize with > 50% (2 out of 3 donors)", async () => {
@@ -487,7 +685,8 @@ describe("Campaign & Factory", function () {
       // 2/3 > 50%, should pass
 
       const before = await ethers.provider.getBalance(recipient.address);
-      await campaign.finalizeRequest(0);
+      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, signature, "QmProof");
       const after = await ethers.provider.getBalance(recipient.address);
 
       expect(after - before).to.equal(ethers.parseEther("1"));
@@ -500,37 +699,43 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(0);
       // 1/3 <= 50%
 
+      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
       await expect(
-        campaign.finalizeRequest(0)
+        campaign.finalizeRequest(0, signature, "QmProof")
       ).to.be.revertedWithCustomError(campaign, "NotEnoughApprovals");
     });
 
     it("should emit FundsReleased event", async () => {
-      await campaign.connect(donor1).approveRequest(0);
-      await campaign.connect(donor2).approveRequest(0);
+      const verifier = donor2;
+      await campaign.createRequest("Buy PC", ethers.parseEther("0.5"), recipient.address, verifier.address, "QmEvidence");
+      
+      await campaign.connect(donor1).approveRequest(1);
+      await campaign.connect(donor2).approveRequest(1);
 
-      await expect(campaign.finalizeRequest(0))
+      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 1);
+      await expect(campaign.finalizeRequest(1, signature, "QmProof"))
         .to.emit(campaign, "FundsReleased")
-        .withArgs(0);
+        .withArgs(1, recipient.address);
     });
 
     it("should not allow non-manager to finalize", async () => {
-      await campaign.connect(donor1).approveRequest(0);
-      await campaign.connect(donor2).approveRequest(0);
-
-      await expect(
-        campaign.connect(donor1).finalizeRequest(0)
-      ).to.be.revertedWithCustomError(campaign, "NotManager");
+      const verifier = donor2;
+      await campaign.createRequest("Buy PC", ethers.parseEther("0.1"), recipient.address, verifier.address, "QmEvidence");
+      await campaign.connect(donor1).approveRequest(1);
+      await campaign.connect(donor2).approveRequest(1);
+      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 1);
+      await expect(campaign.connect(donor1).finalizeRequest(1, signature, "QmProof"))
+        .to.be.revertedWithCustomError(campaign, "NotManager");
     });
 
     it("should not allow double finalization", async () => {
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-
-      await campaign.finalizeRequest(0);
+      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, signature, "QmProof");
 
       await expect(
-        campaign.finalizeRequest(0)
+        campaign.finalizeRequest(0, signature, "QmProof")
       ).to.be.revertedWithCustomError(campaign, "RequestCompleted");
     });
 
@@ -540,20 +745,23 @@ describe("Campaign & Factory", function () {
         "Expensive",
         ethers.parseEther("100"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
 
       await campaign.connect(donor1).approveRequest(1);
       await campaign.connect(donor2).approveRequest(1);
 
+      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 1);
       await expect(
-        campaign.finalizeRequest(1)
+        campaign.finalizeRequest(1, sig, "QmProof")
       ).to.be.revertedWithCustomError(campaign, "InsufficientFunds");
     });
 
     it("should revert for invalid request index", async () => {
+      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 99);
       await expect(
-        campaign.finalizeRequest(99)
+        campaign.finalizeRequest(99, sig, "QmProof")
       ).to.be.revertedWithCustomError(campaign, "InvalidRequestIndex");
     });
 
@@ -563,13 +771,15 @@ describe("Campaign & Factory", function () {
         "Second request",
         ethers.parseEther("0.5"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
 
       // Vote and finalize first request
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      await campaign.finalizeRequest(0);
+      const sig0 = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, sig0, "P0");
 
       // Second request should still be pending
       const req = await campaign.requests(1);
@@ -580,7 +790,8 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor2).approveRequest(1);
 
       const before = await ethers.provider.getBalance(recipient.address);
-      await campaign.finalizeRequest(1);
+      const sig1 = await getFinalSignature(donor2, await campaign.getAddress(), 1);
+      await campaign.finalizeRequest(1, sig1, "P1");
       const after = await ethers.provider.getBalance(recipient.address);
 
       expect(after - before).to.equal(ethers.parseEther("0.5"));
@@ -627,7 +838,7 @@ describe("Campaign & Factory", function () {
     it("cannot create request on deactivated campaign", async () => {
       await campaign.deactivateCampaign();
       await expect(
-        campaign.createRequest("Test", 100, recipient.address, "QmTestHash")
+        campaign.createRequest("Test", 100, recipient.address, donor2.address, "QmTestHash")
       ).to.be.revertedWithCustomError(campaign, "CampaignNotActive");
     });
 
@@ -637,9 +848,10 @@ describe("Campaign & Factory", function () {
         .connect(donor1)
         .donate({ value: ethers.parseEther("1") });
       await campaign.createRequest(
-        "Test",
-        ethers.parseEther("0.1"),
+        "Req 1",
+        100,
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
 
@@ -660,6 +872,7 @@ describe("Campaign & Factory", function () {
         "Final spend",
         ethers.parseEther("0.5"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
       await campaign.connect(donor1).approveRequest(0);
@@ -669,7 +882,7 @@ describe("Campaign & Factory", function () {
 
       // Manager can still finalize (no onlyActive modifier on finalize)
       const before = await ethers.provider.getBalance(recipient.address);
-      await campaign.finalizeRequest(0);
+      const signatureF = await getFinalSignature(donor2, await campaign.getAddress(), 0); await campaign.finalizeRequest(0, signatureF, "QmProof");
       const after = await ethers.provider.getBalance(recipient.address);
 
       expect(after - before).to.equal(ethers.parseEther("0.5"));
@@ -688,6 +901,7 @@ describe("Campaign & Factory", function () {
         "Test",
         ethers.parseEther("0.5"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
 
@@ -704,10 +918,10 @@ describe("Campaign & Factory", function () {
     it("getRequestsCount returns correct count", async () => {
       expect(await campaign.getRequestsCount()).to.equal(0);
 
-      await campaign.createRequest("Req 1", 100, recipient.address, "QmTestHash");
+      await campaign.createRequest("Req 1", 100, recipient.address, donor2.address, "QmTestHash");
       expect(await campaign.getRequestsCount()).to.equal(1);
 
-      await campaign.createRequest("Req 2", 200, recipient.address, "QmTestHash");
+      await campaign.createRequest("Req 2", 200, recipient.address, donor2.address, "QmTestHash");
       expect(await campaign.getRequestsCount()).to.equal(2);
     });
   });
@@ -733,6 +947,7 @@ describe("Campaign & Factory", function () {
         "Development costs",
         ethers.parseEther("4"),
         recipient.address,
+        donor2.address,
         "QmTestHash"
       );
 
@@ -744,7 +959,7 @@ describe("Campaign & Factory", function () {
       const recipientBefore = await ethers.provider.getBalance(
         recipient.address
       );
-      await campaign.finalizeRequest(0);
+      const signature0 = await getFinalSignature(donor2, await campaign.getAddress(), 0); await campaign.finalizeRequest(0, signature0, "QmProof");
       const recipientAfter = await ethers.provider.getBalance(
         recipient.address
       );
@@ -772,29 +987,108 @@ describe("Campaign & Factory", function () {
         "Phase 1",
         ethers.parseEther("2"),
         recipient.address,
+        donor1.address,
         "QmTestHash"
       );
       await campaign.createRequest(
         "Phase 2",
         ethers.parseEther("3"),
         recipient.address,
+        donor1.address,
         "QmTestHash"
       );
       await campaign.createRequest(
         "Phase 3",
         ethers.parseEther("4"),
         recipient.address,
+        donor1.address,
         "QmTestHash"
       );
 
       // Approve and finalize all
       for (let i = 0; i < 3; i++) {
         await campaign.connect(donor1).approveRequest(i);
-        await campaign.finalizeRequest(i);
+        const sig = await getFinalSignature(donor1, await campaign.getAddress(), i);
+        await campaign.finalizeRequest(i, sig, "QmProof");
       }
 
       const summary = await campaign.getSummary();
       expect(summary.balance).to.equal(ethers.parseEther("1")); // 10 - 2 - 3 - 4
+    });
+  });
+
+  // =========================================================
+  // SUPPLIER OPTIMIZATION
+  // =========================================================
+  describe("Supplier Optimization", function () {
+    it("should store and return supplier metadata correctly", async () => {
+      const details = await supplierRegistry.getSuppliers(0, 10);
+      expect(details.names[0]).to.equal("Tech Global");
+      expect(details.metadatas[0]).to.equal("ipfs://techglobal");
+    });
+
+    it("should allow supplier to update their own info", async () => {
+      await supplierRegistry.connect(recipient).updateSupplierInfo(recipient.address, "Tech New", "ipfs://new");
+      const info = await supplierRegistry.suppliers(recipient.address);
+      expect(info.name).to.equal("Tech New");
+    });
+
+    it("should track supplier earnings from Single Request", async () => {
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+      const verifier = donor2;
+      await campaign.createRequest("Buy PC", ethers.parseEther("0.5"), recipient.address, verifier.address, "QmEvidence");
+      
+      // Approve by 100% weight
+      await campaign.connect(donor1).approveRequest(0);
+      
+      const beforeEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
+      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, signature, "QmProof");
+      const afterEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
+      
+      expect(afterEarnings - beforeEarnings).to.equal(ethers.parseEther("0.5"));
+    });
+
+    it("should track supplier earnings from Milestones", async () => {
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("2") });
+      
+      const verifier = donor2;
+      await campaign.createMultiStageRequest(
+        "Phase 1", recipient.address, verifier.address, 
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")], ["M1", "M2"]
+      );
+      
+      await campaign.connect(donor1).approveRequest(0);
+
+      // Verifier signs for milestone 0
+      const messageHash = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [await campaign.getAddress(), 0, 0]
+      );
+      const signature = await verifier.signMessage(ethers.toBeArray(messageHash));
+
+      const beforeEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
+      await campaign.executeMilestone(0, signature, "QmHash1");
+      const afterEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
+
+      expect(afterEarnings - beforeEarnings).to.equal(ethers.parseEther("0.1"));
+    });
+
+    it("should emit SupplierEarningsUpdated event", async () => {
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        const verifier = donor2;
+        await expect(campaign.connect(owner).createRequest("Buy medicines", ethers.parseEther("1"), recipient.address, verifier.address, "QmTestHash"))
+            .to.emit(campaign, "RequestCreated");
+        await campaign.connect(donor1).approveRequest(0);
+
+        const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
+        await expect(campaign.finalizeRequest(0, signature, "QmProof"))
+            .to.emit(supplierRegistry, "SupplierEarningsUpdated");
+    });
+
+    it("should block recordPayment from unauthorized addresses", async () => {
+        await expect(supplierRegistry.recordPayment(recipient.address, 100))
+            .to.be.revertedWithCustomError(supplierRegistry, "NotAuthorized");
     });
   });
 });
