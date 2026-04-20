@@ -19,14 +19,24 @@ services:
       - .env
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/fundchain
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - mongodb
+      - redis
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10mb"
         max-file: "3"
+
+  redis:
+    image: redis:alpine
+    container_name: fundraising-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   mongodb_data:

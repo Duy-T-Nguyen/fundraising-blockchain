@@ -23,8 +23,10 @@ contract Events {
         string description,
         uint256 value,
         address indexed recipient,
+        address verifier,
         string evidenceHash,
-        address[] selectedValidators // Added: for FE tracking
+        address[] selectedValidators,
+        uint256 lastValidatorSelection
     );
 
     /// @notice Phát ra khi donor biểu quyết cho yêu cầu
@@ -41,9 +43,6 @@ contract Events {
         address indexed recipient,
         string evidenceHash
     );
-
-    /// @notice Phát ra khi validator pool được cập nhật
-    event ValidatorPoolUpdated(address indexed poolAddress);
 
     /// @notice Phát ra khi thu nhập của Supplier được cập nhật
     event SupplierEarningsUpdated(address indexed supplier, uint256 totalEarned);
@@ -81,4 +80,18 @@ contract Events {
 
     /// @notice Phát ra khi một yêu cầu tạo chiến dịch bị từ chối
     event CampaignRequestRejected(uint256 indexed requestId);
+
+    /// @notice Phát ra khi Admin thay đổi phí tạo chiến dịch
+    event AntiSpamFeeUpdated(uint256 oldFee, uint256 newFee);
+
+    /// @notice Phát ra khi quyền quản trị Admin được chuyển giao
+    event AdminTransferred(address indexed oldAdmin, address indexed newAdmin);
+
+    /// @notice Báo cho Verifier biết họ được giao nhiệm vụ kiểm tra
+    event AssignedAsVerifier(address indexed verifier, uint256 indexed requestId);
+
+    /// @notice Báo cho Supplier biết họ có đơn hàng cần giao
+    event AssignedAsSupplier(address indexed supplier, uint256 indexed requestId);
+
+
 }

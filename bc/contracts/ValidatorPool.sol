@@ -22,7 +22,7 @@ contract ValidatorPool {
     address public admin;
 
     modifier onlyAdmin() {
-        if (msg.sender != admin) revert NotManager();
+        if (msg.sender != admin) revert NotAdmin();
         _;
     }
 

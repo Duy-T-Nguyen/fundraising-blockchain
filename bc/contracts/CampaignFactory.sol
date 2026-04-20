@@ -16,7 +16,7 @@ contract CampaignFactory is Events {
     address public admin;
 
     /// @notice Phí chống spam khi tạo chiến dịch (0.005 ETH)
-    uint256 public constant ANTI_SPAM_FEE = 0.005 ether;
+    uint256 public antiSpamFee = 0.005 ether;
 
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
@@ -32,7 +32,6 @@ contract CampaignFactory is Events {
 
     /// @notice Thống kê toàn cục
     uint256 public totalGlobalDonated; // Tổng tiền (Wei)
-    uint256 public totalGlobalDonationsCount; // Tổng lượt tham gia
     
     /// @notice Kiểm tra địa chỉ có phải là Campaign hợp lệ do Factory tạo ra không
     mapping(address => bool) public isChildCampaign;
@@ -65,6 +64,9 @@ contract CampaignFactory is Events {
     /// @notice Tổng số yêu cầu đã gửi
     uint256 public requestCount;
 
+    /// @notice Mapping lưu danh sách ID yêu cầu tạo chiến dịch của một Manager
+    mapping(address => uint256[]) public requestIdsByManager;
+
     /// @dev Chỉ cho phép Admin gọi
     modifier onlyAdmin() {
         if (msg.sender != admin) revert NotAdmin();
@@ -83,14 +85,35 @@ contract CampaignFactory is Events {
     }
 
     /**
+     * @notice Cập nhật phí chống spam.
+     * @param _newFee Phí mới tính bằng Wei.
+     */
+    function updateAntiSpamFee(uint256 _newFee) external onlyAdmin {
+        uint256 oldFee = antiSpamFee;
+        antiSpamFee = _newFee;
+        emit AntiSpamFeeUpdated(oldFee, _newFee);
+    }
+
+    /**
+     * @notice Chuyển giao quyền Quản trị hệ thống cho một địa chỉ khác.
+     * @param _newAdmin Địa chỉ của Admin mới.
+     */
+    function transferAdmin(address _newAdmin) external onlyAdmin {
+        if (_newAdmin == address(0)) revert InvalidAddress();
+        address oldAdmin = admin;
+        admin = _newAdmin;
+        emit AdminTransferred(oldAdmin, _newAdmin);
+    }
+
+    /**
      * @notice Gửi yêu cầu tạo chiến dịch mới.
      * @param name Tên chiến dịch.
      * @param category Danh mục chiến dịch.
      * @param minimum Số tiền tối thiểu (wei).
      */
     function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external payable {
-        if (msg.value < ANTI_SPAM_FEE) revert IncorrectFee();
-        if (bytes(name).length == 0) revert EmptyDescription();
+        if (msg.value < antiSpamFee) revert IncorrectFee();
+        if (bytes(name).length == 0) revert EmptyName();
         if (bytes(description).length == 0) revert EmptyDescription();
         if (bytes(imageHash).length == 0) revert EmptyEvidenceHash();
         if (minimum == 0) revert InsufficientFunds();
@@ -106,6 +129,8 @@ contract CampaignFactory is Events {
             status: RequestStatus.PENDING,
             deployedAddress: address(0)
         });
+
+        requestIdsByManager[msg.sender].push(requestId);
 
         emit CampaignRequestSubmitted(requestId, msg.sender, name, description, imageHash, category, minimum);
     }
@@ -258,7 +283,6 @@ contract CampaignFactory is Events {
         }
 
         totalGlobalDonated += amount;
-        totalGlobalDonationsCount += 1;
     }
 
     /**
@@ -308,17 +332,72 @@ contract CampaignFactory is Events {
      * @notice Lấy thông tin thống kê tổng quát của toàn hệ thống (cho Dashboard).
      * @return campaignsCount Tổng số chiến dịch.
      * @return globalDonated Tổng số tiền đã gây quỹ.
-     * @return globalDonationsCount Tổng số lượt quyên góp.
      */
     function getGlobalStats() external view returns (
         uint256 campaignsCount,
-        uint256 globalDonated,
-        uint256 globalDonationsCount
+        uint256 globalDonated
     ) {
         return (
             deployedCampaigns.length,
-            totalGlobalDonated,
-            totalGlobalDonationsCount
+            totalGlobalDonated
         );
+    }
+
+    /**
+     * @notice Lấy danh sách yêu cầu tạo chiến dịch (Admin Dashboard)
+     * @param offset Vị trí bắt đầu
+     * @param limit Số lượng tối đa
+     */
+    function getCampaignRequests(uint256 offset, uint256 limit) external view returns (
+        CampaignRequest[] memory requests,
+        uint256 total
+    ) {
+        total = requestCount;
+        if (offset >= total || limit == 0) {
+            return (new CampaignRequest[](0), total);
+        }
+
+        uint256 size = limit;
+        if (offset + limit > total) size = total - offset;
+
+        requests = new CampaignRequest[](size);
+        for (uint256 i = 0; i < size; i++) {
+            requests[i] = campaignRequests[offset + i];
+        }
+        
+        return (requests, total);
+    }
+
+    /**
+     * @notice Lấy danh sách yêu cầu tạo chiến dịch của một Manager (Manager Dashboard)
+     * @param _manager Địa chỉ của Manager
+     * @param offset Vị trí bắt đầu
+     * @param limit Số lượng tối đa
+     */
+    function getManagerRequests(address _manager, uint256 offset, uint256 limit) external view returns (
+        CampaignRequest[] memory requests,
+        uint256[] memory requestIds,
+        uint256 total
+    ) {
+        uint256[] storage managerReqIds = requestIdsByManager[_manager];
+        total = managerReqIds.length;
+        
+        if (offset >= total || limit == 0) {
+            return (new CampaignRequest[](0), new uint256[](0), total);
+        }
+
+        uint256 size = limit;
+        if (offset + limit > total) size = total - offset;
+
+        requests = new CampaignRequest[](size);
+        requestIds = new uint256[](size);
+        
+        for (uint256 i = 0; i < size; i++) {
+            uint256 reqId = managerReqIds[offset + i];
+            requestIds[i] = reqId;
+            requests[i] = campaignRequests[reqId];
+        }
+        
+        return (requests, requestIds, total);
     }
 }

@@ -22,9 +22,21 @@
 8. [Hướng Dẫn Deploy](#-hướng-dẫn-deploy)
 9. [Hướng Dẫn Tương Tác Với Contract](#-hướng-dẫn-tương-tác-với-contract)
 10. [Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền](#-giải-thích-luồng-hoạt-động--cơ-chế-rút-tiền)
-11. [Humanitarian Accountability Protocol (DAO x WFP)](#-humanitarian-accountability-protocol-dao-x-wfp)
-12. [Các Lỗi Thường Gặp & Cách Khắc Phục](#-các-lỗi-thường-gặp--cách-khắc-phục)
+    - [Chi tiết Luồng tiền (MONEY_FLOW.md)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/MONEY_FLOW.md)
+11. [Humanitarian Accountability Protocol (DAO x WFP v4.0)](#-humanitarian-accountability-protocol-dao-x-wfp)
+12. [Thông tin Triển khai (Sepolia)](#-thông-tin-triển-khai-sepolia)
 13. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
+
+---
+
+## 🚀 Thông tin Triển khai (Cập nhật 20/04/2026)
+
+Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepolia Testnet**:
+
+| Hợp đồng | Địa chỉ (Contract Address) |
+|---|---|
+| **CampaignFactory** | `0x9F24fd3F2c387Ed8CEa41621ca001faAfC385952` |
+| **SupplierRegistry** | `0x13f469706e509B7E4aB4Eca1Ec580A42bE7b79d7` |
 
 ---
 

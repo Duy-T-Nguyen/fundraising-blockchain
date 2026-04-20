@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 
 describe("Campaign & Factory", function () {
   let factory: any;
@@ -178,6 +179,65 @@ describe("Campaign & Factory", function () {
       it("should return empty array for out of bounds offset", async () => {
         const empty = await factory.getCampaigns(2, ethers.ZeroAddress, 0, 100, 10);
         expect(empty.length).to.equal(0);
+      });
+    });
+
+    describe("System Governance & Admin API", function () {
+      it("should allow admin to update anti-spam fee", async () => {
+        const newFee = ethers.parseEther("0.01");
+        await expect(factory.updateAntiSpamFee(newFee))
+          .to.emit(factory, "AntiSpamFeeUpdated")
+          .withArgs(ethers.parseEther("0.005"), newFee);
+        
+        expect(await factory.antiSpamFee()).to.equal(newFee);
+      });
+
+      it("should prevent non-admin from updating anti-spam fee", async () => {
+        const newFee = ethers.parseEther("0.01");
+        await expect(factory.connect(donor1).updateAntiSpamFee(newFee))
+          .to.be.revertedWithCustomError(factory, "NotAdmin");
+      });
+
+      it("should allow admin to transfer admin rights", async () => {
+        await expect(factory.transferAdmin(donor1.address))
+          .to.emit(factory, "AdminTransferred")
+          .withArgs(owner.address, donor1.address);
+        
+        expect(await factory.admin()).to.equal(donor1.address);
+
+        // Old admin can no longer update fee
+        await expect(factory.updateAntiSpamFee(ethers.parseEther("0.02")))
+          .to.be.revertedWithCustomError(factory, "NotAdmin");
+        
+        // Restore for other tests
+        await factory.connect(donor1).transferAdmin(owner.address);
+      });
+
+      it("should support paginated queries for campaign requests (Admin)", async () => {
+        // We already have 1 request from setup, let's add 2 more
+        await factory.connect(donor1).submitCampaignRequest("R1", "D1", "Q1", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+        await factory.connect(donor2).submitCampaignRequest("R2", "D2", "Q2", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+
+        const [requests, total] = await factory.getCampaignRequests(0, 2);
+        expect(requests.length).to.equal(2);
+        expect(total).to.be.at.least(3n);
+        expect(requests[0].manager).to.equal(owner.address); // First one is from setup
+      });
+
+      it("should support paginated queries for a specific manager", async () => {
+        const [ownerRequests, ownerIds, ownerTotal] = await factory.getManagerRequests(owner.address, 0, 10);
+        expect(ownerRequests.length).to.equal(1);
+        expect(ownerTotal).to.equal(1n);
+        expect(ownerRequests[0].manager).to.equal(owner.address);
+        expect(ownerIds[0]).to.equal(0n);
+
+        // Submit one request for donor1
+        await factory.connect(donor1).submitCampaignRequest("R3", "D3", "Q3", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+
+        const [donor1Requests, donor1Ids, donor1Total] = await factory.getManagerRequests(donor1.address, 0, 10);
+        expect(donor1Requests.length).to.equal(1); // Should be 1, not 2
+        expect(donor1Total).to.equal(1n);
+        expect(donor1Requests[0].manager).to.equal(donor1.address);
       });
     });
   });
@@ -399,9 +459,56 @@ describe("Campaign & Factory", function () {
           "Buy supplies",
           ethers.parseEther("0.05"),
           recipient.address,
+          donor2.address,
           "QmTestHash",
-          []
+          [],
+          anyValue
         );
+    });
+
+    it("should allow manager to re-select validators after timeout", async () => {
+        // Donate first to enable validator path
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        
+        // Create small request
+        await campaign.createRequest("Small", 100, recipient.address, donor2.address, "QmTest");
+        
+        // Try to re-select immediately (should fail)
+        await expect(campaign.connect(owner).reselectValidators(0))
+            .to.be.revertedWithCustomError(campaign, "ActionTooSoon");
+            
+        // Fast forward 48 hours + 1 second
+        await ethers.provider.send("evm_increaseTime", [48 * 3600 + 1]);
+        await ethers.provider.send("evm_mine", []);
+        
+        // Now it should work
+        await expect(campaign.connect(owner).reselectValidators(0))
+            .to.emit(campaign, "RequestCreated");
+    });
+
+    it("should include selectedValidators in RequestCreated event for small requests", async () => {
+      // Cần có donor donate đủ lớn để totalFundsRaised > 0 và value <= threshold
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
+
+      // Value nhỏ (0.01 ETH) <= 0.5% of 10 ETH (0.05 ETH) -> sẽ kích hoạt validator selection
+      const tx = await campaign.createRequest("Small purchase", ethers.parseEther("0.01"), recipient.address, donor2.address, "QmEvidence");
+      const receipt = await tx.wait();
+
+      // Lọc event RequestCreated và kiểm tra selectedValidators
+      const requestCreatedEvents = receipt!.logs.filter((log: any) => {
+        try {
+          const parsed = campaign.interface.parseLog({ topics: log.topics as string[], data: log.data });
+          return parsed?.name === "RequestCreated";
+        } catch { return false; }
+      });
+
+      expect(requestCreatedEvents.length).to.equal(1);
+      const parsed = campaign.interface.parseLog({
+        topics: requestCreatedEvents[0].topics as string[],
+        data: requestCreatedEvents[0].data
+      });
+      // selectedValidators phải có đúng 3 validator
+      expect(parsed!.args.selectedValidators.length).to.equal(3);
     });
 
     it("should track multiple requests", async () => {

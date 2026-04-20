@@ -256,7 +256,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const signature1 = await verifier.signMessage(ethers.toBeArray(messageHash1));
 
       const before1 = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, signature1, "QmTestHash");
+      await campaign.connect(campaignManager).executeMilestone(0, signature1, "QmTestHash");
       const after1 = await ethers.provider.getBalance(supplier.address);
       expect(after1 - before1).to.equal(milestoneValues[0]);
 
@@ -266,7 +266,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const signature2 = await verifier.signMessage(ethers.toBeArray(messageHash2));
-      await campaign.executeMilestone(0, signature2, "QmTestHash");
+      await campaign.connect(campaignManager).executeMilestone(0, signature2, "QmTestHash");
 
       // 5. Verify request is complete
       const request = await campaign.requests(0);
@@ -292,7 +292,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       // Wrong signer
       const badSignature = await campaignManager.signMessage(ethers.toBeArray(messageHash));
 
-      await expect(campaign.executeMilestone(0, badSignature, "QmTestHash"))
+      await expect(campaign.connect(campaignManager).executeMilestone(0, badSignature, "QmTestHash"))
         .to.be.revertedWithCustomError(campaign, "InvalidSignature");
     });
   });
@@ -327,7 +327,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const sig1 = await verifier.signMessage(ethers.toBeArray(hash1));
 
       const supplierBefore = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, sig1, "QmTestHash");
+      await campaign.connect(campaignManager).executeMilestone(0, sig1, "QmTestHash");
       const supplierAfter = await ethers.provider.getBalance(supplier.address);
 
       expect(supplierAfter - supplierBefore).to.equal(ethers.parseEther("2"));
@@ -338,7 +338,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const sig2 = await verifier.signMessage(ethers.toBeArray(hash2));
-      await campaign.executeMilestone(0, sig2, "QmTestHash");
+      await campaign.connect(campaignManager).executeMilestone(0, sig2, "QmTestHash");
 
       // 6. Verify: Request complete, Supplier received all funds
       const request = await campaign.requests(0);
