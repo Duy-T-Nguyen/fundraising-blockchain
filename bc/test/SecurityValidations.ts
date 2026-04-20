@@ -91,7 +91,7 @@ describe("Security Validations", function () {
     it("should NOT allow creating a campaign with empty name", async () => {
         await expect(
             factory.connect(manager).submitCampaignRequest("", "Desc", "Img", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") })
-        ).to.be.revertedWithCustomError(factory, "EmptyDescription");
+        ).to.be.revertedWithCustomError(factory, "EmptyName");
     });
 
     it("should NOT allow creating a campaign with empty description", async () => {

@@ -41,6 +41,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
 
     /// @notice Hạn mức cho phép Validator tự duyệt (0.5% tổng quỹ)
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50; // 0.5% = 50/10000
+    uint256 public constant RESELECTION_TIMEOUT = 2 days;
 
     constructor(
         string memory _name,
@@ -112,14 +113,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         address verifier, // Added verifier
         string calldata evidenceHash
     ) external onlyManager onlyActive {
-        if (value == 0) revert InsufficientFunds();
-        if (recipient == address(0)) revert InvalidAddress();
-        if (recipient == manager) revert ManagerNotAllowedAsRecipient();
-        if (verifier == manager) revert ManagerNotAllowedAsVerifier();
-        if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
-        if (!supplierRegistry.isSupplier(recipient))
-            revert RecipientNotWhitelisted();
-        if (bytes(desc).length == 0) revert EmptyDescription();
+        _validateRequest(value, recipient, verifier, desc);
         if (bytes(evidenceHash).length == 0) revert EmptyEvidenceHash();
 
         RequestLib.Request storage r = requests.push();
@@ -141,15 +135,20 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
                 requests.length + block.timestamp
             );
             r.selectedValidators = selected;
+            r.lastValidatorSelection = block.timestamp;
         }
 
+        uint256 requestIndex = requests.length - 1;
+
         emit RequestCreated(
-            requests.length - 1,
+            requestIndex,
             desc,
             value,
             recipient,
+            verifier,
             evidenceHash,
-            r.selectedValidators
+            r.selectedValidators,
+            r.lastValidatorSelection
         );
     }
 
@@ -166,17 +165,17 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         uint256[] calldata milestoneValues,
         string[] calldata milestoneDescriptions
     ) external onlyManager onlyActive {
-        if (recipient == address(0) || verifier == address(0))
-            revert InvalidAddress();
-        if (recipient == manager) revert ManagerNotAllowedAsRecipient();
-        if (verifier == manager) revert ManagerNotAllowedAsVerifier();
-        if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
-        if (!supplierRegistry.isSupplier(recipient))
-            revert RecipientNotWhitelisted();
         if (
             milestoneValues.length == 0 ||
             milestoneValues.length != milestoneDescriptions.length
         ) revert InvalidRequestIndex();
+
+        uint256 totalBudget = 0;
+        for (uint i = 0; i < milestoneValues.length; i++) {
+            totalBudget += milestoneValues[i];
+        }
+
+        _validateRequest(totalBudget, recipient, verifier, desc);
 
         RequestLib.Request storage r = requests.push();
         r.description = desc;
@@ -187,7 +186,6 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         r.verifier = verifier;
         r.currentMilestone = 0;
 
-        uint256 totalBudget = 0;
         for (uint i = 0; i < milestoneValues.length; i++) {
             r.milestones.push(
                 RequestLib.Milestone({
@@ -197,17 +195,20 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
                     evidenceHash: ""
                 })
             );
-            totalBudget += milestoneValues[i];
         }
         r.value = totalBudget;
 
+        uint256 requestIndex = requests.length - 1;
+
         emit RequestCreated(
-            requests.length - 1,
+            requestIndex,
             desc,
             totalBudget,
             recipient,
+            verifier,
             "",
-            r.selectedValidators
+            r.selectedValidators,
+            r.lastValidatorSelection
         );
     }
 
@@ -320,7 +321,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         uint256 index,
         bytes calldata signature,
         string calldata evidenceHash
-    ) external nonReentrant {
+    ) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
@@ -400,10 +401,47 @@ contract Campaign is Events, AccessControl, ReentrancyGuard {
         return requests.length;
     }
 
+    function _validateRequest(uint256 value, address recipient, address verifier, string calldata desc) private view {
+        if (value == 0) revert InsufficientFunds();
+        if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
+        if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+        if (verifier == manager) revert ManagerNotAllowedAsVerifier();
+        if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
+        if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
+        if (bytes(desc).length == 0) revert EmptyDescription();
+    }
+
     /**
-     * @notice Kiểm tra một địa chỉ có phải là Supplier hợp lệ không (Dùng cho FE)
+     * @notice Chọn lại danh sách Validator nếu đội cũ không phản hồi sau 48h.
+     * @param index Index của request.
      */
-    function checkRecipient(address _recipient) external view returns (bool) {
-        return supplierRegistry.isSupplier(_recipient);
+    function reselectValidators(uint256 index) external onlyManager {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+
+        if (r.complete) revert RequestCompleted();
+        if (r.selectedValidators.length == 0) revert MilestoneNotApproved();
+        if (block.timestamp < r.lastValidatorSelection + RESELECTION_TIMEOUT) revert ActionTooSoon();
+
+        // Reset vote cũ để tránh xung đột dữ liệu
+        r.resetApprovals();
+
+        // Chọn đội mới
+        address[] memory newSelected = validatorPool.getRandomValidators(
+            index + block.timestamp
+        );
+        r.selectedValidators = newSelected;
+        r.lastValidatorSelection = block.timestamp;
+
+        emit RequestCreated(
+            index,
+            r.description,
+            r.value,
+            r.recipient,
+            r.verifier,
+            r.evidenceHash,
+            r.selectedValidators,
+            r.lastValidatorSelection
+        );
     }
 }

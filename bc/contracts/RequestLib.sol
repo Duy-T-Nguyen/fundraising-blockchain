@@ -35,5 +35,13 @@ library RequestLib {
         uint256 validatorApprovalCount;
         mapping(address => bool) validatorApprovals;
         address[] selectedValidators;
+        uint256 lastValidatorSelection;
+    }
+
+    function resetApprovals(Request storage r) internal {
+        for (uint256 i = 0; i < r.selectedValidators.length; i++) {
+            r.validatorApprovals[r.selectedValidators[i]] = false;
+        }
+        r.validatorApprovalCount = 0;
     }
 }

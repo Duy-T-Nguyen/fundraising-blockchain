@@ -61,6 +61,7 @@ Vui lòng đọc tài liệu hướng dẫn chuyên sâu cho từng thành phầ
 - [Tài liệu Blockchain (bc/)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/README.md)
 - [Tài liệu Backend (be/)](file:///home/thanhlong/Documents/fundraising-blockchain/be/README.md)
 - [Tài liệu Frontend (fe/)](file:///home/thanhlong/Documents/fundraising-blockchain/fe/README.md)
+- [**Yêu cầu Chức năng Frontend (FE_FUNCTIONAL_REQUIREMENTS.md)**](file:///home/thanhlong/Documents/fundraising-blockchain/FE_FUNCTIONAL_REQUIREMENTS.md)
 
 ---
 
@@ -70,14 +71,16 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x4d272f0C39B18C09536392eAeA254A1e503639C5` |
-| **SupplierRegistry** | `0x358390a0a195C029632a2B045eBd28209DcC385c` |
+| **CampaignFactory** | `Đang cập nhật...` |
+| **SupplierRegistry** | `Đang cập nhật...` |
 
-**Các tính năng mới nhất (Cập nhật WFP Standard v3.0 - 20/04/2026):**
+**Các tính năng mới nhất (Cập nhật WFP Standard v4.0 - 20/04/2026):**
+- **Validator Liveness (Timeout-based)**: Cơ chế chống treo Request. Nếu Validator được chọn không phản hồi sau 48 giờ, Manager có quyền kích hoạt `reselectValidators` để chọn đội mới, đảm bảo dòng tiền không bị tắc nghẽn.
+- **Real-time Notifications (Socket.io & Redis)**: Hệ thống thông báo tức thời tới mọi vai trò (Admin, Manager, Validator, Supplier, Verifier). Tích hợp **Redis Adapter** giúp Backend có thể mở rộng theo chiều ngang (Horizontal Scaling) mà không mất kết nối WebSocket.
+- **Hybrid Notification Strategy**: Kết hợp giữa thông báo thời gian thực (Socket.io) và lưu trữ bền vững (MongoDB), giúp người dùng không bao giờ bỏ lỡ thông tin quan trọng kể cả khi offline.
+- **Bytecode Optimization**: Smart Contract được tối ưu hóa dung lượng (<24KB) bằng cách hợp nhất sự kiện và logic validation, giúp tiết kiệm Gas và đảm bảo khả năng triển khai trên Mainnet.
 - **WFP 2-Stage Payment Logic**: Tích hợp chuẩn thanh toán của World Food Programme. Việc phê duyệt (Vote) chỉ có ý nghĩa "Duyệt Ngân sách". Tiền chỉ thực sự được giải ngân khi có chữ ký số (ECDSA Signature) nghiệm thu bằng chứng giao hàng từ một bên thứ 3 độc lập (`Verifier`).
 - **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
-- **Anti-spam Fee**: Cấu hình phí chống spam (`0.005 ETH`) khi gửi yêu cầu tạo chiến dịch, ngăn chặn lạm dụng và tạo rác trên mạng.
-- **MongoDB Internal State**: Backend (NestJS) sử dụng MongoDB làm bộ nhớ đệm an toàn (`SyncState`) giúp server không bị lọt sự kiện Blockchain sau khi khởi động lại, trong khi vẫn đảm bảo 100% dữ liệu gốc bất biến On-chain.
 
 ---
 *Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026.*

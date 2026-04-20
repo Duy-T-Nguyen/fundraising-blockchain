@@ -63,6 +63,17 @@ contract SupplierRegistry is Events {
     }
 
     /**
+     * @notice Chuyển giao quyền Quản trị hệ thống cho một địa chỉ khác.
+     * @param _newAdmin Địa chỉ của Admin mới.
+     */
+    function transferAdmin(address _newAdmin) external onlyAdmin {
+        if (_newAdmin == address(0)) revert InvalidAddress();
+        address oldAdmin = admin;
+        admin = _newAdmin;
+        emit AdminTransferred(oldAdmin, _newAdmin);
+    }
+
+    /**
      * @notice Thêm Nhà cung cấp vào danh sách trắng.
      */
     function addSupplier(address _supplier, string calldata _name, string calldata _metadata) external onlyAdmin {
@@ -164,12 +175,5 @@ contract SupplierRegistry is Events {
             metadatas[i] = suppliers[addr].metadataHash;
             earnings[i] = suppliers[addr].totalEarned;
         }
-    }
-
-    /**
-     * @notice Lấy toàn bộ danh sách địa chỉ Supplier.
-     */
-    function getAllSuppliers() external view returns (address[] memory) {
-        return supplierList;
     }
 }

@@ -6,10 +6,12 @@ This is the backend component of the **Fundraising Blockchain** project. Its pri
 
 - **Evidence Management**: Securely upload invoices, delivery photos, and receipts to IPFS.
 - **Pinata Integration**: Seamlessly communicates with Pinata SDK for data pinning.
-- **Blockchain Listener**: Real-time monitoring of `CampaignStarted` events.
-- **Auto-Verification**: Automatically triggers Hardhat Etherscan verification for newly deployed campaigns.
-- **MongoDB Sync State**: Uses MongoDB to securely cache the `lastProcessedBlock`, ensuring no events are missed even if the server restarts.
-- **Signature Verification**: Requires cryptographic signatures (`ethers.verifyMessage`) to validate users uploading evidence to IPFS.
+- **Real-time Notifications**: Instant updates via **Socket.io** for all system roles (Admin, Validator, Supplier, etc.).
+- **Redis Integration**: Uses **Redis** as a Pub/Sub adapter for Socket.io, enabling horizontal scaling and stable real-time communication across multiple backend instances.
+- **Hybrid Notification Strategy**: Combines real-time WebSocket pushes with persistent MongoDB storage, ensuring users never miss a task (even if offline).
+- **Blockchain Listener**: Advanced monitoring for Campaign and Factory events with automatic indexing.
+- **Signature Verification**: Secure IPFS uploads protected by ECDSA signature verification.
+- **Auto-Verification**: Automated Etherscan verification for all dynamically deployed Campaign contracts.
 
 ## 🏗 Setup & Installation
 
@@ -27,8 +29,11 @@ PINATA_API_KEY=your_api_key
 PINATA_SECRET_KEY=your_secret_key
 ACCESS_KEY=your_jwt_token (Optional but recommended)
 RPC_URL=https://eth-sepolia.g.alchemy.com/v2/...
-CAMPAIGN_FACTORY_ADDRESS=0xf4901bBc7d340584120273F8db235cF5322CA344
-MONGODB_URI=mongodb://localhost:27017/fundchain
+CAMPAIGN_FACTORY_ADDRESS=0x9F24fd3F2c387Ed8CEa41621ca001faAfC385952
+ADMIN_ADDRESS=0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06
+REDIS_HOST=redis
+REDIS_PORT=6379
+MONGODB_URI=mongodb://mongodb:27017/fundchain
 ```
 
 > [!NOTE]

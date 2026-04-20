@@ -45,7 +45,8 @@ describe("Optimization & Unified Indexing Tests", function () {
       expect(await supplierRegistry.isSupplier(lastOne)).to.be.true;
 
       // Check if last one moved to the gap correctly
-      const all = await supplierRegistry.getAllSuppliers();
+      const result = await supplierRegistry.getSuppliers(0, 100);
+      const all = result.addresses;
       expect(all).to.not.contain(toRemove);
       expect(all[2]).to.equal(lastOne);
     });
@@ -105,10 +106,9 @@ describe("Optimization & Unified Indexing Tests", function () {
       expect(await factory.getCategoryCount(0)).to.equal(2);
 
       // Verify Global Stats
-      const [count, totalDonated, totalDonors] = await factory.getGlobalStats();
+      const [count, totalDonated] = await factory.getGlobalStats();
       expect(count).to.equal(3);
       expect(totalDonated).to.equal(0); // No donations yet
-      expect(totalDonors).to.equal(0);
 
       // Simulate a donation to verify real-time tracking
       const campaignAddr = all[0];
@@ -119,7 +119,6 @@ describe("Optimization & Unified Indexing Tests", function () {
       
       const statsAfter = await factory.getGlobalStats();
       expect(statsAfter[1]).to.equal(ethers.parseEther("1"));
-      expect(statsAfter[2]).to.equal(1);
     });
   });
 });
