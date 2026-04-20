@@ -35,7 +35,7 @@ const HowItWorksSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {steps.map(({ icon: Icon, number, title, description }, index) => (
+          {steps.map(({ icon: Icon, title, description }, index) => (
             <div
               key={title}
               className="group bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-blue-900/20 hover:shadow-2xl hover:shadow-blue-600/15 hover:-translate-y-1.5 transition-all duration-300"

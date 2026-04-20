@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  X, ImagePlus, Loader2, CheckCircle,
+  X, ImagePlus, Loader2,
   AlertCircle, ChevronDown, ArrowLeft, Zap,
   ShieldCheck, Eye, Users, Wallet, ArrowRight,
 } from 'lucide-react';

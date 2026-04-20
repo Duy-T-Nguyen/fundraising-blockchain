@@ -25,7 +25,7 @@ const Header = () => {
 
   return (
     <header className="bg-blue-600 sticky top-0 z-50 shadow-md">
-      <nav className="relative flex items-center justify-center h-15 px-10">
+      <nav className="relative flex items-center justify-center h-16 px-10">
         <ul className="flex items-center gap-2 list-none m-0 p-0">
           {navLinks.map((link) => (
             <li key={link.label}>

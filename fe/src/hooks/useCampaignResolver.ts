@@ -20,7 +20,7 @@ export function useCampaignResolver(slug: string | undefined) {
           address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
           abi: ABIS.CAMPAIGN_FACTORY as any,
           functionName: 'getCampaigns',
-          args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 50n], // Scan up to 50
+          args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 50n], // Scan up to 50 campaigns
         } as any) as string[];
 
         if (!addresses || addresses.length === 0) {
@@ -28,7 +28,7 @@ export function useCampaignResolver(slug: string | undefined) {
           return;
         }
 
-        // 2. Fetch titles for all addresses in parallel
+        // 2. Fetch titles for all addresses in parallel and find match
         const results = await Promise.all(
           addresses.map(async (addr) => {
             try {
@@ -45,7 +45,6 @@ export function useCampaignResolver(slug: string | undefined) {
           })
         );
 
-        // 3. Find matching slug
         const match = results.find((r) => r.slug === slug);
         if (match) {
           setAddress(match.address);
