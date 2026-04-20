@@ -16,10 +16,12 @@ import { encodeFunctionData } from 'viem';
 interface RequestsListProps {
   address: string;
   isManager: boolean;
+  hasDonated: boolean;
+  userFirstDonationBlock: bigint | null;
   donorsCount: string | number;
 }
 
-const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, donorsCount }) => {
+const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDonated, userFirstDonationBlock, donorsCount }) => {
   const { requests, isLoading, refresh } = useRequests(address);
   const { address: userAddress } = useWallet();
   const [processingId, setProcessingId] = useState<number | null>(null);
@@ -133,8 +135,8 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, donorsC
                   </div>
 
                   <div className="flex items-center gap-4">
-                    {/* Donor Button */}
-                    {!isManager && !isComplete && (
+                    {/* Donor Button: Only visible if donated BEFORE the request was created */}
+                    {!isManager && !isComplete && hasDonated && userFirstDonationBlock !== null && userFirstDonationBlock < req.createdBlock && (
                       <button
                         onClick={() => handleApprove(req.id)}
                         disabled={processingId === req.id}

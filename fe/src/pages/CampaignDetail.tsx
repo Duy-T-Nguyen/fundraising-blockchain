@@ -17,10 +17,11 @@ const CampaignDetail: React.FC = () => {
   // Resolve slug to address
   const { address, isLoading: isResolving, error: resolutionError } = useCampaignResolver(slug);
   
-  const { summary, isLoading, refresh } = useCampaign(address || undefined);
+  const { summary, isLoading, refresh } = useCampaign(address || undefined, userAddress || undefined);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   const isManager = !!(userAddress && summary && userAddress.toLowerCase() === summary.manager.toLowerCase());
+  const hasDonated = !!(summary && summary.userContribution > 0n);
 
   const handleDonationSuccess = () => {
     refresh();
@@ -111,6 +112,8 @@ const CampaignDetail: React.FC = () => {
         <RequestsList 
           address={address as string} 
           isManager={isManager} 
+          hasDonated={hasDonated}
+          userFirstDonationBlock={summary.firstDonationBlock}
           donorsCount={summary.donorsCount} 
         />
 
