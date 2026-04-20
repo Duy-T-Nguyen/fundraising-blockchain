@@ -6,7 +6,9 @@ import Campaigns from './pages/Campaigns';
 import CreateCampaign from './pages/CreateCampaign';
 import CampaignDetail from './pages/CampaignDetail';
 import Activity from './pages/Activity';
-import './index.css';
+import CreatorDashboard from './pages/CreatorDashboard';
+import Resources from './pages/Resources';
+import Contact from './pages/Contact';
 
 import Sidebar from './layouts/Sidebar';
 function App() {
@@ -22,6 +24,9 @@ function App() {
             <Route path="/campaigns/create" element={<CreateCampaign />} />
             <Route path="/campaign/:slug" element={<CampaignDetail />} />
             <Route path="/dashboard/activity" element={<Activity />} />
+            <Route path="/dashboard/creator" element={<CreatorDashboard />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
           <Footer />
         </main>

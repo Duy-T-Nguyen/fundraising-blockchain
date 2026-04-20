@@ -1,13 +1,13 @@
 import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
-import { ShieldCheck, Heart, Coins, ExternalLink, ArrowLeft, TrendingUp, Calendar } from 'lucide-react';
+import { ShieldCheck, Heart, Coins, ExternalLink, ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { slugify } from '../utils/slugify';
 
 const Activity: React.FC = () => {
   const { address } = useWallet();
-  const { managedCampaigns, userDonations, isLoading } = useUserActivity(address as `0x${string}`);
+  const { userDonations, isLoading } = useUserActivity(address as `0x${string}`);
 
   const uniqueCampaignsSupported = new Set(userDonations.map(d => d.campaignAddress.toLowerCase())).size;
 
@@ -15,27 +15,37 @@ const Activity: React.FC = () => {
     <div className="min-h-screen pt-24 pb-20 px-4 lg:px-12 bg-[#f8fafc]">
       {/* Header Section */}
       <div className="max-w-7xl mx-auto mb-12">
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/" className="p-3 bg-slate-900 hover:bg-slate-800 rounded-2xl text-white transition-all shadow-lg">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Your Activity Hub</h1>
-            <p className="text-blue-600 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
-              <ShieldCheck size={14} strokeWidth={3} /> Dashboard / Contribution History
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="p-3 bg-slate-900 hover:bg-slate-800 rounded-2xl text-white transition-all shadow-lg">
+              <ArrowLeft size={20} />
+            </Link>
+            <div>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Your Activity Hub</h1>
+              <p className="text-blue-600 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
+                <ShieldCheck size={14} strokeWidth={3} /> Dashboard / Contribution History
+              </p>
+            </div>
           </div>
+          
+          {/* Subtle Syncing Indicator */}
+          {isLoading && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 rounded-2xl border border-blue-100">
+              <Loader2 size={16} className="text-blue-600 animate-spin" />
+              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Syncing Blockchain...</span>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-blue-500 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/5">
             <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-4">
               <Heart className="text-red-500" size={24} fill="currentColor" />
             </div>
             <div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Supported Campaigns</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">{uniqueCampaignsSupported} Campaigns</p>
+              <p className="text-3xl font-black text-slate-900 mt-1">{uniqueCampaignsSupported} Categories</p>
             </div>
           </div>
           <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-blue-500 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/5">
@@ -47,15 +57,6 @@ const Activity: React.FC = () => {
               <p className="text-3xl font-black text-slate-900 mt-1">
                 {userDonations.reduce((acc, curr) => acc + parseFloat(curr.amount), 0).toFixed(4)} ETH
               </p>
-            </div>
-          </div>
-          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between group hover:border-blue-500 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-blue-500/5">
-            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
-              <TrendingUp className="text-blue-600" size={24} />
-            </div>
-            <div>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Managed Campaigns</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">{managedCampaigns.length} Owned</p>
             </div>
           </div>
         </div>
@@ -82,15 +83,7 @@ const Activity: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={4} className="py-20 text-center text-slate-400 font-bold animate-pulse">Scanning the blockchain segment...</td>
-                    </tr>
-                  ) : userDonations.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-20 text-center text-slate-400 font-bold italic">No donation records found in recent blocks.</td>
-                    </tr>
-                  ) : (
+                  {userDonations.length > 0 ? (
                     userDonations.map((don, idx) => (
                       <tr key={idx} className="hover:bg-blue-50/50 transition-colors group">
                         <td className="py-6 px-10">
@@ -127,6 +120,14 @@ const Activity: React.FC = () => {
                         </td>
                       </tr>
                     ))
+                  ) : isLoading ? (
+                    <tr>
+                      <td colSpan={4} className="py-20 text-center text-slate-400 font-bold animate-pulse uppercase tracking-widest">Scanning latest blockchain segments...</td>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="py-20 text-center text-slate-400 font-bold italic border-2 border-dashed border-slate-100 rounded-[2rem] m-4">No donation records found in recent blocks.</td>
+                    </tr>
                   )}
                 </tbody>
               </table>

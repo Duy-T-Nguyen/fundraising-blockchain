@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { publicClient } from '../blockchain/client';
 import { ABIS, CONTRACT_ADDRESSES } from '../blockchain/constants';
 import { formatEther, getAddress } from 'viem';
+import { useMetadata } from './useMetadata';
 
 export interface UserDonation {
   campaignAddress: string;
@@ -15,25 +16,31 @@ export interface ManagedCampaign {
   name: string;
   balance: string;
   active: boolean;
+  imageHash: string;
 }
 
 export function useUserActivity(userAddress: `0x${string}` | undefined) {
   const [managedCampaigns, setManagedCampaigns] = useState<ManagedCampaign[]>([]);
   const [userDonations, setUserDonations] = useState<UserDonation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { getCampaignName, getBlockTimestamp } = useMetadata();
+  const isFetching = useRef(false);
 
   const fetchActivity = useCallback(async () => {
-    if (!userAddress) return;
+    if (!userAddress || isFetching.current) return;
+    
     const checksumAddress = getAddress(userAddress);
     const cacheKey = `donations_${checksumAddress}`;
     
+    // Quick load from storage
     const cached = localStorage.getItem(cacheKey);
     if (cached) setUserDonations(JSON.parse(cached));
 
     setIsLoading(true);
+    isFetching.current = true;
 
     try {
-      // 1. Fetch available campaigns from factory to scan (e.g., latest 50)
+      // 1. Fetch available campaigns list (latest 50)
       const allCampaignAddresses = await publicClient.readContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
@@ -41,35 +48,49 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 50n],
       } as any) as `0x${string}`[];
 
-      // 2. Filter for managed ones (fast)
+      // 2. Fetch managed campaigns (Optimized with Multicall)
       const managedAddresses = await publicClient.readContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
         functionName: 'getCampaigns',
-        args: [1, checksumAddress, 0, 0n, 20n],
+        args: [1, checksumAddress, 0, 0n, 30n], 
       } as any) as `0x${string}`[];
 
-      const managedData = await Promise.all(
-        managedAddresses.map(async (addr) => {
-          try {
-            const [summary, name] = await Promise.all([
-              publicClient.readContract({ address: addr, abi: ABIS.CAMPAIGN as any, functionName: 'getSummary' } as any),
-              publicClient.readContract({ address: addr, abi: ABIS.CAMPAIGN as any, functionName: 'campaignName' } as any)
-            ]) as [any[], string];
-            return { address: addr, name, balance: formatEther(summary[0]), active: summary[6] };
-          } catch { return null; }
-        })
-      );
-      setManagedCampaigns(managedData.filter(Boolean) as ManagedCampaign[]);
+      if (managedAddresses.length > 0) {
+        const multicallContracts = managedAddresses.flatMap(addr => [
+          { address: addr, abi: ABIS.CAMPAIGN, functionName: 'campaignName' },
+          { address: addr, abi: ABIS.CAMPAIGN, functionName: 'getSummary' }
+        ]);
 
-      // 3. TARGETED MULTI-ADDRESS SCAN (Satisfies RPC address requirement)
+        const results = await publicClient.multicall({
+          contracts: multicallContracts as any,
+        });
+
+        const managedData: ManagedCampaign[] = [];
+        for (let i = 0; i < managedAddresses.length; i++) {
+          const name = results[i * 2].result as string;
+          const summary = results[i * 2 + 1].result as any[];
+          
+          if (name && summary) {
+            managedData.push({
+              address: managedAddresses[i],
+              name,
+              balance: formatEther(summary[0]),
+              active: summary[6],
+              imageHash: summary[5]
+            });
+          }
+        }
+        setManagedCampaigns(managedData);
+      }
+
+      // 3. RAPID MODE: Scan last ~1 day for instant results
       const currentBlock = await publicClient.getBlockNumber();
-      const START_BLOCK = 6000000n; 
-      const CHUNK_SIZE = 45000n;
+      const LOOKBACK = 50000n; 
+      const scanLimit = currentBlock - LOOKBACK;
+      const CHUNK_SIZE = 50000n;
       
       const allLogs: any[] = [];
-      const scanLimit = currentBlock - 2000000n > START_BLOCK ? currentBlock - 2000000n : START_BLOCK;
-
       const chunks: {from: bigint, to: bigint}[] = [];
       for (let from = scanLimit; from < currentBlock; from += CHUNK_SIZE) {
         let to = from + CHUNK_SIZE - 1n;
@@ -77,16 +98,14 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         chunks.push({ from, to });
       }
 
-      // Process in small batches of parallel requests
-      const batchSizeArr = 3; 
-      for (let i = chunks.length - 1; i >= 0; i -= batchSizeArr) {
-        const batch = chunks.slice(Math.max(0, i - batchSizeArr + 1), i + 1);
-        
+      // Process logs in larger parallel batches
+      for (let i = chunks.length - 1; i >= 0; i -= 5) {
+        const batch = chunks.slice(Math.max(0, i - 4), i + 1);
         try {
           const batchResults = await Promise.all(
             batch.map(chunk => 
               publicClient.getLogs({
-                address: allCampaignAddresses, // PROVIDING ARRAY OF ADDRESSES TO SATISFY RPC
+                address: allCampaignAddresses,
                 event: {
                   type: 'event',
                   name: 'Donation',
@@ -105,7 +124,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
               setUserDonations(partialDonations);
           }
         } catch (e) {
-          console.warn('Batch scan failed', e);
+          console.warn('Batch logs query failed', e);
         }
       }
 
@@ -114,49 +133,30 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
       localStorage.setItem(cacheKey, JSON.stringify(finalDonations));
 
     } catch (err) {
-      console.error('User Activity Fetch Error:', err);
+      console.error('User Activity Sync Error:', err);
     } finally {
       setIsLoading(false);
+      isFetching.current = false;
     }
-  }, [userAddress]);
+  }, [userAddress, getCampaignName, getBlockTimestamp]);
 
-  // Optimized Helper to resolve names
   async function resolveLogNames(logs: any[]): Promise<UserDonation[]> {
-    return Promise.all(logs.map(async (log) => {
-      const campaignAddr = log.address;
-      try {
-        const [name, block] = await Promise.all([
-          publicClient.readContract({
-            address: campaignAddr as `0x${string}`,
-            abi: ABIS.CAMPAIGN as any,
-            functionName: 'campaignName',
-          } as any),
-          publicClient.getBlock({ blockNumber: log.blockNumber })
-        ]);
+    // Process unique requests only
+    const resolvedLogs = await Promise.all(logs.map(async (log) => {
+      const [name, date] = await Promise.all([
+        getCampaignName(log.address as `0x${string}`),
+        getBlockTimestamp(log.blockNumber)
+      ]);
 
-        const date = new Date(Number(block.timestamp) * 1000).toLocaleString(undefined, {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+      return {
+        campaignAddress: log.address,
+        campaignName: name,
+        amount: formatEther(log.args.amount),
+        timestamp: date,
+      };
+    }));
 
-        return {
-          campaignAddress: campaignAddr,
-          campaignName: name as string,
-          amount: formatEther(log.args.amount),
-          timestamp: date,
-        };
-      } catch {
-        return {
-          campaignAddress: campaignAddr,
-          campaignName: 'Campaign',
-          amount: formatEther(log.args.amount),
-          timestamp: 'Recent',
-        };
-      }
-    })).then(results => results.reverse());
+    return resolvedLogs.reverse();
   }
 
   useEffect(() => {
