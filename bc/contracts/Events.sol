@@ -49,6 +49,7 @@ contract Events {
 
     /// @notice Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
+    event RefundClaimed(address indexed donor, uint256 amount);
 
     /// @notice Phát ra khi chiến dịch mới được tạo (Dùng cho Factory)
     event CampaignStarted(

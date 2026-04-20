@@ -75,8 +75,15 @@ contract ValidatorPool is ERC2771Context {
         uint256[] memory indices = new uint256[](3);
         
         for (uint i = 0; i < 3; i++) {
-            uint256 idx = uint256(keccak256(abi.encodePacked(seed, i))) % validators.length;
-            // Tránh vướng trùng lặp đơn giản (trong demo)
+            // Tối ưu randomness bằng block.prevrandao (Ethereum PoS)
+            uint256 idx = uint256(keccak256(abi.encodePacked(
+                block.prevrandao,
+                block.timestamp,
+                seed,
+                i
+            ))) % validators.length;
+
+            // Tránh vướng trùng lặp đơn giản
             while (contains(indices, i, idx)) {
                 idx = (idx + 1) % validators.length;
             }

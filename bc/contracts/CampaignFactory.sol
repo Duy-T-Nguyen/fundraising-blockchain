@@ -19,6 +19,9 @@ contract CampaignFactory is Events, ERC2771Context {
     /// @notice Phí chống spam khi tạo chiến dịch (0.005 ETH)
     uint256 public antiSpamFee = 0.005 ether;
 
+    /// @notice Tỷ lệ hoàn phí khi bị từ chối (80% = 8000/10000)
+    uint256 public constant REJECTION_REFUND_BPS = 8000;
+
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
 
@@ -189,6 +192,13 @@ contract CampaignFactory is Events, ERC2771Context {
         if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
 
         req.status = RequestStatus.REJECTED;
+
+        // Hoàn lại 80% phí Anti-Spam cho Manager
+        uint256 refundAmount = (antiSpamFee * REJECTION_REFUND_BPS) / 10000;
+        if (refundAmount > 0 && address(this).balance >= refundAmount) {
+            (bool success, ) = req.manager.call{value: refundAmount}("");
+            if (!success) revert TransferFailed();
+        }
 
         emit CampaignRequestRejected(requestId);
     }

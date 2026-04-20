@@ -71,8 +71,8 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `Đang cập nhật...` |
-| **SupplierRegistry** | `Đang cập nhật...` |
+| **CampaignFactory** | `0x9FCc4133983903EdADB61D592450079c2185d750` |
+| **SupplierRegistry** | `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3` |
 
 **Các tính năng mới nhất (Cập nhật WFP Standard v4.0 - 20/04/2026):**
 - **Validator Liveness (Timeout-based)**: Cơ chế chống treo Request. Nếu Validator được chọn không phản hồi sau 48 giờ, Manager có quyền kích hoạt `reselectValidators` để chọn đội mới, đảm bảo dòng tiền không bị tắc nghẽn.
