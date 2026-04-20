@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCampaign } from '../../hooks/useCampaign';
-import { Users, Activity, ArrowRight } from 'lucide-react';
+import { Users, ArrowRight } from 'lucide-react';
+import { slugify } from '../../utils/slugify';
+import EthIcon from '../common/EthIcon';
 
 interface CampaignCardProps {
   address: string;
@@ -44,9 +46,12 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
     ? `https://gateway.pinata.cloud/ipfs/${summary.imageHash.replace('ipfs://', '')}`
     : getPlaceholderImage();
 
+  const slug = slugify(summary.title);
+  const detailUrl = `/campaign/${slug}`;
+
   return (
     <Link 
-      to={`/campaign/${address}`}
+      to={detailUrl}
       className="group bg-white rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[480px]"
     >
       {/* Image Section with Overlaid Stats */}
@@ -68,17 +73,14 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
         {/* Gradient Overlay for bottom stats */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-90" />
 
-        {/* Stats Overlay (Bottom Right) */}
-        <div className="absolute bottom-6 right-6 flex items-center gap-5 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-1.5">
-            <Users size={18} strokeWidth={3} />
-            <span className="text-[16px] font-extrabold">{summary.donorsCount}</span>
+        <div className="absolute bottom-6 right-6 flex items-center gap-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <div className="flex items-center gap-2">
+            <Users size={26} strokeWidth={3} />
+            <span className="text-[20px] font-black tracking-tighter">{summary.donorsCount}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-md">
-              <span className="text-black text-[15px] font-black">$</span>
-            </div>
-            <span className="text-[19px] font-extrabold">{summary.balance}</span>
+          <div className="flex items-center gap-2">
+            <EthIcon size={32} />
+            <span className="text-[20px] font-black tracking-tighter">{summary.balance}</span>
           </div>
         </div>
       </div>

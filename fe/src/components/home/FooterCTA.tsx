@@ -25,7 +25,7 @@ const FooterCTA = () => {
           Join thousands of donors who are changing the world through the power of blockchain transparency.
         </p>
         <Link
-          to="/#campaigns"
+          to="/campaigns#explore"
           className="inline-block px-10 py-5 bg-blue-600 hover:bg-blue-500 text-white text-xl font-bold rounded-2xl shadow-2xl shadow-blue-900/40 transition-all duration-300 hover:-translate-y-1 active:translate-y-0"
         >
           Start Donating

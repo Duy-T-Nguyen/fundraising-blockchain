@@ -19,24 +19,39 @@ export function useDonations(address: string | undefined) {
     setIsLoading(true);
 
     try {
-      // Get current block to calculate a safe range
       const currentBlock = await publicClient.getBlockNumber();
-      const safeFromBlock = currentBlock > 10000n ? currentBlock - 10000n : 0n;
+      const START_BLOCK = 6000000n; // Safe start block for the project on Sepolia
+      const CHUNK_SIZE = 50000n; // Max logs range for free public nodes
+      
+      const chunks: { from: bigint; to: bigint }[] = [];
+      for (let from = START_BLOCK; from < currentBlock; from += CHUNK_SIZE) {
+        let to = from + CHUNK_SIZE - 1n;
+        if (to > currentBlock) to = currentBlock;
+        chunks.push({ from, to });
+      }
 
-      // Get Donation events from the contract
-      const logs = await publicClient.getContractEvents({
-        address: address as `0x${string}`,
-        abi: ABIS.CAMPAIGN,
-        eventName: 'Donation',
-        fromBlock: safeFromBlock,
-      });
+      // Fetch all chunks in parallel (last 10 chunks to avoid overloading)
+      const visibleChunks = chunks.slice(-20); // Scan last 1M blocks for performance
+
+      const allLogs = await Promise.all(
+        visibleChunks.map(chunk => 
+          publicClient.getContractEvents({
+            address: address as `0x${string}`,
+            abi: ABIS.CAMPAIGN,
+            eventName: 'Donation',
+            fromBlock: chunk.from,
+            toBlock: chunk.to,
+          })
+        )
+      );
+
+      const flattenedLogs = allLogs.flat();
 
       // Transform logs into Donation objects
       const formattedDonations = await Promise.all(
-        logs.map(async (log: any, index: number) => {
+        flattenedLogs.map(async (log: any, index: number) => {
           const { donor, amount } = log.args;
           
-          // Try to get block timestamp (optional, can fallback to log index)
           let date = 'Recent';
           try {
             const block = await publicClient.getBlock({ blockHash: log.blockHash });
@@ -54,8 +69,8 @@ export function useDonations(address: string | undefined) {
         })
       );
 
-      // Sort by latest first
-      setDonations(formattedDonations.reverse());
+      // Sort by latest first (since parallel fetch might be out of order)
+      setDonations(formattedDonations.sort((a, b) => b.id.localeCompare(a.id)));
     } catch (err) {
       console.error('Error fetching donations:', err);
     } finally {

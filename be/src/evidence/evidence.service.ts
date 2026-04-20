@@ -19,7 +19,7 @@ export class EvidenceService {
     try {
       const message = 'FundChain IPFS Upload';
       const recoveredAddress = ethers.verifyMessage(message, signature);
-      
+
       if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
         throw new UnauthorizedException('Chữ ký số không hợp lệ. Vui lòng ký đúng thông điệp "FundChain IPFS Upload".');
       }

@@ -1,11 +1,18 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { ChevronRight, Coins, Calendar, MessageSquare, User, Loader2 } from 'lucide-react';
+import { Coins, Calendar, User, Loader2 } from 'lucide-react';
 import { useDonations } from '../../hooks/useDonations';
 
-const DonorsTable: React.FC = () => {
-  const { address } = useParams<{ address: string }>();
-  const { donations, isLoading } = useDonations(address);
+interface DonorsTableProps {
+  address?: string;
+  refreshTrigger?: number;
+}
+
+const DonorsTable: React.FC<DonorsTableProps> = ({ address: propsAddress, refreshTrigger }) => {
+  const { donations, isLoading, refresh } = useDonations(propsAddress || undefined);
+
+  React.useEffect(() => {
+    if (refreshTrigger) refresh();
+  }, [refreshTrigger, refresh]);
 
   const shortenAddress = (addr: string) => 
     `${addr.slice(0, 6)}...${addr.slice(-4)}`;

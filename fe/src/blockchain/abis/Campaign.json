@@ -48,6 +48,7 @@
         { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
         { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" },
         { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" },
+        { "indexed": false, "internalType": "address", "name": "verifier", "type": "address" },
         { "indexed": false, "internalType": "string", "name": "evidenceHash", "type": "string" }
       ],
       "name": "RequestCreated", "type": "event"
@@ -72,6 +73,7 @@
         { "internalType": "string", "name": "desc", "type": "string" },
         { "internalType": "uint256", "name": "value", "type": "uint256" },
         { "internalType": "address payable", "name": "recipient", "type": "address" },
+        { "internalType": "address", "name": "verifier", "type": "address" },
         { "internalType": "string", "name": "evidenceHash", "type": "string" }
       ],
       "name": "createRequest",
@@ -90,7 +92,9 @@
     },
     {
       "inputs": [
-        { "internalType": "uint256", "name": "index", "type": "uint256" }
+        { "internalType": "uint256", "name": "index", "type": "uint256" },
+        { "internalType": "bytes", "name": "signature", "type": "bytes" },
+        { "internalType": "string", "name": "finalEvidenceHash", "type": "string" }
       ],
       "name": "finalizeRequest",
       "outputs": [],
@@ -113,20 +117,30 @@
       "type": "function"
     },
     {
+      "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "name": "contributions",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "campaignName",
-      "outputs": [
-        { "internalType": "string", "name": "", "type": "string" }
-      ],
+      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [],
       "name": "description",
-      "outputs": [
-        { "internalType": "string", "name": "", "type": "string" }
-      ],
+      "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "active",
+      "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
       "stateMutability": "view",
       "type": "function"
     },
@@ -146,24 +160,6 @@
         { "internalType": "uint256", "name": "currentMilestone", "type": "uint256" },
         { "internalType": "address", "name": "verifier", "type": "address" },
         { "internalType": "uint256", "name": "validatorApprovalCount", "type": "uint256" }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalFundsRaised",
-      "outputs": [
-        { "internalType": "uint256", "name": "", "type": "uint256" }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "manager",
-      "outputs": [
-        { "internalType": "address", "name": "", "type": "address" }
       ],
       "stateMutability": "view",
       "type": "function"
