@@ -1,0 +1,172 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        { "internalType": "string", "name": "_name", "type": "string" },
+        { "internalType": "string", "name": "_description", "type": "string" },
+        { "internalType": "string", "name": "_imageHash", "type": "string" },
+        { "internalType": "enum Events.Category", "name": "_category", "type": "uint8" },
+        { "internalType": "uint256", "name": "_minimum", "type": "uint256" },
+        { "internalType": "address", "name": "_manager", "type": "address" },
+        { "internalType": "address", "name": "_validatorPool", "type": "address" },
+        { "internalType": "address", "name": "_supplierRegistry", "type": "address" }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    { "inputs": [], "name": "AlreadyVoted", "type": "error" },
+    { "inputs": [], "name": "CampaignNotActive", "type": "error" },
+    { "inputs": [], "name": "InsufficientFunds", "type": "error" },
+    { "inputs": [], "name": "InvalidAddress", "type": "error" },
+    { "inputs": [], "name": "InvalidRequestIndex", "type": "error" },
+    { "inputs": [], "name": "InvalidSignature", "type": "error" },
+    { "inputs": [], "name": "ManagerCannotVote", "type": "error" },
+    { "inputs": [], "name": "NotDonor", "type": "error" },
+    { "inputs": [], "name": "NotEnoughApprovals", "type": "error" },
+    { "inputs": [], "name": "RequestCompleted", "type": "error" },
+    { "inputs": [], "name": "TransferFailed", "type": "error" },
+    { "anonymous": false, "inputs": [], "name": "CampaignDeactivated", "type": "event" },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "address", "name": "donor", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+      ],
+      "name": "Donation", "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "requestId", "type": "uint256" }
+      ],
+      "name": "FundsReleased", "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "id", "type": "uint256" },
+        { "indexed": false, "internalType": "string", "name": "description", "type": "string" },
+        { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" },
+        { "indexed": false, "internalType": "string", "name": "evidenceHash", "type": "string" }
+      ],
+      "name": "RequestCreated", "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "address", "name": "voter", "type": "address" },
+        { "indexed": true, "internalType": "uint256", "name": "requestId", "type": "uint256" }
+      ],
+      "name": "Voted", "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "donate",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "string", "name": "desc", "type": "string" },
+        { "internalType": "uint256", "name": "value", "type": "uint256" },
+        { "internalType": "address payable", "name": "recipient", "type": "address" },
+        { "internalType": "string", "name": "evidenceHash", "type": "string" }
+      ],
+      "name": "createRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "index", "type": "uint256" }
+      ],
+      "name": "approveRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "index", "type": "uint256" }
+      ],
+      "name": "finalizeRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getSummary",
+      "outputs": [
+        { "internalType": "uint256", "name": "balance", "type": "uint256" },
+        { "internalType": "uint256", "name": "minContribution", "type": "uint256" },
+        { "internalType": "uint256", "name": "numRequests", "type": "uint256" },
+        { "internalType": "uint256", "name": "donors", "type": "uint256" },
+        { "internalType": "address", "name": "managerAddr", "type": "address" },
+        { "internalType": "string", "name": "imgHash", "type": "string" },
+        { "internalType": "bool", "name": "isActive", "type": "bool" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "campaignName",
+      "outputs": [
+        { "internalType": "string", "name": "", "type": "string" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "description",
+      "outputs": [
+        { "internalType": "string", "name": "", "type": "string" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "name": "requests",
+      "outputs": [
+        { "internalType": "string", "name": "description", "type": "string" },
+        { "internalType": "uint256", "name": "value", "type": "uint256" },
+        { "internalType": "address payable", "name": "recipient", "type": "address" },
+        { "internalType": "bool", "name": "complete", "type": "bool" },
+        { "internalType": "uint256", "name": "totalApprovalWeight", "type": "uint256" },
+        { "internalType": "string", "name": "evidenceHash", "type": "string" },
+        { "internalType": "enum RequestLib.RequestType", "name": "requestType", "type": "uint8" },
+        { "internalType": "uint256", "name": "currentMilestone", "type": "uint256" },
+        { "internalType": "address", "name": "verifier", "type": "address" },
+        { "internalType": "uint256", "name": "validatorApprovalCount", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalFundsRaised",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "manager",
+      "outputs": [
+        { "internalType": "address", "name": "", "type": "address" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
+}

@@ -18,25 +18,28 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   let verifier: HardhatEthersSigner;
   let supplier: HardhatEthersSigner;
   let nonSupplier: HardhatEthersSigner;
+  let getFinalSignature: (signer: HardhatEthersSigner, campaignAddr: string, index: number) => Promise<string>;
 
   const MIN_CONTRIBUTION = ethers.parseEther("0.1");
 
-  beforeEach(async () => {
+  beforeEach(async function () {
     [platformAdmin, campaignManager, donor1, donor2, validator1, validator2, validator3, validator4, verifier, supplier, nonSupplier] = await ethers.getSigners();
 
     // 1. Platform Admin deploys SupplierRegistry
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
     supplierRegistry = await SupplierRegistry.connect(platformAdmin).deploy(platformAdmin.address);
 
-    // 2. Platform Admin whitelist Supplier
-    await supplierRegistry.connect(platformAdmin).addSupplier(supplier.address);
-
-    // 3. Deploy CampaignFactory with SupplierRegistry
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress());
+    factory = await CampaignFactory.connect(platformAdmin).deploy(await supplierRegistry.getAddress(), platformAdmin.address);
 
-    // 4. Campaign Manager creates a Campaign via Factory
-    await factory.connect(campaignManager).createCampaign(MIN_CONTRIBUTION);
+    await supplierRegistry.setFactory(await factory.getAddress());
+    await supplierRegistry.connect(platformAdmin).addSupplier(supplier.address, "Supplier 1", "ipfs://s1");
+
+    // 4. Campaign Manager submits a Campaign Request and Platform Admin approves it
+    const requestId = await factory.requestCount();
+    await factory.connect(campaignManager).submitCampaignRequest("Test Campaign", "Desc", "Hash", 0, MIN_CONTRIBUTION, { value: ethers.parseEther("0.005") });
+    await factory.connect(platformAdmin).approveCampaignRequest(requestId);
+    
     const campaignAddress = await factory.deployedCampaigns(0);
 
     const Campaign = await ethers.getContractFactory("Campaign");
@@ -55,6 +58,15 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
     // 6. Add funds to the campaign
     await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
     await campaign.connect(donor2).donate({ value: ethers.parseEther("10") });
+
+    // Helper for FINAL signatures
+    getFinalSignature = async (signer: HardhatEthersSigner, campaignAddr: string, index: number) => {
+        const messageHash = ethers.solidityPackedKeccak256(
+            ["address", "uint256", "string"],
+            [campaignAddr, index, "FINAL"]
+        );
+        return await signer.signMessage(ethers.toBeArray(messageHash));
+    };
   });
 
   // =========================================================
@@ -63,7 +75,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   describe("SupplierRegistry", function () {
     it("Platform Admin can add a Supplier", async () => {
       const newSupplier = ethers.Wallet.createRandom().address;
-      await supplierRegistry.connect(platformAdmin).addSupplier(newSupplier);
+      await supplierRegistry.connect(platformAdmin).addSupplier(newSupplier, "Supplier 2", "ipfs://s2");
       expect(await supplierRegistry.isSupplier(newSupplier)).to.equal(true);
     });
 
@@ -74,9 +86,9 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("should emit SupplierAdded event", async () => {
       const addr = ethers.Wallet.createRandom().address;
-      await expect(supplierRegistry.connect(platformAdmin).addSupplier(addr))
+      await expect(supplierRegistry.connect(platformAdmin).addSupplier(addr, "S", "M"))
         .to.emit(supplierRegistry, "SupplierAdded")
-        .withArgs(addr);
+        .withArgs(addr, "S");
     });
 
     it("should emit SupplierRemoved event", async () => {
@@ -87,7 +99,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("Campaign Manager CANNOT add a Supplier", async () => {
       await expect(
-        supplierRegistry.connect(campaignManager).addSupplier(ethers.Wallet.createRandom().address)
+        supplierRegistry.connect(campaignManager).addSupplier(ethers.Wallet.createRandom().address, "S", "M")
       ).to.be.revertedWithCustomError(supplierRegistry, "NotAdmin");
     });
 
@@ -99,13 +111,13 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("Donor CANNOT add a Supplier", async () => {
       await expect(
-        supplierRegistry.connect(donor1).addSupplier(ethers.Wallet.createRandom().address)
+        supplierRegistry.connect(donor1).addSupplier(ethers.Wallet.createRandom().address, "S", "M")
       ).to.be.revertedWithCustomError(supplierRegistry, "NotAdmin");
     });
 
     it("should revert if adding duplicate Supplier", async () => {
       await expect(
-        supplierRegistry.connect(platformAdmin).addSupplier(supplier.address)
+        supplierRegistry.connect(platformAdmin).addSupplier(supplier.address, "S", "M")
       ).to.be.revertedWithCustomError(supplierRegistry, "AlreadyWhitelisted");
     });
 
@@ -117,7 +129,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("should return correct supplier count", async () => {
       expect(await supplierRegistry.getSupplierCount()).to.equal(1);
-      await supplierRegistry.connect(platformAdmin).addSupplier(nonSupplier.address);
+      await supplierRegistry.connect(platformAdmin).addSupplier(nonSupplier.address, "S", "M");
       expect(await supplierRegistry.getSupplierCount()).to.equal(2);
     });
   });
@@ -130,10 +142,13 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       await campaign.connect(campaignManager).createRequest(
         "Buy rice from Supplier",
         ethers.parseEther("0.05"),
-        supplier.address
+        supplier.address,
+        verifier.address,
+        "QmTestHash"
       );
       const request = await campaign.requests(0);
       expect(request.recipient).to.equal(supplier.address);
+      expect(request.evidenceHash).to.equal("QmTestHash");
     });
 
     it("Manager CANNOT create request for non-whitelisted address", async () => {
@@ -141,8 +156,10 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         campaign.connect(campaignManager).createRequest(
           "Buy from unknown",
           ethers.parseEther("0.05"),
-          nonSupplier.address
-        )
+          nonSupplier.address,
+          verifier.address,
+        "QmTestHash"
+      )
       ).to.be.revertedWithCustomError(campaign, "RecipientNotWhitelisted");
     });
 
@@ -163,8 +180,10 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         campaign.connect(campaignManager).createRequest(
           "Self pay",
           100,
-          campaignManager.address
-        )
+          campaignManager.address,
+          verifier.address,
+        "QmTestHash"
+      )
       ).to.be.revertedWithCustomError(campaign, "ManagerNotAllowedAsRecipient");
     });
   });
@@ -175,7 +194,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
   describe("Path A: Small Requests (Validator-only)", function () {
     it("should allow 2/3 validators to approve and finalize a small request", async () => {
       const amount = ethers.parseEther("0.05");
-      await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address);
+      await campaign.connect(campaignManager).createRequest("Small fix", amount, supplier.address, verifier.address, "QmTestHash");
 
       // Find selected validators and approve
       const selected: string[] = [];
@@ -191,7 +210,8 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
       // 2 approved (first 2 in selected) + manager finalizes
       const beforeBalance = await ethers.provider.getBalance(supplier.address);
-      await campaign.connect(campaignManager).finalizeRequest(0);
+      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
+      await campaign.connect(campaignManager).finalizeRequest(0, signature, "QmProof");
       const afterBalance = await ethers.provider.getBalance(supplier.address);
 
       expect(afterBalance - beforeBalance).to.equal(amount);
@@ -199,7 +219,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
 
     it("should revert if amount > 0.5% and try to use validator path", async () => {
       const largeAmount = ethers.parseEther("0.2"); // 1% of 20 ETH
-      await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address);
+      await campaign.connect(campaignManager).createRequest("Large one", largeAmount, supplier.address, verifier.address, "QmTestHash");
 
       await expect(campaign.connect(validator1).approveAsValidator(0))
         .to.be.revertedWithCustomError(campaign, "MilestoneNotApproved");
@@ -236,7 +256,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const signature1 = await verifier.signMessage(ethers.toBeArray(messageHash1));
 
       const before1 = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, signature1);
+      await campaign.executeMilestone(0, signature1, "QmTestHash");
       const after1 = await ethers.provider.getBalance(supplier.address);
       expect(after1 - before1).to.equal(milestoneValues[0]);
 
@@ -246,7 +266,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const signature2 = await verifier.signMessage(ethers.toBeArray(messageHash2));
-      await campaign.executeMilestone(0, signature2);
+      await campaign.executeMilestone(0, signature2, "QmTestHash");
 
       // 5. Verify request is complete
       const request = await campaign.requests(0);
@@ -272,7 +292,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       // Wrong signer
       const badSignature = await campaignManager.signMessage(ethers.toBeArray(messageHash));
 
-      await expect(campaign.executeMilestone(0, badSignature))
+      await expect(campaign.executeMilestone(0, badSignature, "QmTestHash"))
         .to.be.revertedWithCustomError(campaign, "InvalidSignature");
     });
   });
@@ -307,7 +327,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
       const sig1 = await verifier.signMessage(ethers.toBeArray(hash1));
 
       const supplierBefore = await ethers.provider.getBalance(supplier.address);
-      await campaign.executeMilestone(0, sig1);
+      await campaign.executeMilestone(0, sig1, "QmTestHash");
       const supplierAfter = await ethers.provider.getBalance(supplier.address);
 
       expect(supplierAfter - supplierBefore).to.equal(ethers.parseEther("2"));
@@ -318,7 +338,7 @@ describe("Campaign Withdrawal Optimization + Supplier Registry", function () {
         [domain, 0, 1]
       );
       const sig2 = await verifier.signMessage(ethers.toBeArray(hash2));
-      await campaign.executeMilestone(0, sig2);
+      await campaign.executeMilestone(0, sig2, "QmTestHash");
 
       // 6. Verify: Request complete, Supplier received all funds
       const request = await campaign.requests(0);

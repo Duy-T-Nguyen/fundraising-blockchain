@@ -41,7 +41,8 @@ Trong gây quỹ truyền thống, người quyên góp phải **tin tưởng** 
 | Vấn đề truyền thống | Giải pháp Blockchain |
 |---|---|
 | Người quản lý có thể lạm dụng tiền quỹ | Tiền bị khóa trong Smart Contract, không ai rút được tùy tiện |
-| Không minh bạch chi tiêu | Mọi giao dịch được ghi lại vĩnh viễn trên blockchain |
+| Không minh bạch chi tiêu | Mọi giao dịch được ghi lại vĩnh vễn trên blockchain |
+| Chứng từ có thể bị làm giả / thất lạc | **Bằng chứng (hóa đơn, ảnh) được lưu trên IPFS** (bất biến) |
 | Phải tin tưởng bên trung gian | Code tự động thực thi, không cần tin tưởng ai |
 | Donors không có quyền quyết định | Donors phải **biểu quyết** (vote) trước khi tiền được giải ngân |
 
@@ -51,8 +52,10 @@ Trong gây quỹ truyền thống, người quyên góp phải **tin tưởng** 
 |---|---|---|
 | **Solidity** | Ngôn ngữ viết Smart Contract | Giống JavaScript nhưng chạy trên Blockchain |
 | **Hardhat** | Framework phát triển | Bộ công cụ để compile, test, deploy Smart Contract |
+| **NestJS** | Backend API (be/) | Xử lý upload file và tương tác với IPFS |
+| **IPFS / Pinata** | Lưu trữ bằng chứng | Hệ thống lưu trữ file phi tập trung (không thể sửa/xóa) |
 | **Ethers.js** | Thư viện JavaScript | Giúp JavaScript giao tiếp với Blockchain |
-| **OpenZeppelin** | Thư viện bảo mật | Các module an toàn đã được kiểm tra kỹ (như ReentrancyGuard) |
+| **OpenZeppelin** | Thư viện bảo mật | Các module an toàn đã được kiểm tra kỹ |
 | **TypeScript** | Ngôn ngữ lập trình | JavaScript có thêm kiểu dữ liệu, giảm lỗi |
 | **Chai** | Thư viện test | Framework viết unit test |
 | **dotenv** | Quản lý biến môi trường | Đọc thông tin nhạy cảm từ file `.env` |
@@ -119,44 +122,21 @@ Trong Smart Contract, mọi giá trị tiền đều tính bằng **Wei**.
 ## 🗂 Cấu Trúc Thư Mục
 
 ```
-bc/                                 ← Thư mục gốc của dự án blockchain
-├── .env                            ← File chứa biến môi trường (BÍ MẬT - không đẩy lên Git)
-├── .gitignore                      ← Danh sách file/thư mục mà Git bỏ qua
-├── README.md                       ← File tài liệu bạn đang đọc
-├── package.json                    ← Khai báo dependencies (thư viện cần thiết)
-├── tsconfig.json                   ← Cấu hình TypeScript
-├── hardhat.config.ts               ← ⭐ Cấu hình Hardhat (quan trọng nhất)
-├── yarn.lock                       ← Khóa phiên bản dependencies
+fundraising-blockchain/             ← Thư mục gốc dự án (Monorepo)
+├── bc/                             ← ⭐ CHUYÊN VỀ BLOCKCHAIN (Mã nguồn này)
+│   ├── contracts/                  ← Smart Contracts (Solidity)
+│   ├── test/                       ← Unit tests cho Smart Contracts
+│   ├── scripts/                    ← Scripts deploy & interact
+│   └── hardhat.config.ts           ← Cấu hình dự án Blockchain
 │
-├── contracts/                      ← ⭐ THƯ MỤC SMART CONTRACT
-│   ├── Campaign.sol                ← Smart Contract chính — Quản lý Hybrid Approval, Milestones & KYC Supplier
-│   ├── CampaignFactory.sol         ← Factory Contract — Tạo Campaign + ValidatorPool
-│   ├── SupplierRegistry.sol        ← Sổ cái Nhà cung cấp — Quản lý bởi Platform Admin (Mô hình WFP)
-│   ├── ValidatorPool.sol           ← Quản lý danh sách Validator và chọn ngẫu nhiên
-│   ├── Errors.sol                  ← Định nghĩa các lỗi (Custom Errors)
-│   ├── Events.sol                  ← Định nghĩa các sự kiện (Events)
-│   ├── RequestLib.sol              ← Thư viện dữ liệu (hỗ trợ Milestones & Validators)
-│   └── modifiers/
-│       └── AccessControl.sol       ← Kiểm soát quyền truy cập
+├── be/                             ← ⭐ CHUYÊN VỀ BACKEND (NestJS)
+│   ├── src/                        ← Xử lý Logic Backend & IPFS Evidence
+│   └── .env                        ← Cấu hình API Key Pinata
 │
-├── scripts/                        ← Scripts để deploy và tương tác
-│   ├── deploy.ts                   ← ⭐ Script deploy chính (TypeScript)
-│   ├── deploy.js                   ← Script deploy cũ (JavaScript) — tham khảo
-│   ├── check-balance.ts            ← Kiểm tra số dư ví
-│   └── interact.js                 ← Script tương tác mẫu (donate)
+├── fe/                             ← ⭐ CHUYÊN VỀ FRONTEND (React/Vite)
+│   └── src/                        ← Giao diện người dùng
 │
-├── test/                           ← THƯ MỤC TEST
-│   ├── Campaign.ts                 ← ⭐ 54 test cases kiểm tra toàn bộ hệ thống
-│   └── Campaign_WithdrawalOptimization.test.ts ← ⭐ Test cơ chế rút tiền tối ưu (Mới)
-│
-├── ignition/                       ← Hardhat Ignition (cách deploy khác — không dùng chính)
-│   └── modules/
-│       └── Lock.ts                 ← Module mẫu từ Hardhat (không liên quan dự án)
-│
-├── artifacts/                      ← [Tự sinh] ABI và bytecode sau compile
-├── cache/                          ← [Tự sinh] Cache của Hardhat
-├── typechain-types/                ← [Tự sinh] TypeScript types cho contract
-└── node_modules/                   ← [Tự sinh] Thư viện đã cài đặt
+└── README.md                       ← Tài liệu tổng quan toàn bộ hệ thống
 ```
 
 > **Ghi chú**: Các thư mục `artifacts/`, `cache/`, `typechain-types/`, `node_modules/` được tự động sinh ra. Bạn **không cần** (và không nên) chỉnh sửa chúng.
@@ -402,11 +382,23 @@ contract Events {
     /// Phát ra khi donor biểu quyết cho yêu cầu
     event Voted(address indexed voter, uint256 indexed requestId);
 
-    /// Phát ra khi yêu cầu chi tiêu được giải ngân
-    event FundsReleased(uint256 indexed requestId);
+    /// Phát ra khi một milestone được giải ngân
+    event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount, string evidenceHash);
+
+    /// Phát ra khi validator pool được cập nhật
+    event ValidatorPoolUpdated(address indexed poolAddress);
 
     /// Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
+
+    /// Phát ra khi chiến dịch mới được tạo (Dùng cho Factory)
+    event CampaignStarted(
+        address indexed campaignAddress,
+        address indexed manager,
+        string campaignName,
+        Category indexed category,
+        uint256 minContribution
+    );
 }
 ```
 
@@ -436,7 +428,7 @@ library RequestLib {
         uint256 value;                   // Số tiền yêu cầu (wei)
         address payable recipient;       // Địa chỉ nhận tiền
         bool complete;                   // Đã giải ngân chưa? (true = đã xong)
-        uint256 approvalCount;           // Số phiếu đồng ý hiện tại
+        uint256 totalApprovalWeight;     // Tổng số lượng ETH đã vote đồng ý (Wei)
         mapping(address => bool) approvals; // Ai đã vote? (tránh vote 2 lần)
     }
 }
@@ -450,7 +442,7 @@ library RequestLib {
 | `value` | `uint256` | Số tiền yêu cầu giải ngân (đơn vị Wei) |
 | `recipient` | `address payable` | Địa chỉ ví nhận tiền. `payable` = có thể nhận ETH |
 | `complete` | `bool` | `false` = đang chờ, `true` = đã giải ngân |
-| `approvalCount` | `uint256` | Đếm số phiếu bầu đồng ý |
+| `totalApprovalWeight` | `uint256` | Tổng số lượng ETH của những người đã vote đồng ý |
 | `approvals` | `mapping` | Bản đồ: `địa chỉ → đã vote chưa` (tránh double-vote) |
 
 **Tại sao dùng `library`?**
@@ -498,7 +490,7 @@ Ký hiệu `_;` trong modifier đánh dấu vị trí mà code của hàm gốc 
 
 #### 📌 `contracts/CampaignFactory.sol` — Factory Contract (⭐ Contract chính để deploy)
 
-**Vai trò**: Contract trung tâm — "nhà máy" tạo ra các chiến dịch. Đây là contract bạn deploy **DUY NHẤT** lên blockchain. Mỗi khi ai đó muốn tạo chiến dịch mới, họ gọi hàm `createCampaign()` và Factory sẽ deploy một Campaign contract mới.
+**Vai trò**: Contract trung tâm — "nhà máy" quản lý các chiến dịch. Đây là contract bạn deploy **DUY NHẤT** lên blockchain. Quy trình tạo chiến dịch mới: Người dùng gửi yêu cầu (`submitCampaignRequest`) -> Admin duyệt (`approveCampaignRequest`) -> Factory tự động deploy Campaign contract mới.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -517,21 +509,26 @@ contract CampaignFactory {
     event CampaignStarted(
         address indexed campaignAddress,
         address indexed manager,
+        string campaignName,
+        Category indexed category,
         uint256 minContribution
     );
 
-    /// Tạo chiến dịch gây quỹ mới
-    function createCampaign(uint256 minimum) external {
-        // Tạo (deploy) một Campaign contract mới
-        Campaign newCampaign = new Campaign(minimum, msg.sender);
-        address campaignAddr = address(newCampaign);
+    /// Sổ cái Nhà cung cấp dùng chung
+    SupplierRegistry public supplierRegistry;
 
-        // Lưu địa chỉ contract mới vào danh sách
-        deployedCampaigns.push(campaignAddr);
-        campaignsByManager[msg.sender].push(campaignAddr);
+    constructor(address _supplierRegistry) {
+        supplierRegistry = SupplierRegistry(_supplierRegistry);
+    }
 
-        // Phát sự kiện
-        emit CampaignStarted(campaignAddr, msg.sender, minimum);
+    /// Gửi yêu cầu tạo chiến dịch gây quỹ mới
+    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external {
+        // ... logic lưu yêu cầu chờ admin duyệt
+    }
+
+    /// Admin duyệt yêu cầu và chính thức deploy Campaign
+    function approveCampaignRequest(uint256 requestId) external onlyAdmin {
+        // ... khởi tạo pool và deploy campaign mới
     }
 
     /// Lấy toàn bộ danh sách campaigns
@@ -568,7 +565,8 @@ Thay vì mỗi người phải tự deploy contract (rất phức tạp), Factor
 
 | Hàm | Loại | Ai gọi? | Mục đích |
 |---|---|---|---|
-| `createCampaign(minimum)` | Write | Bất kỳ ai | Tạo chiến dịch mới |
+| `submitCampaignRequest(name, desc, img, cat, min)` | Write | Bất kỳ ai | Gửi yêu cầu tạo chiến dịch mới |
+| `approveCampaignRequest(id)` | Write | Admin | Duyệt và deploy chiến dịch |
 | `getDeployedCampaigns()` | Read | Bất kỳ ai | Xem tất cả campaigns |
 | `getCampaignsByManager(addr)` | Read | Bất kỳ ai | Xem campaigns của 1 manager |
 | `getCampaignsCount()` | Read | Bất kỳ ai | Đếm tổng số campaigns |
@@ -591,16 +589,36 @@ uint256 public totalDonors;                      // Tổng số donors duy nhấ
 mapping(address => uint256) public contributions; // Mapping: donor → số tiền đã đóng góp
 RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu chi tiêu
 bool public active;                              // Chiến dịch có đang hoạt động không?
+
+string public campaignName;                      // Tên chiến dịch
+string public description;                       // Mô tả chi tiết
+string public imageHash;                         // Mã IPFS CID của ảnh đại diện
+Category public category;                        // Danh mục
+ValidatorPool public validatorPool;              // Pool của Validators
+SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```
 
 **Constructor**:
 ```solidity
-constructor(uint256 _minimum, address _manager) {
-    if (_minimum == 0) revert InsufficientFunds();      // Minimum phải > 0
-    if (_manager == address(0)) revert InvalidAddress(); // Manager phải hợp lệ
-    manager = _manager;           // Gán manager
-    minimumContribution = _minimum; // Gán mức đóng góp tối thiểu
-    active = true;                 // Chiến dịch bắt đầu ở trạng thái hoạt động
+constructor(
+    string memory _name,
+    Category _category,
+    uint256 _minimum,
+    address _manager,
+    address _validatorPool,
+    address _supplierRegistry
+) {
+    if (_minimum == 0) revert InsufficientFunds();
+    if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
+        revert InvalidAddress();
+    
+    campaignName = _name;
+    category = _category;
+    manager = _manager;
+    minimumContribution = _minimum;
+    validatorPool = ValidatorPool(_validatorPool);
+    supplierRegistry = SupplierRegistry(_supplierRegistry);
+    active = true;
 }
 ```
 
@@ -609,11 +627,12 @@ constructor(uint256 _minimum, address _manager) {
 | Hàm | Loại | Ai gọi? | Mô tả | Gas |
 |---|---|---|---|---|
 | `donate()` | Write (payable) | Bất kỳ ai | Đóng góp ETH vào chiến dịch | ~45.000 |
-| `createRequest(desc, value, recipient)` | Write | Chỉ Manager | Tạo yêu cầu chi tiêu | ~80.000 |
+| `createRequest(...)` | Write | Chỉ Manager | Tạo yêu cầu chi tiêu + **Evidence Hash** | ~90.000 |
 | `approveRequest(index)` | Write | Chỉ Donor | Bỏ phiếu đồng ý cho request | ~50.000 |
 | `finalizeRequest(index)` | Write | Chỉ Manager | Giải ngân khi đủ phiếu | ~60.000 |
+| `executeMilestone(...)` | Write | Manager/Verifier | Giải ngân theo giai đoạn + **Evidence** | ~120.000 |
 | `deactivateCampaign()` | Write | Chỉ Manager | Tạm dừng chiến dịch | ~30.000 |
-| `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan | 0 |
+| `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan (có imageHash) | 0 |
 | `getRequestsCount()` | Read (miễn phí) | Bất kỳ ai | Đếm số requests | 0 |
 
 **Chi tiết từng hàm**:
@@ -650,11 +669,18 @@ function donate() external payable onlyActive {
 function createRequest(
     string calldata desc,       // Mô tả
     uint256 value,              // Số tiền
-    address payable recipient   // Người nhận
+    address payable recipient,  // Người nhận (Supplier)
+    address verifier,           // Người xác minh (Chuẩn WFP)
+    string calldata evidenceHash // CID từ IPFS (hóa đơn, chứng từ)
 ) external onlyManager onlyActive {
     if (value == 0) revert InsufficientFunds();
     if (recipient == address(0)) revert InvalidAddress();
+    if (recipient == manager) revert ManagerNotAllowedAsRecipient();
+    if (verifier == manager) revert ManagerNotAllowedAsVerifier();
+    if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
+    if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
     if (bytes(desc).length == 0) revert EmptyDescription();
+    if (bytes(evidenceHash).length == 0) revert EmptyDescription();
 
     // Tạo Request mới và thêm vào mảng
     RequestLib.Request storage r = requests.push();
@@ -662,9 +688,15 @@ function createRequest(
     r.value = value;
     r.recipient = recipient;
     r.complete = false;
-    r.approvalCount = 0;
+    r.totalApprovalWeight = 0;
+    r.evidenceHash = evidenceHash;
+    r.requestType = RequestLib.RequestType.SINGLE;
+    r.verifier = verifier; // Lưu lại verifier
 
-    emit RequestCreated(requests.length - 1, desc, value, recipient);
+    // Logic chọn ngẫu nhiên Validator nếu số tiền nhỏ (bỏ qua chi tiết)
+    // ...
+
+    emit RequestCreated(requests.length - 1, desc, value, recipient, selectedValidators);
 }
 ```
 
@@ -686,7 +718,7 @@ function approveRequest(uint256 index) external onlyActive {
     if (r.complete) revert RequestCompleted();                 // Request chưa hoàn thành
 
     r.approvals[msg.sender] = true;  // Đánh dấu đã vote
-    r.approvalCount++;               // Tăng đếm phiếu
+    r.totalApprovalWeight += contributions[msg.sender]; // Tăng tổng trọng số bằng số tiền đã donate
     emit Voted(msg.sender, index);
 }
 ```
@@ -696,7 +728,11 @@ function approveRequest(uint256 index) external onlyActive {
 ##### `finalizeRequest()` — Giải ngân
 
 ```solidity
-function finalizeRequest(uint256 index) external onlyManager nonReentrant {
+function finalizeRequest(
+    uint256 index,
+    bytes calldata signature,       // Chữ ký số của Verifier
+    string calldata finalEvidenceHash // Bằng chứng giao hàng cuối cùng
+) external onlyManager nonReentrant {
     if (index >= requests.length) revert InvalidRequestIndex();
 
     RequestLib.Request storage r = requests[index];
@@ -704,16 +740,27 @@ function finalizeRequest(uint256 index) external onlyManager nonReentrant {
     if (r.complete) revert RequestCompleted();
     if (r.value > address(this).balance) revert InsufficientFunds();
 
-    // Cần NHIỀU HƠN 50% donors đồng ý
-    if (r.approvalCount <= totalDonors / 2) revert NotEnoughApprovals();
+    // 1. Kiểm tra đủ phiếu bầu (Weighted Voting / Validator)
+    // Cần > 50% tổng quỹ hoặc 2/3 validator đồng ý...
+    // ...
 
-    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền (pattern bảo mật)
+    // 2. Kiểm tra chữ ký của Verifier (Chuẩn WFP)
+    bytes32 messageHash = keccak256(abi.encodePacked(address(this), index, "FINAL"));
+    bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
+    address signer = ECDSA.recover(ethSignedMessageHash, signature);
+
+    if (signer != r.verifier) revert InvalidSignature(); // Chỉ Verifier mới được ký duyệt chi!
+
+    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
+    
+    // Ghi nhận thu nhập cho Supplier
+    supplierRegistry.recordPayment(r.recipient, r.value);
 
     // Chuyển tiền bằng .call (an toàn hơn .transfer)
     (bool success, ) = r.recipient.call{value: r.value}("");
     if (!success) revert TransferFailed();
 
-    emit FundsReleased(index);
+    emit FundsReleased(index, r.recipient);
 }
 ```
 
@@ -913,9 +960,6 @@ main();
 - **Security**: Chống lạm quyền, xác thực Verifier, phòng chống Re-entrancy.
 
 #### 📌 `test/Campaign.ts` — Bộ test cơ bản (54 test cases)
-
-**Vai trò**: Kiểm tra **toàn bộ** chức năng của hệ thống. Bao gồm 8 nhóm test:
-
 | Nhóm test | Số test | Kiểm tra gì? |
 |---|---|---|
 | **CampaignFactory** | 6 | Tạo campaign, theo dõi theo manager, emit event |
@@ -966,7 +1010,7 @@ beforeEach(async () => {
   factory = await CampaignFactory.deploy();
 
   // 3. Tạo 1 Campaign qua Factory
-  await factory.createCampaign(MIN_CONTRIBUTION);
+  await factory.createCampaign("Test Campaign", 0, MIN_CONTRIBUTION);
   const addresses = await factory.getDeployedCampaigns();
 
   // 4. Kết nối đến Campaign contract vừa tạo
@@ -992,25 +1036,26 @@ File này là **mẫu mặc định** khi tạo dự án Hardhat mới. **Không
 ### Sơ đồ tổng quan
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│                     ETHEREUM BLOCKCHAIN                    │
-│                                                           │
-│  ┌─────────────────────┐                                  │
-│  │  CampaignFactory    │ ← Deploy DUY NHẤT 1 lần         │
-│  │  ─────────────────  │                                  │
-│  │  createCampaign()   │──────┐                           │
-│  │  getDeployedCampaigns()   │                           │
-│  └─────────────────────┘     │                           │
-│                              ▼                           │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │  Campaign #1 │  │  Campaign #2 │  │  Campaign #3 │   │
-│  │  ──────────  │  │  ──────────  │  │  ──────────  │   │
-│  │  donate()    │  │  donate()    │  │  donate()    │   │
-│  │  vote()      │  │  vote()      │  │  vote()      │   │
-│  │  finalize()  │  │  finalize()  │  │  finalize()  │   │
-│  └──────────────┘  └──────────────┘  └──────────────┘   │
-│                                                           │
-└───────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ETHEREUM BLOCKCHAIN (Sepolia)                      │
+│                                                                             │
+│  ┌─────────────────────┐          ┌──────────────────────────────────────┐  │
+│  │  CampaignFactory    │          │           Campaign Contract         │  │
+│  │  ─────────────────  │          │  ─────────────────────────────────── │  │
+│  │  createCampaign()   │───────►  │  evidenceHash (CID) ◄──┐             │  │
+│  │  getDeployed()      │          │  finalizeRequest()     │             │  │
+│  └─────────────────────┘          └────────────────────────┼─────────────┘  │
+│                                                            │                │
+└────────────────────────────────────────────────────────────┼────────────────┘
+                                                             │
+                                                             │ (CID Hash)
+                                                             │
+┌──────────────────────────────────────┐      ┌──────────────┴────────────────┐
+│            NESTJS BACKEND            │      │         IPFS / PINATA         │
+│  ──────────────────────────────────  │      │  ───────────────────────────  │
+│  - Upload Evidence API               │──────►  - Store Invoices/Photos      │
+│  - Pinata integration                │      │  - Decentralized & Immutable  │
+└──────────────────────────────────────┘      └───────────────────────────────┘
 ```
 
 ### Mối quan hệ giữa các file (Inheritance & Import)
@@ -1018,22 +1063,67 @@ File này là **mẫu mặc định** khi tạo dự án Hardhat mới. **Không
 ```
 Errors.sol ─────────────────────────┐
                                     ▼
-Events.sol ──────────────┐   AccessControl.sol
+Events.sol ──────────────┐   AccessControl.sol ──┐  ValidatorPool.sol
+                         │          │            │        │
+                         ▼          ▼            ▼        ▼
+RequestLib.sol ────────► Campaign.sol ◄──── CampaignFactory.sol
+                         ▲          ▲
                          │          │
-                         ▼          ▼
-RequestLib.sol ────────► Campaign.sol ◄──── ReentrancyGuard (OpenZeppelin)
-                              ▲
-                              │
-                    CampaignFactory.sol
+                  ReentrancyGuard  SupplierRegistry.sol
 ```
 
 ### Vai trò người dùng (Roles)
 
 | Vai trò | Quyền | Hạn chế |
 |---|---|---|
-| **Manager** (Người tạo chiến dịch) | Tạo request, finalize, deactivate | Không được vote |
-| **Donor** (Người đóng góp) | Donate, vote | Không thể tạo request hay finalize |
-| **Người ngoài** | Xem thông tin (getSummary) | Không thể donate/vote/finalize |
+| **Platform Admin** | Thẩm định & Whitelist Supplier | Không tham gia quản lý quỹ |
+| **Campaign Manager** | Tạo chiến dịch, Request, Finalize | Không được tự vote, không được làm Verifier |
+| **Validator** | Duyệt các lệnh chi tiền nhỏ (<0.5%) | Phải được chọn ngẫu nhiên từ Pool |
+| **Donor** | Quyên góp, Biểu quyết lệnh chi lớn | Không thể tạo request |
+| **Verifier (WFP)** | Xác minh giao hàng, cấp chữ ký số | Chỉ ký xác nhận, không cầm tiền quỹ |
+| **Người ngoài** | Xem thông tin công khai | Không có quyền thao tác |
+---
+
+## 🔍 Tính năng Nâng cao: On-chain Indexing & Filtering
+
+Dự án hiện hỗ trợ việc phân loại và tìm kiếm chiến dịch trực tiếp trên Blockchain (không cần database riêng), giúp tối ưu hóa tốc độ và tính phi tập trung.
+
+### 1. Phân loại Chiến dịch (Category)
+Hệ thống sử dụng các danh mục cố định để người dùng dễ dàng tìm kiếm:
+- **0 - Education** (Giáo dục)
+- **1 - Medical** (Y tế)
+- **2 - Disaster** (Cứu trợ thiên tai)
+- **3 - Environment** (Môi trường)
+- **4 - Others** (Khác)
+
+### 2. Cách tạo Chiến dịch có phân loại
+Hàm `createCampaign` hiện yêu cầu 3 tham số thay vì 1 như trước:
+```solidity
+function createCampaign(string calldata name, Category category, uint256 minimum) external;
+```
+**Hướng dẫn tương tác:**
+- `name`: Nhập tên chiến dịch (ví dụ: "Cứu trợ lũ lụt Miền Trung").
+- `category`: Nhập số tương ứng (0-4).
+- `minimum`: Số tiền tối thiểu (Wei).
+
+### 3. Truy vấn nâng cao (Unified Indexing) — Hướng dẫn cho Frontend
+Hệ thống hiện cung cấp một hàm duy nhất để xử lý tất cả các loại truy vấn (Lấy tất cả, Lấy theo Manager, Lấy theo Danh mục) hỗ trợ phân trang:
+
+```javascript
+/**
+ * @param queryType: 0 (ALL), 1 (BY_MANAGER), 2 (BY_CATEGORY)
+ * @param manager: Địa chỉ ví (truyền ZeroAddress nếu không dùng)
+ * @param category: ID danh mục (truyền 0 nếu không dùng)
+ * @param offset: Vị trí bắt đầu
+ * @param limit: Số lượng mục mỗi trang
+ */
+function getCampaigns(QueryType queryType, address manager, Category category, uint256 offset, uint256 limit) returns (address[] campaigns);
+```
+
+**Ví dụ lấy 10 mục đầu tiên của danh mục Y tế (Category 1):**
+`factory.getCampaigns(2, "0x000...", 1, 0, 10);`
+
+---
 
 ---
 
@@ -1236,10 +1326,10 @@ npx hardhat verify --network sepolia <ĐỊA_CHỈ_FACTORY> "<ĐỊA_CHỈ_REGIS
 **Lệnh thực tế (với lần deploy gần nhất của bạn)**:
 ```bash
 # Verify SupplierRegistry
-npx hardhat verify --network sepolia 0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
+npx hardhat verify --network sepolia 0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
 
 # Verify CampaignFactory
-npx hardhat verify --network sepolia 0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b"
+npx hardhat verify --network sepolia 0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f"
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1253,9 +1343,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b` |
-| CampaignFactory Address | `0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#code) |
+| SupplierRegistry Address | `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F` |
+| CampaignFactory Address | `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1280,27 +1370,38 @@ Hệ thống của chúng ta hoạt động theo nguyên tắc các bộ phận 
 ### Bước 0: Thẩm định & Thêm Nhà cung cấp (Chỉ Admin)
 Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đưa nhà cung cấp vào danh sách trắng.
 
-1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract](https://sepolia.etherscan.io/address/0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b#writeContract)
+1.  Truy cập **SupplierRegistry**: [https://sepolia.etherscan.io/address/0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F#writeContract](https://sepolia.etherscan.io/address/0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F#writeContract)
 2.  Kết nối ví MetaMask (Connect to Web3).
 3.  Tìm hàm **`addSupplier`**: Nhập địa chỉ ví của Nhà cung cấp (ví dụ: ví của một cửa hàng thực phẩm).
 4.  Nhấn **"Write"** để xác nhận.
 
-### Bước 1: Tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract](https://sepolia.etherscan.io/address/0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D#writeContract)
-2.  Dùng hàm **`createCampaign`**: Nhập số tiền tối thiểu (ví dụ `10000000000000000` cho 0.01 ETH).
-3.  Sau khi giao dịch thành công, sang tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign vừa tạo.
+### Bước 1: Gửi yêu cầu tạo Chiến dịch (Campaign Manager)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract)
+2.  Dùng hàm **`submitCampaignRequest`**: 
+    - `name`: Tên chiến dịch (ví dụ: "Cứu trợ lũ lụt").
+    - `description`: Mô tả chi tiết chiến dịch.
+    - `imageHash`: Mã IPFS CID của ảnh đại diện (ví dụ: `QmXoyp...`).
+    - `category`: ID danh mục (0-4).
+    - `minimum`: Số Wei tối thiểu (ví dụ: `10000000000000000` cho 0.01 ETH).
+3.  Nhấn **"Write"** và đợi giao dịch thành công.
 
-### Bước 2: Quyên góp (Donors)
+### Bước 2: Phê duyệt Chiến dịch (Admin)
+1.  Admin vào tab **"Write Contract"** của Factory, dùng hàm **`approveCampaignRequest`** với `requestId` vừa tạo.
+2.  Sau khi duyệt, hệ thống mới chính thức deploy contract Campaign riêng biệt.
+3.  Vào tab **"Read Contract"**, gọi hàm **`getDeployedCampaigns`** để lấy địa chỉ Campaign mới nhất.
+
+### Bước 3: Quyên góp (Donors)
 1.  Tìm kiếm địa chỉ Campaign vừa lấy được trên Etherscan.
 2.  Vào tab **"Write Contract"**, tìm hàm **`donate`**.
 3.  Ở mục `payableAmount`, nhập số ETH muốn gửi (ví dụ `0.05`).
 4.  Nhấn **"Write"**.
 
-### Bước 3: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
+### Bước 4: Đặt hàng / Tạo yêu cầu chi (Campaign Manager)
 1.  Tại trang Campaign, tìm hàm **`createRequest`**.
-2.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
+2.  **Ô `evidenceHash`**: Bạn cần upload hóa đơn lên Backend (`be/`) trước để lấy mã CID (ví dụ: `Qm...`).
+3.  **Lưu ý quan trọng**: Ô `recipient` bạn **BUỘC PHẢI** điền địa chỉ ví Nhà cung cấp đã được thêm ở Bước 0. Nếu điền địa chỉ khác, giao dịch sẽ bị Revert (Lỗi `RecipientNotWhitelisted`).
 
-### Bước 4: Kiểm duyệt & Giải ngân (WFP Flow)
+### Bước 5: Kiểm duyệt & Giải ngân (WFP Flow)
 
 | Thao tác | Ai thực hiện | Hàm tương ứng | Ghi chú |
 | :--- | :--- | :--- | :--- |
@@ -1317,8 +1418,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0xB9Bc5A7D30603d284D1A4511706ab96dc09Ffe1b";
-  const FACTORY_ADDR = "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D";
+  const REGISTRY_ADDR = "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F";
+  const FACTORY_ADDR = "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1327,7 +1428,11 @@ async function main() {
 
   // 2. Tạo Campaign
   const factory = await ethers.getContractAt("CampaignFactory", FACTORY_ADDR);
-  const createTx = await factory.createCampaign(ethers.parseEther("0.01"));
+  const createTx = await factory.createCampaign(
+    "Chiến dịch Y tế mẫu", // name
+    1,                    // category (Medical)
+    ethers.parseEther("0.01") // min donation
+  );
   await createTx.wait();
 
   // 3. Lấy Campaign mới nhất
@@ -1353,7 +1458,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0x4edf4124C9A329aA8a4b3aC77ff362273Dcb2c8D");
+const factory = await ethers.getContractAt("CampaignFactory", "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
@@ -1375,6 +1480,13 @@ Dựa trên số tiền yêu cầu (ngưỡng 0.5% tổng quỹ), hệ thống t
 | **Cơ chế duyệt** | Chọn ngẫu nhiên để chống thông đồng | Biểu quyết đa số (>50%) |
 | **Giải ngân** | Duyệt xong nhận tiền ngay | Duyệt 1 lần budget, giải ngân từng đợt |
 | **Xác thực** | Validator xác nhận chứng từ | Oracle/Verifier ký chữ ký số (ECDSA) |
+
+### 3. Lưu trữ bằng chứng (IPFS & Backend)
+Để đảm bảo tính minh bạch tuyệt đối, các bằng chứng chi tiêu (invoice) không được lưu trên server truyền thống mà được đẩy lên **IPFS** (Hệ thống lưu trữ ngang hàng).
+
+- **Mã CID (Content Identifier)**: Mỗi file khi upload lên IPFS sẽ có một mã băm duy nhất (ví dụ: `QmX...`). Nếu file bị sửa đổi, mã này sẽ thay đổi hoàn toàn.
+- **Tính bất biến**: Khi đã lưu mã CID này vào Smart Contract, không ai có thể thay đổi bằng chứng đã gửi.
+- **NestJS Backend**: Đóng vai trò là cổng trung gian để nhận file từ người dùng, thực hiện upload lên Pinata (một dịch vụ quản lý IPFS) và trả về mã CID cho Frontend để thực hiện giao dịch Blockchain.
 
 ---
 
@@ -1444,9 +1556,9 @@ Dành cho các khoản chi lớn hoặc lộ trình dự án dài hơi. Giải n
          │
          ▼
   ┌──────────────┐
-  │  BƯỚC 5      │     Oracle ký xác nhận (Proof of Delivery)
-  │  GIẢI NGÂN   │     → Gửi thẳng ETH cho Supplier bằng Smart Contract
-  │  TỰ ĐỘNG     │     (Manager KHÔNG BAO GIỜ chạm vào tiền quỹ)
+  │  BƯỚC 5      │     Verifier ký xác nhận (Proof of Delivery - ECDSA Signature)
+  │  GIẢI NGÂN   │     → Manager dùng chữ ký này để gọi `finalizeRequest`
+  │  TỰ ĐỘNG     │     → Gửi thẳng ETH cho Supplier bằng Smart Contract
   └──────────────┘
 ```
 
@@ -1456,15 +1568,16 @@ Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David. Platform Admin 
 
 | Bước | Ai thực hiện | Hành động | Kết quả |
 |---|---|---|---|
-| 0 | Eve | `SupplierRegistry.addSupplier(Shop)` | Đưa Shop vào Danh sách Trắng |
-| 1 | David | `createCampaign(0.01 ETH)` | Campaign mới được tạo, minimum = 0.01 ETH |
+| 0 | Eve (Admin) | `SupplierRegistry.addSupplier(Shop)` | Đưa Shop vào Danh sách Trắng |
+| 1 | David (Mgr) | `createCampaign(0.01 ETH)` | Campaign mới được tạo, minimum = 0.01 ETH |
 | 2 | Alice | `donate()` + 5 ETH | totalDonors = 1, balance = 5 ETH |
 | 3 | Bob | `donate()` + 3 ETH | totalDonors = 2, balance = 8 ETH |
 | 4 | Charlie | `donate()` + 2 ETH | totalDonors = 3, balance = 10 ETH |
-| 5 | David | `createRequest("Mua server", 4 ETH, Shop)` | Request #0 được khởi tạo (*không lỗi vì Shop đã duyệt*) |
-| 6 | Alice | `approveRequest(0)` | approvalCount = 1/3 |
-| 7 | Bob | `approveRequest(0)` | approvalCount = 2/3 (>50% ✅) |
-| 8 | David | `finalizeRequest(0)` | 4 ETH chuyển cho Shop, balance = 6 ETH |
+| 5 | David | `createRequest("Mua server", 4 ETH, Shop, Frank)` | Request #0 được tạo với Verifier là Frank |
+| 6 | Alice | `approveRequest(0)` | approvalCount = 1/3 (Weight = 5 ETH) |
+| 7 | Bob | `approveRequest(0)` | approvalCount = 2/3 (Weight = 8 ETH > 50% ✅) |
+| 8 | Frank (Verifier)| Kiểm tra Server tại Shop, ký chữ ký `eth_sign` | Trả về `signature` cho Manager |
+| 9 | David | `finalizeRequest(0, signature, "QmBằngChứng")` | 4 ETH chuyển cho Shop, balance = 6 ETH |
 
 ---
 
@@ -1511,6 +1624,7 @@ Giả sử có 3 donors: Alice, Bob, Charlie. Manager là David. Platform Admin 
 | Thuật ngữ | Tiếng Việt | Giải thích |
 |---|---|---|
 | **Smart Contract** | Hợp đồng thông minh | Chương trình chạy tự động trên blockchain |
+| **IPFS / CID** | — | Hệ thống lưu trữ file phi tập trung / Mã định danh nội dung |
 | **Deploy** | Triển khai | Đưa contract lên blockchain để mọi người sử dụng |
 | **Transaction (tx)** | Giao dịch | Một thao tác thay đổi dữ liệu trên blockchain |
 | **Gas** | Phí gas | Chi phí tính toán trên Ethereum, trả bằng ETH |
@@ -1565,7 +1679,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia <ADDRESS> # Verify contract
+npx hardhat verify --network sepolia 0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
+npx hardhat verify --network sepolia 0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6 "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví
@@ -1575,4 +1690,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 10/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 15/04/2026**

@@ -9,11 +9,14 @@ import "./Errors.sol";
  * @dev Hỗ trợ cơ chế chọn ngẫu nhiên validator cho các request nhỏ.
  */
 contract ValidatorPool {
-    /// @notice Danh sách địa chỉ validator
-    address[] public validators;
-    
     /// @notice Mapping để kiểm tra nhanh một địa chỉ có phải validator không
     mapping(address => bool) public isValidator;
+
+    /// @notice Mapping để lưu vị trí của validator trong mảng (để xóa O(1))
+    mapping(address => uint256) private validatorIndex;
+
+    /// @notice Danh sách địa chỉ validator
+    address[] public validators;
 
     /// @notice Địa chỉ quản trị (thường là CampaignFactory hoặc DAO)
     address public admin;
@@ -34,6 +37,7 @@ contract ValidatorPool {
         if (_validator == address(0)) revert InvalidAddress();
         if (isValidator[_validator]) return;
         
+        validatorIndex[_validator] = validators.length;
         validators.push(_validator);
         isValidator[_validator] = true;
     }
@@ -44,14 +48,18 @@ contract ValidatorPool {
     function removeValidator(address _validator) external onlyAdmin {
         if (!isValidator[_validator]) return;
         
-        isValidator[_validator] = false;
-        for (uint i = 0; i < validators.length; i++) {
-            if (validators[i] == _validator) {
-                validators[i] = validators[validators.length - 1];
-                validators.pop();
-                break;
-            }
+        uint256 indexToRemove = validatorIndex[_validator];
+        uint256 lastIndex = validators.length - 1;
+
+        if (indexToRemove != lastIndex) {
+            address lastValidator = validators[lastIndex];
+            validators[indexToRemove] = lastValidator;
+            validatorIndex[lastValidator] = indexToRemove;
         }
+
+        validators.pop();
+        delete validatorIndex[_validator];
+        isValidator[_validator] = false;
     }
 
     /**

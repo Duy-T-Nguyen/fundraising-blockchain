@@ -7,6 +7,7 @@ pragma solidity ^0.8.28;
 error NotManager();
 error NotDonor();
 error ManagerCannotVote();
+error NotAuthorized();
 
 // =====================
 // State Errors
@@ -22,7 +23,9 @@ error CampaignNotActive();
 error InsufficientFunds();
 error InvalidAddress();
 error InvalidRequestIndex();
+error EmptyName();
 error EmptyDescription();
+error EmptyEvidenceHash();
 error TransferFailed();
 error InvalidSignature();
 error NotAuthorizedValidator();
@@ -30,6 +33,8 @@ error InvalidMilestoneIndex();
 error MilestoneAlreadyReleased();
 error MilestoneNotApproved();
 error ManagerNotAllowedAsRecipient();
+error ManagerNotAllowedAsVerifier();
+error RecipientNotAllowedAsVerifier();
 error AggregateMonthlyCapExceeded();
 
 // =====================
@@ -39,3 +44,5 @@ error NotAdmin();
 error RecipientNotWhitelisted();
 error AlreadyWhitelisted();
 error NotWhitelisted();
+error RequestAlreadyProcessed();
+error IncorrectFee();
