@@ -1,9 +1,10 @@
-import { DollarSign, Users, HeartHandshake } from 'lucide-react';
+import { Users, HeartHandshake } from 'lucide-react';
+import EthIcon from '../common/EthIcon';
 
 const stats = [
-  { icon: DollarSign, label: 'Total Raised', value: '$23M+' },
+  { icon: EthIcon, label: 'Total Raised', value: '4,250 ETH' },
   { icon: Users, label: 'Donors', value: '3,000+' },
-  { icon: HeartHandshake, label: 'Disbursed', value: '$12M+' },
+  { icon: HeartHandshake, label: 'Disbursed', value: '2,100 ETH' },
 ];
 
 const StatsSection = () => {
@@ -16,8 +17,8 @@ const StatsSection = () => {
               key={label}
               className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-900/8 hover:shadow-2xl hover:shadow-blue-600/10 hover:-translate-y-1 transition-all duration-300 flex items-center gap-6"
             >
-              <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30">
-                <Icon size={26} className="text-white" strokeWidth={2} />
+              <div className="w-14 h-14 flex items-center justify-center shrink-0">
+                <Icon size={40} className="text-blue-600" />
               </div>
               <div>
                 <div className="text-[36px] font-black text-gray-900 tracking-tighter leading-none">{value}</div>

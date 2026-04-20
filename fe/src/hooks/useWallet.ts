@@ -103,9 +103,41 @@ export function useWallet() {
     setState({ address: null, isConnecting: false, isConnected: false, error: null });
   }, []);
 
+  const switchNetwork = useCallback(async (chainId: number) => {
+    const eth = await waitForEthereum();
+    if (!eth) return;
+    try {
+      await eth.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${chainId.toString(16)}` }],
+      });
+    } catch (err: any) {
+      console.error('Failed to switch network:', err);
+      // If the chain has not been added to MetaMask
+      if (err.code === 4902) {
+        try {
+          await eth.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: `0x${chainId.toString(16)}`,
+                chainName: 'Sepolia Test Network',
+                nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://ethereum-sepolia.publicnode.com'],
+                blockExplorerUrls: ['https://sepolia.etherscan.io'],
+              },
+            ],
+          });
+        } catch (addError) {
+          console.error('Failed to add network:', addError);
+        }
+      }
+    }
+  }, []);
+
   const shortAddress = state.address
     ? `${state.address.slice(0, 6)}...${state.address.slice(-4)}`
     : null;
 
-  return { ...state, shortAddress, connect, disconnect };
+  return { ...state, shortAddress, connect, disconnect, switchNetwork };
 }
