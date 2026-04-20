@@ -60,9 +60,9 @@ const Campaigns = () => {
                   </Link>
                   <a
                     href="#explore"
-                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/15 transition-all duration-200 no-underline"
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/40 transition-all duration-200 hover:-translate-y-0.5 no-underline"
                   >
-                    Browse All
+                    Start Donating
                   </a>
                 </div>
               </div>

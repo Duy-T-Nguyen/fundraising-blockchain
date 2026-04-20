@@ -39,6 +39,12 @@
           "internalType": "address",
           "name": "supplier",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         }
       ],
       "name": "SupplierAdded",
@@ -63,6 +69,16 @@
           "internalType": "address",
           "name": "_supplier",
           "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_metadata",
+          "type": "string"
         }
       ],
       "name": "addSupplier",
@@ -84,13 +100,39 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "getAllSuppliers",
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "offset",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "getSuppliers",
       "outputs": [
         {
           "internalType": "address[]",
-          "name": "",
+          "name": "addresses",
           "type": "address[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "names",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "metadatas",
+          "type": "string[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "earnings",
+          "type": "uint256[]"
         }
       ],
       "stateMutability": "view",
@@ -171,8 +213,23 @@
       "name": "suppliers",
       "outputs": [
         {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "metadataHash",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalEarned",
+          "type": "uint256"
+        },
+        {
           "internalType": "bool",
-          "name": "",
+          "name": "exists",
           "type": "bool"
         }
       ],

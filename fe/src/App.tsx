@@ -5,19 +5,32 @@ import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
 import CreateCampaign from './pages/CreateCampaign';
 import CampaignDetail from './pages/CampaignDetail';
-import './index.css';
+import Activity from './pages/Activity';
+import CreatorDashboard from './pages/CreatorDashboard';
+import Resources from './pages/Resources';
+import Contact from './pages/Contact';
 
+import Sidebar from './layouts/Sidebar';
 function App() {
   return (
     <Router>
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/campaigns" element={<Campaigns />} />
-        <Route path="/campaigns/create" element={<CreateCampaign />} />
-        <Route path="/campaign/:address" element={<CampaignDetail />} />
-      </Routes>
-      <Footer />
+      <div className="flex bg-[#0f1115] min-h-screen font-sans text-slate-200">
+        <Sidebar />
+        <main className="flex-1 p-0">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/campaigns/create" element={<CreateCampaign />} />
+            <Route path="/campaign/:slug" element={<CampaignDetail />} />
+            <Route path="/dashboard/activity" element={<Activity />} />
+            <Route path="/dashboard/creator" element={<CreatorDashboard />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+          <Footer />
+        </main>
+      </div>
     </Router>
   );
 }
