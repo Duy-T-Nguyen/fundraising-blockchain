@@ -14,7 +14,9 @@ export interface CampaignSummary {
   manager: string;
   active: boolean;
   userContribution: bigint;
-  firstDonationBlock: bigint | null; // Added to track when they first donated
+  firstDonationBlock: bigint | null;
+  availableFunds: string;
+  lockedFunds: string;
 }
 
 export function useCampaign(address: string | undefined, userAddress?: string) {
@@ -50,10 +52,32 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
           abi: ABIS.CAMPAIGN as any,
           functionName: 'contributions',
           args: [userAddress as `0x${string}`],
-        } as any) : Promise.resolve(0n)
+        } as any) : Promise.resolve(0n),
       ]) as [any, string, string, bigint];
 
-      // 2. Fetch first donation block SEPARATELY (this is more likely to fail/timeout)
+      // 2. Fetch new financial metrics (Safe for legacy contracts)
+      let availableFunds = 0n;
+      let lockedFunds = 0n;
+      
+      try {
+        [availableFunds, lockedFunds] = await Promise.all([
+          publicClient.readContract({
+            address: address as `0x${string}`,
+            abi: ABIS.CAMPAIGN as any,
+            functionName: 'availableFunds',
+          } as any),
+          publicClient.readContract({
+            address: address as `0x${string}`,
+            abi: ABIS.CAMPAIGN as any,
+            functionName: 'lockedFunds',
+          } as any)
+        ]) as [bigint, bigint];
+      } catch (err) {
+        console.warn('Legacy contract detected or funds query failed:', err);
+        // Fallback to 0 if functions don't exist
+      }
+
+      // 3. Fetch first donation block SEPARATELY (this is more likely to fail/timeout)
       let firstDonationBlock: bigint | null = null;
       if (userAddress) {
         try {
@@ -95,6 +119,8 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
           active: data.isActive !== undefined ? data.isActive : data[6],
           userContribution: userContribution || 0n,
           firstDonationBlock: firstDonationBlock,
+          availableFunds: formatEther(availableFunds || 0n),
+          lockedFunds: formatEther(lockedFunds || 0n),
         });
       }
     } catch (err) {

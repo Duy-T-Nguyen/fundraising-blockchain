@@ -20,7 +20,7 @@ const CATEGORIES = [
 
 const STEPS = [
   { icon: <Wallet size={18} />, title: 'Connect Wallet', desc: 'Use MetaMask to authenticate as the campaign manager.' },
-  { icon: <ImagePlus size={18} />, title: 'Submit Request', desc: 'Fill in details and pay a 0.005 ETH anti-spam fee to start.' },
+  { icon: <ImagePlus size={18} />, title: 'Submit Request', desc: 'Fill in details and pay a small anti-spam fee to start.' },
   { icon: <ShieldCheck size={18} />, title: 'Admin Review', desc: 'Platform admins will review your campaign for legitimacy.' },
   { icon: <Zap size={18} />, title: 'Go Live', desc: 'Once approved, your campaign contract is deployed automatically.' },
 ];
@@ -150,7 +150,7 @@ const CreateCampaign = () => {
         <div className="max-w-lg mx-auto px-6 py-32 flex flex-col items-center text-center gap-8">
           <h2 className="text-5xl font-black text-white tracking-tight">Request Submitted!</h2>
           <p className="text-white text-[18px] leading-relaxed opacity-90 font-medium">
-            Your campaign request has been sent for approval. <br /> A 0.005 ETH anti-spam fee was processed and verified.
+            Your campaign request has been sent for approval. <br /> The anti-spam fee was successfully processed on the blockchain.
           </p>
           
           {txHash && (
@@ -359,7 +359,7 @@ const CreateCampaign = () => {
                   <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                     <Zap size={16} className="text-blue-500 mt-0.5 shrink-0" />
                     <p className="text-blue-700 text-sm leading-relaxed">
-                      Submitting will call <code className="bg-blue-100 px-1 rounded text-[12px]">submitCampaignRequest()</code>. A fee of <span className="font-bold">0.005 ETH</span> is required.
+                      Notice: Submitting a request incurs a small anti-spam fee to ensure network security and project legitimacy.
                     </p>
                   </div>
 
@@ -383,7 +383,7 @@ const CreateCampaign = () => {
                       {isSubmitting ? (
                         <><Loader2 size={20} className="animate-spin" /> Submitting Request...</>
                       ) : (
-                        'Submit Campaign Request (0.005 ETH) →'
+                        'Submit Campaign Request →'
                       )}
                     </button>
                   )}

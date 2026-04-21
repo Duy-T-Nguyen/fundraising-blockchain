@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { FileText, Code2, Layers } from 'lucide-react';
 
 const GithubIcon = ({ size = 24, className = "" }) => (

@@ -12,11 +12,13 @@ export type CampaignRequest = {
   approvalWeights: string;
   evidenceHash: string;
   requestType: number;
-  createdBlock: bigint; // Added to track creation time
+  createdBlock: bigint;
+  voterCount: number; // Added to track number of people
 }
 
-export function useRequests(address: string | undefined) {
+export function useRequests(address: string | undefined, userAddress?: string) {
   const [requests, setRequests] = useState<CampaignRequest[]>([]);
+  const [votedRequestIds, setVotedRequestIds] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchRequests = useCallback(async () => {
@@ -24,33 +26,65 @@ export function useRequests(address: string | undefined) {
     setIsLoading(true);
 
     try {
-      // 1. Fetch RequestCreated logs to get block numbers
-      const logs = await publicClient.getLogs({
-        address: address as `0x${string}`,
-        event: {
-          type: 'event',
-          name: 'RequestCreated',
-          inputs: [
-            { type: 'uint256', name: 'id', indexed: true },
-            { type: 'string', name: 'description', indexed: false },
-            { type: 'uint256', name: 'value', indexed: false },
-            { type: 'address', name: 'recipient', indexed: false },
-            { type: 'address', name: 'verifier', indexed: false },
-            { type: 'string', name: 'evidenceHash', indexed: false },
-            { type: 'address[]', name: 'selectedValidators', indexed: false },
-            { type: 'uint256', name: 'lastValidatorSelection', indexed: false }
-          ],
-        },
-        fromBlock: BigInt(Math.max(0, Number(await publicClient.getBlockNumber()) - 40000)), 
-      });
+      // 1. Fetch logs
+      const [creationLogs, allVotingLogs] = await Promise.all([
+        publicClient.getLogs({
+          address: address as `0x${string}`,
+          event: {
+            type: 'event',
+            name: 'RequestCreated',
+            inputs: [
+              { type: 'uint256', name: 'id', indexed: true },
+              { type: 'string', name: 'description', indexed: false },
+              { type: 'uint256', name: 'value', indexed: false },
+              { type: 'address', name: 'recipient', indexed: false },
+              { type: 'address', name: 'verifier', indexed: false },
+              { type: 'string', name: 'evidenceHash', indexed: false }
+            ],
+          },
+          fromBlock: BigInt(Math.max(0, Number(await publicClient.getBlockNumber()) - 40000)), 
+        }),
+        // Fetch ALL Voted events to count people
+        publicClient.getLogs({
+          address: address as `0x${string}`,
+          event: {
+            type: 'event',
+            name: 'Voted',
+            inputs: [
+              { type: 'address', name: 'voter', indexed: true },
+              { type: 'uint256', name: 'requestId', indexed: true }
+            ],
+          },
+          fromBlock: BigInt(Math.max(0, Number(await publicClient.getBlockNumber()) - 40000)),
+        })
+      ]);
 
       // Map request ID to block number
       const blockMap = new Map<number, bigint>();
-      logs.forEach(log => {
+      creationLogs.forEach(log => {
         if (log.args.id !== undefined) {
           blockMap.set(Number(log.args.id), log.blockNumber);
         }
       });
+
+      // Map request ID to Voter Count and Current User Vote
+      const voterCountMap = new Map<number, number>();
+      const userVotes = new Set<number>();
+      
+      allVotingLogs.forEach(log => {
+        const rId = Number(log.args.requestId);
+        const voter = log.args.voter as string;
+        
+        // Count unique voters per request
+        voterCountMap.set(rId, (voterCountMap.get(rId) || 0) + 1);
+        
+        // Check if current user voted
+        if (userAddress && voter.toLowerCase() === userAddress.toLowerCase()) {
+          userVotes.add(rId);
+        }
+      });
+      
+      setVotedRequestIds(userVotes);
 
       // 2. Get total number of requests
       const summary = await publicClient.readContract({
@@ -81,6 +115,7 @@ export function useRequests(address: string | undefined) {
             evidenceHash: req[5],
             requestType: req[6],
             createdBlock: blockMap.get(i) || 0n,
+            voterCount: voterCountMap.get(i) || 0,
           };
         })
       );
@@ -91,11 +126,11 @@ export function useRequests(address: string | undefined) {
     } finally {
       setIsLoading(false);
     }
-  }, [address]);
+  }, [address, userAddress]);
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
 
-  return { requests, isLoading, refresh: fetchRequests };
+  return { requests, votedRequestIds, isLoading, refresh: fetchRequests };
 }

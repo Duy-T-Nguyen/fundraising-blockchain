@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Eye, ShieldCheck, Database, ExternalLink } from 'lucide-react';
 
 const features = [

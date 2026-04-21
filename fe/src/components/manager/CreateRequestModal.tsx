@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { publicClient, getWalletClient } from '../../blockchain/client';
 import { ABIS } from '../../blockchain/constants';
-import { encodeFunctionData, parseEther } from 'viem';
+import { encodeFunctionData, parseEther, formatEther } from 'viem';
+import { useEffect } from 'react';
 import { X, Send, AlertCircle, CheckCircle2, ImagePlus, Loader2, ChevronDown } from 'lucide-react';
 import { useSuppliers } from '../../hooks/useSuppliers';
 
@@ -16,6 +17,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
   const [recipient, setRecipient] = useState('');
+  const [verifier, setVerifier] = useState(''); // Initial empty
   
   // Image handling
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -25,8 +27,22 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [campaignBalance, setCampaignBalance] = useState<string>('0');
 
   const { suppliers, isLoading: loadingSuppliers } = useSuppliers();
+
+  // Fetch campaign balance on mount
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const balance = await publicClient.getBalance({ address: address as `0x${string}` });
+        setCampaignBalance(parseFloat(formatEther(balance)).toFixed(4));
+      } catch (err) {
+        console.error('Error fetching balance:', err);
+      }
+    };
+    fetchBalance();
+  }, [address]);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -84,13 +100,10 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
       const ipfsHash = `ipfs://${cid}`;
 
       // 3. Encode function data (WFP v4.0 expects 5 args: desc, value, recipient, verifier, evidenceHash)
-      // Default verifier is the Platform Admin
-      const verifier = "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"; 
-      
       const data = encodeFunctionData({
         abi: ABIS.CAMPAIGN,
         functionName: 'createRequest',
-        args: [description, parseEther(value), recipient, verifier, ipfsHash],
+        args: [description, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`, ipfsHash],
       });
 
       // 4. Send transaction
@@ -148,7 +161,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Amount */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Amount (ETH)</label>
@@ -161,7 +174,26 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
                 placeholder="0.0"
                 className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-gray-900"
               />
+              <div className="flex items-center gap-1.5 ml-2 mt-1">
+                <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">Available: {campaignBalance} ETH</span>
+              </div>
             </div>
+
+            {/* Verifier Address */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Verifier / Inspector Address</label>
+              <input
+                type="text"
+                required
+                value={verifier}
+                onChange={(e) => setVerifier(e.target.value)}
+                placeholder="0x..."
+                className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-mono text-xs text-gray-500"
+              />
+              <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest ml-2 mt-1">Authorized entity to verify delivery</p>
+            </div>
+          </div>
 
             {/* Evidence (Image Upload) */}
             <div className="space-y-2">
@@ -198,7 +230,6 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
                 />
               </div>
             </div>
-          </div>
 
           {/* Recipient Address (Supplier Selection) */}
           <div className="space-y-2">
