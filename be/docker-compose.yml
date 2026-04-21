@@ -23,9 +23,11 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/fundchain
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - AI_SIDECAR_URL=http://ai-sidecar:8000
     depends_on:
       - mongodb
       - redis
+      - ai-sidecar
     networks:
       - fundraising-network
     restart: unless-stopped
@@ -37,6 +39,17 @@ services:
       options:
         max-size: "10mb"
         max-file: "3"
+
+  ai-sidecar:
+    build:
+      context: ./ai-sidecar
+      dockerfile: Dockerfile
+    container_name: fundraising-ai-sidecar
+    expose:
+      - "8000:8000"
+    networks:
+      - fundraising-network
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine

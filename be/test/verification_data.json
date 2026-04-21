@@ -1,0 +1,801 @@
+{
+  "block_timestamp": "2024-04-10 06:43:23+00:00",
+  "queue_size_input": 29.0,
+  "time_left_input": 17.27666664123535,
+  "raw_history_128": [
+    {
+      "baseFee": 13743964149.0,
+      "gasUsed": 12468247.0,
+      "gasLimit": 30000000.0,
+      "txCount": 124.0
+    },
+    {
+      "baseFee": 13453994796.0,
+      "gasUsed": 26103919.0,
+      "gasLimit": 30000000.0,
+      "txCount": 194.0
+    },
+    {
+      "baseFee": 14698928699.0,
+      "gasUsed": 16169932.0,
+      "gasLimit": 30000000.0,
+      "txCount": 118.0
+    },
+    {
+      "baseFee": 14842234924.0,
+      "gasUsed": 23883246.0,
+      "gasLimit": 30000000.0,
+      "txCount": 115.0
+    },
+    {
+      "baseFee": 15940961790.0,
+      "gasUsed": 1241512.0,
+      "gasLimit": 30000000.0,
+      "txCount": 25.0
+    },
+    {
+      "baseFee": 14113265695.0,
+      "gasUsed": 28742882.0,
+      "gasLimit": 30000000.0,
+      "txCount": 246.0
+    },
+    {
+      "baseFee": 15729573570.0,
+      "gasUsed": 11414173.0,
+      "gasLimit": 30000000.0,
+      "txCount": 123.0
+    },
+    {
+      "baseFee": 15259544157.0,
+      "gasUsed": 13968512.0,
+      "gasLimit": 30000000.0,
+      "txCount": 129.0
+    },
+    {
+      "baseFee": 15128377185.0,
+      "gasUsed": 10902327.0,
+      "gasLimit": 30000000.0,
+      "txCount": 111.0
+    },
+    {
+      "baseFee": 14611784329.0,
+      "gasUsed": 9432416.0,
+      "gasLimit": 30000000.0,
+      "txCount": 116.0
+    },
+    {
+      "baseFee": 13933848191.0,
+      "gasUsed": 19488282.0,
+      "gasLimit": 30000000.0,
+      "txCount": 179.0
+    },
+    {
+      "baseFee": 14455006857.0,
+      "gasUsed": 14208543.0,
+      "gasLimit": 30000000.0,
+      "txCount": 138.0
+    },
+    {
+      "baseFee": 14359669221.0,
+      "gasUsed": 12593614.0,
+      "gasLimit": 30000000.0,
+      "txCount": 118.0
+    },
+    {
+      "baseFee": 14071711663.0,
+      "gasUsed": 14218294.0,
+      "gasLimit": 30000000.0,
+      "txCount": 149.0
+    },
+    {
+      "baseFee": 13980045485.0,
+      "gasUsed": 22068568.0,
+      "gasLimit": 30000000.0,
+      "txCount": 196.0
+    },
+    {
+      "baseFee": 14803536336.0,
+      "gasUsed": 16277815.0,
+      "gasLimit": 30000000.0,
+      "txCount": 136.0
+    },
+    {
+      "baseFee": 14961171175.0,
+      "gasUsed": 14716829.0,
+      "gasLimit": 30000000.0,
+      "txCount": 122.0
+    },
+    {
+      "baseFee": 14925866427.0,
+      "gasUsed": 14270219.0,
+      "gasLimit": 30000000.0,
+      "txCount": 137.0
+    },
+    {
+      "baseFee": 14835094646.0,
+      "gasUsed": 14932655.0,
+      "gasLimit": 30000000.0,
+      "txCount": 145.0
+    },
+    {
+      "baseFee": 14826769068.0,
+      "gasUsed": 15507343.0,
+      "gasLimit": 30000000.0,
+      "txCount": 164.0
+    },
+    {
+      "baseFee": 14889454547.0,
+      "gasUsed": 14692971.0,
+      "gasLimit": 30000000.0,
+      "txCount": 120.0
+    },
+    {
+      "baseFee": 14851358761.0,
+      "gasUsed": 17365929.0,
+      "gasLimit": 30000000.0,
+      "txCount": 168.0
+    },
+    {
+      "baseFee": 15144169264.0,
+      "gasUsed": 13883452.0,
+      "gasLimit": 30000000.0,
+      "txCount": 114.0
+    },
+    {
+      "baseFee": 15003259332.0,
+      "gasUsed": 10069330.0,
+      "gasLimit": 30000000.0,
+      "txCount": 116.0
+    },
+    {
+      "baseFee": 14386791660.0,
+      "gasUsed": 21524479.0,
+      "gasLimit": 30000000.0,
+      "txCount": 242.0
+    },
+    {
+      "baseFee": 15169010993.0,
+      "gasUsed": 13952990.0,
+      "gasLimit": 30000000.0,
+      "txCount": 114.0
+    },
+    {
+      "baseFee": 15036660109.0,
+      "gasUsed": 13565404.0,
+      "gasLimit": 30000000.0,
+      "txCount": 138.0
+    },
+    {
+      "baseFee": 14856897339.0,
+      "gasUsed": 12836827.0,
+      "gasLimit": 30000000.0,
+      "txCount": 153.0
+    },
+    {
+      "baseFee": 14589080346.0,
+      "gasUsed": 15194096.0,
+      "gasLimit": 30000000.0,
+      "txCount": 132.0
+    },
+    {
+      "baseFee": 14612677697.0,
+      "gasUsed": 12014793.0,
+      "gasLimit": 30000000.0,
+      "txCount": 104.0
+    },
+    {
+      "baseFee": 14249162133.0,
+      "gasUsed": 17780920.0,
+      "gasLimit": 30000000.0,
+      "txCount": 151.0
+    },
+    {
+      "baseFee": 14579376965.0,
+      "gasUsed": 15422225.0,
+      "gasLimit": 30000000.0,
+      "txCount": 133.0
+    },
+    {
+      "baseFee": 14630675110.0,
+      "gasUsed": 1910356.0,
+      "gasLimit": 30000000.0,
+      "txCount": 44.0
+    },
+    {
+      "baseFee": 13034755705.0,
+      "gasUsed": 29983066.0,
+      "gasLimit": 30000000.0,
+      "txCount": 285.0
+    },
+    {
+      "baseFee": 14662260746.0,
+      "gasUsed": 13730002.0,
+      "gasLimit": 30000000.0,
+      "txCount": 119.0
+    },
+    {
+      "baseFee": 14507085398.0,
+      "gasUsed": 15489621.0,
+      "gasLimit": 30000000.0,
+      "txCount": 140.0
+    },
+    {
+      "baseFee": 14566276845.0,
+      "gasUsed": 12568592.0,
+      "gasLimit": 30000000.0,
+      "txCount": 175.0
+    },
+    {
+      "baseFee": 14271138828.0,
+      "gasUsed": 13295586.0,
+      "gasLimit": 30000000.0,
+      "txCount": 141.0
+    },
+    {
+      "baseFee": 14068439422.0,
+      "gasUsed": 17773684.0,
+      "gasLimit": 30000000.0,
+      "txCount": 107.0
+    },
+    {
+      "baseFee": 14393617799.0,
+      "gasUsed": 18332573.0,
+      "gasLimit": 30000000.0,
+      "txCount": 168.0
+    },
+    {
+      "baseFee": 14793349316.0,
+      "gasUsed": 10844484.0,
+      "gasLimit": 30000000.0,
+      "txCount": 115.0
+    },
+    {
+      "baseFee": 14281065985.0,
+      "gasUsed": 14220853.0,
+      "gasLimit": 30000000.0,
+      "txCount": 174.0
+    },
+    {
+      "baseFee": 14188340571.0,
+      "gasUsed": 12468750.0,
+      "gasLimit": 30000000.0,
+      "txCount": 117.0
+    },
+    {
+      "baseFee": 13889055263.0,
+      "gasUsed": 16943790.0,
+      "gasLimit": 30000000.0,
+      "txCount": 202.0
+    },
+    {
+      "baseFee": 14114033652.0,
+      "gasUsed": 2717814.0,
+      "gasLimit": 30000000.0,
+      "txCount": 49.0
+    },
+    {
+      "baseFee": 12669440431.0,
+      "gasUsed": 29994720.0,
+      "gasLimit": 30000000.0,
+      "txCount": 763.0
+    },
+    {
+      "baseFee": 14252563029.0,
+      "gasUsed": 17534414.0,
+      "gasLimit": 30000000.0,
+      "txCount": 209.0
+    },
+    {
+      "baseFee": 14553578822.0,
+      "gasUsed": 19879611.0,
+      "gasLimit": 30000000.0,
+      "txCount": 205.0
+    },
+    {
+      "baseFee": 15145377182.0,
+      "gasUsed": 13994192.0,
+      "gasLimit": 30000000.0,
+      "txCount": 163.0
+    },
+    {
+      "baseFee": 15018432670.0,
+      "gasUsed": 11379795.0,
+      "gasLimit": 30000000.0,
+      "txCount": 112.0
+    },
+    {
+      "baseFee": 14565350962.0,
+      "gasUsed": 1580819.0,
+      "gasLimit": 30000000.0,
+      "txCount": 37.0
+    },
+    {
+      "baseFee": 12936558622.0,
+      "gasUsed": 29995515.0,
+      "gasLimit": 30000000.0,
+      "txCount": 571.0
+    },
+    {
+      "baseFee": 14553144945.0,
+      "gasUsed": 22254319.0,
+      "gasLimit": 30000000.0,
+      "txCount": 230.0
+    },
+    {
+      "baseFee": 15432921244.0,
+      "gasUsed": 11076878.0,
+      "gasLimit": 30000000.0,
+      "txCount": 133.0
+    },
+    {
+      "baseFee": 14928377637.0,
+      "gasUsed": 12684757.0,
+      "gasLimit": 30000000.0,
+      "txCount": 146.0
+    },
+    {
+      "baseFee": 14640354122.0,
+      "gasUsed": 13429036.0,
+      "gasLimit": 30000000.0,
+      "txCount": 171.0
+    },
+    {
+      "baseFee": 14448691879.0,
+      "gasUsed": 11955723.0,
+      "gasLimit": 30000000.0,
+      "txCount": 172.0
+    },
+    {
+      "baseFee": 14082143376.0,
+      "gasUsed": 14357716.0,
+      "gasLimit": 30000000.0,
+      "txCount": 171.0
+    },
+    {
+      "baseFee": 14006770582.0,
+      "gasUsed": 16469887.0,
+      "gasLimit": 30000000.0,
+      "txCount": 200.0
+    },
+    {
+      "baseFee": 14178340331.0,
+      "gasUsed": 12666220.0,
+      "gasLimit": 30000000.0,
+      "txCount": 177.0
+    },
+    {
+      "baseFee": 13902597606.0,
+      "gasUsed": 12272801.0,
+      "gasLimit": 30000000.0,
+      "txCount": 158.0
+    },
+    {
+      "baseFee": 13586638021.0,
+      "gasUsed": 22817947.0,
+      "gasLimit": 30000000.0,
+      "txCount": 297.0
+    },
+    {
+      "baseFee": 14471801487.0,
+      "gasUsed": 9915600.0,
+      "gasLimit": 30000000.0,
+      "txCount": 146.0
+    },
+    {
+      "baseFee": 13858631258.0,
+      "gasUsed": 20181929.0,
+      "gasLimit": 30000000.0,
+      "txCount": 228.0
+    },
+    {
+      "baseFee": 14457084951.0,
+      "gasUsed": 11441138.0,
+      "gasLimit": 30000000.0,
+      "txCount": 140.0
+    },
+    {
+      "baseFee": 14028328533.0,
+      "gasUsed": 5647611.0,
+      "gasLimit": 30000000.0,
+      "txCount": 85.0
+    },
+    {
+      "baseFee": 12935008655.0,
+      "gasUsed": 29130188.0,
+      "gasLimit": 30000000.0,
+      "txCount": 295.0
+    },
+    {
+      "baseFee": 14458126188.0,
+      "gasUsed": 7372138.0,
+      "gasLimit": 30000000.0,
+      "txCount": 95.0
+    },
+    {
+      "baseFee": 13539087927.0,
+      "gasUsed": 21561894.0,
+      "gasLimit": 30000000.0,
+      "txCount": 202.0
+    },
+    {
+      "baseFee": 14279438425.0,
+      "gasUsed": 7357901.0,
+      "gasLimit": 30000000.0,
+      "txCount": 100.0
+    },
+    {
+      "baseFee": 13370064408.0,
+      "gasUsed": 10098089.0,
+      "gasLimit": 30000000.0,
+      "txCount": 122.0
+    },
+    {
+      "baseFee": 12823907194.0,
+      "gasUsed": 2271382.0,
+      "gasLimit": 30000000.0,
+      "txCount": 57.0
+    },
+    {
+      "baseFee": 11463652062.0,
+      "gasUsed": 18783586.0,
+      "gasLimit": 30000000.0,
+      "txCount": 267.0
+    },
+    {
+      "baseFee": 11825099674.0,
+      "gasUsed": 12107485.0,
+      "gasLimit": 30000000.0,
+      "txCount": 144.0
+    },
+    {
+      "baseFee": 11540064023.0,
+      "gasUsed": 29994639.0,
+      "gasLimit": 30000000.0,
+      "txCount": 321.0
+    },
+    {
+      "baseFee": 12982056473.0,
+      "gasUsed": 16595607.0,
+      "gasLimit": 30000000.0,
+      "txCount": 161.0
+    },
+    {
+      "baseFee": 13154675307.0,
+      "gasUsed": 15217909.0,
+      "gasLimit": 30000000.0,
+      "txCount": 191.0
+    },
+    {
+      "baseFee": 13178562991.0,
+      "gasUsed": 12783593.0,
+      "gasLimit": 30000000.0,
+      "txCount": 138.0
+    },
+    {
+      "baseFee": 12935154164.0,
+      "gasUsed": 18883834.0,
+      "gasLimit": 30000000.0,
+      "txCount": 216.0
+    },
+    {
+      "baseFee": 13353804093.0,
+      "gasUsed": 14424526.0,
+      "gasLimit": 30000000.0,
+      "txCount": 111.0
+    },
+    {
+      "baseFee": 13289764368.0,
+      "gasUsed": 18182886.0,
+      "gasLimit": 30000000.0,
+      "txCount": 159.0
+    },
+    {
+      "baseFee": 13642262742.0,
+      "gasUsed": 14593763.0,
+      "gasLimit": 30000000.0,
+      "txCount": 147.0
+    },
+    {
+      "baseFee": 13596079477.0,
+      "gasUsed": 19864546.0,
+      "gasLimit": 30000000.0,
+      "txCount": 157.0
+    },
+    {
+      "baseFee": 14147235760.0,
+      "gasUsed": 12456989.0,
+      "gasLimit": 30000000.0,
+      "txCount": 108.0
+    },
+    {
+      "baseFee": 13847430959.0,
+      "gasUsed": 17929577.0,
+      "gasLimit": 30000000.0,
+      "txCount": 140.0
+    },
+    {
+      "baseFee": 14185490252.0,
+      "gasUsed": 14436103.0,
+      "gasLimit": 30000000.0,
+      "txCount": 129.0
+    },
+    {
+      "baseFee": 14118830624.0,
+      "gasUsed": 18033525.0,
+      "gasLimit": 30000000.0,
+      "txCount": 169.0
+    },
+    {
+      "baseFee": 14475745837.0,
+      "gasUsed": 11734722.0,
+      "gasLimit": 30000000.0,
+      "txCount": 98.0
+    },
+    {
+      "baseFee": 14081851384.0,
+      "gasUsed": 17223466.0,
+      "gasLimit": 30000000.0,
+      "txCount": 153.0
+    },
+    {
+      "baseFee": 14342772365.0,
+      "gasUsed": 21090237.0,
+      "gasLimit": 30000000.0,
+      "txCount": 203.0
+    },
+    {
+      "baseFee": 15070696389.0,
+      "gasUsed": 16428732.0,
+      "gasLimit": 30000000.0,
+      "txCount": 159.0
+    },
+    {
+      "baseFee": 15250129607.0,
+      "gasUsed": 12200698.0,
+      "gasLimit": 30000000.0,
+      "txCount": 146.0
+    },
+    {
+      "baseFee": 14894381955.0,
+      "gasUsed": 16183911.0,
+      "gasLimit": 30000000.0,
+      "txCount": 168.0
+    },
+    {
+      "baseFee": 15041328810.0,
+      "gasUsed": 15797109.0,
+      "gasLimit": 30000000.0,
+      "txCount": 114.0
+    },
+    {
+      "baseFee": 15141241964.0,
+      "gasUsed": 15192005.0,
+      "gasLimit": 30000000.0,
+      "txCount": 170.0
+    },
+    {
+      "baseFee": 15165468582.0,
+      "gasUsed": 12066891.0,
+      "gasLimit": 30000000.0,
+      "txCount": 156.0
+    },
+    {
+      "baseFee": 14794785479.0,
+      "gasUsed": 1920159.0,
+      "gasLimit": 30000000.0,
+      "txCount": 47.0
+    },
+    {
+      "baseFee": 13182173465.0,
+      "gasUsed": 25822436.0,
+      "gasLimit": 30000000.0,
+      "txCount": 276.0
+    },
+    {
+      "baseFee": 14371033703.0,
+      "gasUsed": 20409875.0,
+      "gasLimit": 30000000.0,
+      "txCount": 182.0
+    },
+    {
+      "baseFee": 15018912835.0,
+      "gasUsed": 4968140.0,
+      "gasLimit": 30000000.0,
+      "txCount": 38.0
+    },
+    {
+      "baseFee": 13763349245.0,
+      "gasUsed": 26009814.0,
+      "gasLimit": 30000000.0,
+      "txCount": 249.0
+    },
+    {
+      "baseFee": 15026115205.0,
+      "gasUsed": 17716516.0,
+      "gasLimit": 30000000.0,
+      "txCount": 143.0
+    },
+    {
+      "baseFee": 15366270891.0,
+      "gasUsed": 8545476.0,
+      "gasLimit": 30000000.0,
+      "txCount": 106.0
+    },
+    {
+      "baseFee": 14539754523.0,
+      "gasUsed": 11799473.0,
+      "gasLimit": 30000000.0,
+      "txCount": 170.0
+    },
+    {
+      "baseFee": 14151963882.0,
+      "gasUsed": 18105670.0,
+      "gasLimit": 30000000.0,
+      "txCount": 153.0
+    },
+    {
+      "baseFee": 14518224962.0,
+      "gasUsed": 21921433.0,
+      "gasLimit": 30000000.0,
+      "txCount": 172.0
+    },
+    {
+      "baseFee": 15355615973.0,
+      "gasUsed": 17317228.0,
+      "gasLimit": 30000000.0,
+      "txCount": 137.0
+    },
+    {
+      "baseFee": 15652136500.0,
+      "gasUsed": 13120176.0,
+      "gasLimit": 30000000.0,
+      "txCount": 131.0
+    },
+    {
+      "baseFee": 15406942652.0,
+      "gasUsed": 12126619.0,
+      "gasLimit": 30000000.0,
+      "txCount": 140.0
+    },
+    {
+      "baseFee": 15038025850.0,
+      "gasUsed": 20325392.0,
+      "gasLimit": 30000000.0,
+      "txCount": 138.0
+    },
+    {
+      "baseFee": 15705387371.0,
+      "gasUsed": 11894535.0,
+      "gasLimit": 30000000.0,
+      "txCount": 118.0
+    },
+    {
+      "baseFee": 15298949615.0,
+      "gasUsed": 17035654.0,
+      "gasLimit": 30000000.0,
+      "txCount": 190.0
+    },
+    {
+      "baseFee": 15558477681.0,
+      "gasUsed": 16185320.0,
+      "gasLimit": 30000000.0,
+      "txCount": 127.0
+    },
+    {
+      "baseFee": 15712159137.0,
+      "gasUsed": 12222323.0,
+      "gasLimit": 30000000.0,
+      "txCount": 142.0
+    },
+    {
+      "baseFee": 15348464945.0,
+      "gasUsed": 21106577.0,
+      "gasLimit": 30000000.0,
+      "txCount": 159.0
+    },
+    {
+      "baseFee": 16129519803.0,
+      "gasUsed": 12400113.0,
+      "gasLimit": 30000000.0,
+      "txCount": 121.0
+    },
+    {
+      "baseFee": 15780062063.0,
+      "gasUsed": 13202307.0,
+      "gasLimit": 30000000.0,
+      "txCount": 171.0
+    },
+    {
+      "baseFee": 15543664504.0,
+      "gasUsed": 20185290.0,
+      "gasLimit": 30000000.0,
+      "txCount": 149.0
+    },
+    {
+      "baseFee": 16215317904.0,
+      "gasUsed": 10717698.0,
+      "gasLimit": 30000000.0,
+      "txCount": 142.0
+    },
+    {
+      "baseFee": 15636660502.0,
+      "gasUsed": 9332829.0,
+      "gasLimit": 30000000.0,
+      "txCount": 115.0
+    },
+    {
+      "baseFee": 14898196928.0,
+      "gasUsed": 20833360.0,
+      "gasLimit": 30000000.0,
+      "txCount": 227.0
+    },
+    {
+      "baseFee": 15622418144.0,
+      "gasUsed": 14734118.0,
+      "gasLimit": 30000000.0,
+      "txCount": 148.0
+    },
+    {
+      "baseFee": 15587803813.0,
+      "gasUsed": 4432188.0,
+      "gasLimit": 30000000.0,
+      "txCount": 57.0
+    },
+    {
+      "baseFee": 14215062312.0,
+      "gasUsed": 27375373.0,
+      "gasLimit": 30000000.0,
+      "txCount": 321.0
+    },
+    {
+      "baseFee": 15681034798.0,
+      "gasUsed": 10917784.0,
+      "gasLimit": 30000000.0,
+      "txCount": 123.0
+    },
+    {
+      "baseFee": 15147590039.0,
+      "gasUsed": 18930501.0,
+      "gasLimit": 30000000.0,
+      "txCount": 176.0
+    },
+    {
+      "baseFee": 15643736853.0,
+      "gasUsed": 14480389.0,
+      "gasLimit": 30000000.0,
+      "txCount": 162.0
+    },
+    {
+      "baseFee": 15575998039.0,
+      "gasUsed": 18207162.0,
+      "gasLimit": 30000000.0,
+      "txCount": 145.0
+    }
+  ],
+  "expected_raw_state": [
+    15575998464.0,
+    15643737088.0,
+    15147589632.0,
+    0.21381080150604248,
+    -0.004339493811130524,
+    -0.03656868264079094,
+    -0.17787079513072968,
+    0.4972030818462372,
+    29.0,
+    17.27666664123535,
+    14474810368.0
+  ],
+  "expected_normalized_state": [
+    15992287232.0,
+    15575998464.0,
+    15643737088.0,
+    -0.28547072410583496,
+    0.026375439018011093,
+    0.030714932829141617,
+    -0.30859261751174927,
+    0.3249831795692444,
+    35.0,
+    17.273332595825195,
+    14492375040.0
+  ]
+}

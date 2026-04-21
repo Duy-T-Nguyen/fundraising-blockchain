@@ -4,6 +4,9 @@ import { Queue } from 'bullmq';
 import { ethers } from 'ethers';
 import { SubmitIntentDto } from './dto/submit-intent.dto';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
+import { AiService } from './ai.service';
+import { GasMonitorService } from '../blockchain/gas-monitor.service';
 
 @Injectable()
 export class RelayerService implements OnModuleInit {
@@ -15,6 +18,8 @@ export class RelayerService implements OnModuleInit {
   constructor(
     @InjectQueue('gas-optimization-queue') private gasQueue: Queue,
     private configService: ConfigService,
+    private aiService: AiService,
+    private gasMonitor: GasMonitorService,
   ) {}
 
   async onModuleInit() {
@@ -34,6 +39,51 @@ export class RelayerService implements OnModuleInit {
 
       this.forwarderContract = new ethers.Contract(forwarderAddress, abi, this.wallet);
       this.logger.log(`Relayer Service initialized with wallet: ${this.wallet.address}`);
+    }
+  }
+
+  /**
+   * Vòng lặp quyết định của AI - Chạy mỗi 30 giây
+   */
+  @Cron('*/30 * * * * *')
+  async handleAiOptimization() {
+    try {
+      this.logger.debug('--- AI Gas Optimization Cycle ---');
+      
+      // 1. Kiểm tra hàng đợi
+      const stats = await this.getQueueStats();
+      if (stats.queueSize === 0) {
+        return;
+      }
+
+      // 2. Lấy 11 thôgn số trạng thái từ thị trường và hàng đợi
+      // s_time_left = Thời gian còn lại cho đến deadline (mặc định deadline là 24h)
+      const MAX_WAIT_HOURS = 24; 
+      const ageHours = stats.oldestJobAge / 3600;
+      const timeLeftHours = Math.max(0, MAX_WAIT_HOURS - ageHours);
+      
+      const state = await this.gasMonitor.getCurrentState(
+        stats.queueSize,
+        timeLeftHours
+      );
+
+      // 3. Hỏi ý kiến AI Sidecar
+      const action = await this.aiService.getDecision(state);
+
+      // 4. Thực thi hành động dựa trên Tỷ lệ % (Action Ratio)
+      // Khớp 100% với config.py: (0.0, 0.25, 0.5, 0.75, 1.0)
+      const actionBins = [0.0, 0.25, 0.5, 0.75, 1.0]; 
+      const ratio = actionBins[action] !== undefined ? actionBins[action] : 0;
+
+      if (ratio === 0) {
+        this.logger.log(`AI Decision: [WAIT] (Queue: ${stats.queueSize}, Gas is high/unstable)`);
+      } else {
+        const dynamicBatchSize = Math.max(1, Math.floor(ratio * stats.queueSize));
+        this.logger.log(`AI Decision: [EXECUTE] (Ratio: ${ratio * 100}%). Sending ${dynamicBatchSize} transactions...`);
+        await this.processBatch(dynamicBatchSize);
+      }
+    } catch (error) {
+      this.logger.error(`Error in AI Optimization cycle: ${error.message}`);
     }
   }
 
@@ -67,11 +117,7 @@ export class RelayerService implements OnModuleInit {
   }
 
   /**
-   * Lấy thống kê hàng đợi để cung cấp "State" cho mô hình RL
-   */
-  /**
    * Thực thi gom mẻ nhiều giao dịch (Chế độ Eco - AI điều khiển)
-   * @param batchSize Số lượng giao dịch muốn gom
    */
   async processBatch(batchSize: number = 10) {
     const jobs = await this.gasQueue.getJobs(['waiting'], 0, batchSize - 1);
@@ -101,6 +147,7 @@ export class RelayerService implements OnModuleInit {
         await job.remove();
       }
 
+      this.logger.log(`Batch execution successful. Hash: ${tx.hash}`);
       return { success: true, txHash: tx.hash, count: jobs.length };
     } catch (error) {
       this.logger.error(`Lỗi thực thi Batch: ${error.message}`);
@@ -114,9 +161,8 @@ export class RelayerService implements OnModuleInit {
     
     let oldestJobAge = 0;
     if (jobs.length > 0) {
-        // Sắp xếp lấy job cũ nhất
         const oldestJob = jobs.reduce((prev, curr) => (prev.timestamp < curr.timestamp ? prev : curr));
-        oldestJobAge = Math.floor((Date.now() - oldestJob.timestamp) / 1000); // Đổi ra giây
+        oldestJobAge = Math.floor((Date.now() - oldestJob.timestamp) / 1000); // Giây
     }
 
     return {
@@ -127,12 +173,12 @@ export class RelayerService implements OnModuleInit {
   }
 
   private verifyEIP712(forwardRequest: any, signature: string): string {
-    // Định nghĩa kiểu dữ liệu EIP-712 (Phải khớp 100% với Forwarder.sol)
+    const chainId = this.configService.get<number>('CHAIN_ID') || 31337;
     const domain = {
       name: 'EcoFundForwarder',
       version: '1',
-      chainId: 31337, // Hardhat Localhost (Cần chỉnh lại nếu dùng mạng khác)
-      verifyingContract: forwardRequest.to, // Thường là Forwarder Address, nhưng tùy cách bạn ký
+      chainId: Number(chainId),
+      verifyingContract: this.configService.get<string>('FORWARDER_ADDRESS'),
     };
 
     const types = {
@@ -146,7 +192,6 @@ export class RelayerService implements OnModuleInit {
       ],
     };
 
-    // Sử dụng ethers v6 để verify
     return ethers.verifyTypedData(domain, types, forwardRequest, signature);
   }
 }
