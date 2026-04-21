@@ -71,10 +71,13 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x9FCc4133983903EdADB61D592450079c2185d750` |
-| **SupplierRegistry** | `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3` |
+| **Forwarder** | `0x63081f46eD33a05bDad8C9E5a33312E1c228624F` |
+| **CampaignFactory** | `0xc05Ee3eBAd73cfee07f055ae50974ad98CD307DC` |
+| **SupplierRegistry** | `0x93aC66c9ABe2eE53ec896B7f3b4b660c9f968878` |
 
-**Các tính năng mới nhất (Cập nhật WFP Standard v4.0 - 20/04/2026):**
+**Các tính năng mới nhất (Cập nhật v4.1 - 21/04/2026):**
+- **Decentralized Validator Selection (Governance)**: Chuyển đổi cơ chế chọn Validator sang phi tập trung hoàn toàn trong `Campaign.sol`. Sử dụng `donorAtId` để snapshot và chọn ngẫu nhiên từ pool donor tại thời điểm tạo request. Loại bỏ hoàn toàn phụ thuộc vào hợp đồng `ValidatorPool` độc lập. Kết hợp với cơ chế blacklist (`failedValidators`) để đảm bảo liveness.
+- **EIP-2771 Forwarder & Backend Integration**: Tích hợp hợp đồng `Forwarder` cho Meta-Transactions. Bổ sung các hàm kiểm tra Typed Data theo chuẩn Ethers v6. Nâng cấp kiến trúc Backend với thư viện hàng đợi `bullmq`, giúp tối ưu hóa khả năng xử lý giao dịch bất đồng bộ.
 - **Validator Liveness (Timeout-based)**: Cơ chế chống treo Request. Nếu Validator được chọn không phản hồi sau 48 giờ, Manager có quyền kích hoạt `reselectValidators` để chọn đội mới, đảm bảo dòng tiền không bị tắc nghẽn.
 - **Real-time Notifications (Socket.io & Redis)**: Hệ thống thông báo tức thời tới mọi vai trò (Admin, Manager, Validator, Supplier, Verifier). Tích hợp **Redis Adapter** giúp Backend có thể mở rộng theo chiều ngang (Horizontal Scaling) mà không mất kết nối WebSocket.
 - **Hybrid Notification Strategy**: Kết hợp giữa thông báo thời gian thực (Socket.io) và lưu trữ bền vững (MongoDB), giúp người dùng không bao giờ bỏ lỡ thông tin quan trọng kể cả khi offline.
@@ -83,4 +86,4 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 - **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026.*
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026.*

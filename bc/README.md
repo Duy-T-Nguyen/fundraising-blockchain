@@ -29,14 +29,15 @@
 
 ---
 
-## 🚀 Thông tin Triển khai (Cập nhật 20/04/2026)
+## 🚀 Thông tin Triển khai (Cập nhật 21/04/2026)
 
 Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepolia Testnet**:
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x9FCc4133983903EdADB61D592450079c2185d750` |
-| **SupplierRegistry** | `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3` |
+| **Forwarder** | `0x63081f46eD33a05bDad8C9E5a33312E1c228624F` |
+| **CampaignFactory** | `0xc05Ee3eBAd73cfee07f055ae50974ad98CD307DC` |
+| **SupplierRegistry** | `0x93aC66c9ABe2eE53ec896B7f3b4b660c9f968878` |
 
 ---
 
