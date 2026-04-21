@@ -30,24 +30,28 @@ graph TD
 
 ### Giai đoạn 2: Tạo yêu cầu chi tiêu (Request Creation)
 - **Hành động**: Manager tạo Request để mua hàng hóa/dịch vụ từ một **Supplier** đã được Admin phê duyệt (Whitelist).
+- **Cơ chế Bảo mật (Budget Reservation)**: 
+    - Ngay khi tạo, số tiền yêu cầu sẽ bị khóa (`lockedFunds`).
+    - Đảm bảo tính khả dụng của quỹ, không cho phép tạo request vượt quá số dư thực tế.
 - **Yêu cầu**: 
     - Phải có bằng chứng (hóa đơn/báo giá) lưu trên IPFS.
-    - Phải chỉ định một **Verifier** (bên thứ 3 độc lập) để nghiệm thu sau này.
+    - Phải chỉ định một **Verifier** (bên thứ 3 độc lập).
 
 ### Giai đoạn 3: Biểu quyết & Kiểm soát (Governance)
-Hệ thống sử dụng cơ chế bảo mật 2 lớp:
-1.  **Weighted Voting**: Đối với các khoản chi lớn, cần >50% tổng số vốn của chiến dịch đồng ý.
-2.  **Validator Audit**: Đối với các khoản chi nhỏ hoặc cần tính chuyên môn, hệ thống chọn ngẫu nhiên 3 Validators từ Pool.
-    - **Cơ chế Liveness**: Nếu Validators không phản hồi sau **48 giờ**, Manager có quyền reset và chọn đội mới (`reselectValidators`) để tránh tắc nghẽn dòng tiền.
+Hệ thống sử dụng cơ chế bảo mật đa tầng:
+1.  **Weighted Voting**: Cần >50% tổng số vốn của chiến dịch đồng ý.
+2.  **Validator Audit**: Chọn ngẫu nhiên 3 Validators từ pool donor.
+3.  **Hạn chót (Voting Period)**: Donors phải biểu quyết trong vòng **7 ngày**. Sau thời gian này, yêu cầu sẽ hết hạn và không thể giải ngân.
+4.  **Cơ chế Hủy (Cancellation)**: Manager có thể hủy Request (`CANCELLED`) nếu không còn cần thiết, giúp giải phóng ngay lập tức số tiền đã bị khóa.
 
 ### Giai đoạn 4: Nghiệm thu & Giải ngân (Two-Stage Disbursement)
 Đây là chuẩn bảo mật **WFP (World Food Programme)**:
-1.  **Giai đoạn 1 (Approval)**: Biểu quyết thành công (Vote PASS). Trạng thái Request là "Đã duyệt ngân sách".
+1.  **Giai đoạn 1 (Approval)**: Biểu quyết thành công (Vote PASS). Trạng thái Request chuyển sang hợp lệ.
 2.  **Giai đoạn 2 (Delivery & Verification)**: 
     - Supplier giao hàng.
-    - Verifier kiểm tra và tạo một **ECDSA Signature** (chữ ký số off-chain).
+    - Verifier kiểm tra và tạo một **ECDSA Signature**.
     - Manager dùng chữ ký này để gọi hàm `finalizeRequest`.
-    - Smart Contract xác thực chữ ký: Nếu đúng là Verifier đã ký -> Tự động chuyển ETH thẳng vào ví Supplier.
+    - Smart Contract xác thực chữ ký -> Chuyển ETH thẳng vào ví Supplier và đổi trạng thái sang `COMPLETED`.
 
 ---
 

@@ -71,20 +71,17 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x3A02b0ff80476186E8D2352F17999A2c980A527D` |
-| **CampaignFactory** | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
-| **SupplierRegistry** | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
+| **Forwarder** | `0x554484d7542785dFE3637F57BBc14A4FC7ae11F2` |
+| **CampaignFactory** | `0x2c1ABdB0D8076e868A0342B926357E9EbB8F4bE1` |
+| **SupplierRegistry** | `0x73D372ba8716c41c9076811C9D4BD692fc6DAfEE` |
 
-**Các tính năng mới nhất (Cập nhật v4.1 - 21/04/2026):**
-- **Decentralized Validator Selection (Governance)**: Chuyển đổi cơ chế chọn Validator sang phi tập trung hoàn toàn trong `Campaign.sol`. Sử dụng `donorAtId` để snapshot và chọn ngẫu nhiên từ pool donor tại thời điểm tạo request. Loại bỏ hoàn toàn phụ thuộc vào hợp đồng `ValidatorPool` độc lập. Kết hợp với cơ chế blacklist (`failedValidators`) để đảm bảo liveness.
-- **EIP-2771 Forwarder & Backend Integration**: Tích hợp hợp đồng `Forwarder` cho Meta-Transactions. Bổ sung các hàm kiểm tra Typed Data theo chuẩn Ethers v6. Nâng cấp kiến trúc Backend với thư viện hàng đợi `bullmq`, giúp tối ưu hóa khả năng xử lý giao dịch bất đồng bộ.
-- **Validator Liveness (Timeout-based)**: Cơ chế chống treo Request. Nếu Validator được chọn không phản hồi sau 48 giờ, Manager có quyền kích hoạt `reselectValidators` để chọn đội mới, đảm bảo dòng tiền không bị tắc nghẽn.
-- **Real-time Notifications (Socket.io & Redis)**: Hệ thống thông báo tức thời tới mọi vai trò (Admin, Manager, Validator, Supplier, Verifier). Tích hợp **Redis Adapter** giúp Backend có thể mở rộng theo chiều ngang (Horizontal Scaling) mà không mất kết nối WebSocket.
-- **Hybrid Notification Strategy**: Kết hợp giữa thông báo thời gian thực (Socket.io) và lưu trữ bền vững (MongoDB), giúp người dùng không bao giờ bỏ lỡ thông tin quan trọng kể cả khi offline.
-- **Bytecode Optimization**: Smart Contract được tối ưu hóa dung lượng (<24KB) bằng cách hợp nhất sự kiện và logic validation, giúp tiết kiệm Gas và đảm bảo khả năng triển khai trên Mainnet.
-- **WFP 2-Stage Payment Logic**: Tích hợp chuẩn thanh toán của World Food Programme. Việc phê duyệt (Vote) chỉ có ý nghĩa "Duyệt Ngân sách". Tiền chỉ thực sự được giải ngân khi có chữ ký số (ECDSA Signature) nghiệm thu bằng chứng giao hàng từ một bên thứ 3 độc lập (`Verifier`).
-- **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
-- **Budget Reservation (Over-commitment Prevention)**: Ngăn chặn triệt để lỗ hổng cấp vốn khống. Contract tự động theo dõi và khóa (`lockedFunds`) ngân sách ngay khi một yêu cầu chi tiêu được khởi tạo. Đảm bảo tổng số tiền của tất cả các yêu cầu đang chờ xử lý không bao giờ được phép vượt quá số dư thực tế hiện có của chiến dịch.
+**Các tính năng mới nhất (Cập nhật v5.0 - 21/04/2026):**
+- **Request Lifecycle (Advanced State Management)**: Chuyển đổi cơ chế quản lý Request từ cờ boolean sang hệ thống **Status Enum** (`OPEN`, `COMPLETED`, `CANCELLED`). Cho phép Manager hủy bỏ các yêu cầu không còn cần thiết để giải phóng nguồn vốn ngay lập tức.
+- **Strict Voting Deadline**: Thiết lập thời hạn biểu quyết nghiêm ngặt (7 ngày). Các yêu cầu không đạt đủ phiếu bầu trong thời gian này sẽ tự động hết hạn, đảm bảo tính luân chuyển của dòng vốn và tránh tình trạng treo ngân sách vô thời hạn.
+- **Gas-Optimized Storage Pattern**: Tái cấu trúc bộ nhớ lưu trữ (Storage) bằng cách tách các mapping biểu quyết ra khỏi struct `Request` và sử dụng cơ chế **Struct Packing**. Giảm thiểu chi phí Gas cho các thao tác tạo và duyệt yêu cầu chi tiêu.
+- **Budget Reservation (Locked Funds)**: Cơ chế bảo mật tự động khóa ngân sách ngay khi Request được tạo. Đảm bảo tổng số tiền của các yêu cầu đang chờ không bao giờ vượt quá số dư thực tế, loại bỏ hoàn toàn rủi ro thâm hụt ngân sách.
+- **Weighted Voting & Decentralized Selection**: Phiếu bầu được tính trọng số theo số tiền đóng góp. Tự động chọn ngẫu nhiên 3 Donors làm Validators cho các khoản chi nhỏ, kết hợp với cơ chế Blacklist để đảm bảo tính minh bạch tối đa.
+- **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và chữ ký nghiệm thu từ Verifier độc lập.
 
 ---
 *Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026.*

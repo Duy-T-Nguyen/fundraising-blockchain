@@ -25,7 +25,8 @@
     - [Chi tiết Luồng tiền (MONEY_FLOW.md)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/MONEY_FLOW.md)
 11. [Humanitarian Accountability Protocol (DAO x WFP v4.0)](#-humanitarian-accountability-protocol-dao-x-wfp)
 12. [Thông tin Triển khai (Sepolia)](#-thông-tin-triển-khai-sepolia)
-13. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
+13. [Tối Ưu Hóa & Tính Năng Mới (V5.0)](#-tối-ưu-hóa--tính-năng-mới-v50)
+14. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
 
 ---
 
@@ -35,9 +36,30 @@ Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepoli
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x3A02b0ff80476186E8D2352F17999A2c980A527D` |
-| **CampaignFactory** | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
-| **SupplierRegistry** | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
+| **Forwarder** | `0x554484d7542785dFE3637F57BBc14A4FC7ae11F2` |
+| **CampaignFactory** | `0x2c1ABdB0D8076e868A0342B926357E9EbB8F4bE1` |
+| **SupplierRegistry** | `0x73D372ba8716c41c9076811C9D4BD692fc6DAfEE` |
+
+---
+
+## ⚡ Tối Ưu Hóa & Tính Năng Mới (V5.0)
+
+Bản cập nhật này tập trung vào **tối ưu hóa chi phí Gas** và **nâng cao tính minh bạch** trong quy trình quản lý yêu cầu chi tiêu.
+
+### 1. Tối Ưu Hóa Gas (Gas Optimization)
+
+- **Storage Extraction**: Di chuyển các mapping lớn (`approvals`, `votedAmount`) ra khỏi struct `Request` để tránh việc mở rộng struct trong storage, giúp giảm đáng kể gas khi tạo request mới.
+- **Struct Packing**: Sắp xếp lại các trường dữ liệu trong `RequestLib` để đóng gói (pack) nhiều biến vào cùng một slot 32-byte (ví dụ: `recipient`, `type`, `status`), giúp giảm số lượng lệnh `SSTORE`.
+- **Bytes32 over String**: Sử dụng `bytes32` thay cho `string` cho các trường dữ liệu cố định hoặc mã định danh (như `name`, `description`, `imageHash`) để tiết kiệm gas khi truyền và lưu trữ dữ liệu.
+- **Unchecked Blocks**: Sử dụng `unchecked` cho các phép toán tăng/giảm biến đếm (`totalDonors`, `approvalCount`) khi đảm bảo không xảy ra tràn số.
+
+### 2. Tính Năng Mới (New Features)
+
+- **Vòng Đời Yêu Cầu (Request Lifecycle)**: Chuyển đổi từ cờ boolean đơn giản sang hệ thống **Enum Status** (`OPEN`, `COMPLETED`, `CANCELLED`) giúp quản lý trạng thái chính xác hơn.
+- **Cơ Chế Hủy Yêu Cầu (Cancellation)**: Manager có quyền hủy các yêu cầu đang chờ (`OPEN`) nếu không còn cần thiết, giúp giải phóng ngay lập tức số tiền đang bị khóa (`lockedFunds`).
+- **Hạn Chót Biểu Quyết (Voting Deadline)**: Áp dụng thời hạn biểu quyết nghiêm ngặt (mặc định 7 ngày). Sau thời gian này, request sẽ hết hạn nếu không đủ phiếu bầu, ngăn chặn tình trạng treo vốn.
+- **Biểu Quyết Theo Trọng Số (Weighted Voting)**: Phiếu bầu của donor được tính theo tỉ lệ số tiền đã đóng góp, đảm bảo tiếng nói của những người đóng góp lớn.
+- **Validator Pool Phi Tập Trung**: Tự động chọn ngẫu nhiên 3 donors làm Validator cho các request nhỏ, tăng cường tính minh bạch và giám sát cộng đồng.
 
 ---
 
@@ -1716,4 +1738,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026**
