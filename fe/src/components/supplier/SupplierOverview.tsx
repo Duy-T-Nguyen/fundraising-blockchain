@@ -5,13 +5,17 @@ import {
   CheckCircle2, 
   CreditCard, 
   History,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 import type { SupplierTask } from '../../types/supplier';
 
 interface SupplierOverviewProps {
   info: any;
   tasks: SupplierTask[];
+  isLoading?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 export const SupplierOverview: React.FC<SupplierOverviewProps> = ({
@@ -91,6 +95,36 @@ export const SupplierOverview: React.FC<SupplierOverviewProps> = ({
 
         {/* Side Actions/History */}
         <div className="lg:col-span-4 space-y-6">
+
+          <div className="bg-white border border-slate-100 p-8 rounded-[3rem] shadow-sm">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                <ShieldCheck className="text-emerald-600" size={20} />
+              </div>
+              <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs">Payment Security</h3>
+            </div>
+            
+            <div className="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-100 mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <Lock className="text-emerald-600" size={14} />
+                <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Liquidity Shield On</span>
+              </div>
+              <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                The campaign budget for your active tasks is automatically reserved (locked) in the smart contract upon request creation.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                On-chain reservation active
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Guaranteed fulfillment funds
+              </div>
+            </div>
+          </div>
 
           <div className="bg-white border border-slate-100 p-8 rounded-[3rem] shadow-sm">
             <div className="flex items-center gap-4 mb-8">

@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fundraising-backend
-    expose:
+    ports:
       - "1609:1609"
     env_file:
       - .env
@@ -67,4 +67,4 @@ volumes:
 
 networks:
   fundraising-network:
-    external: true
+    driver: bridge

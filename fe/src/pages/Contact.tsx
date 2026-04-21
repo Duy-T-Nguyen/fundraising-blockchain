@@ -3,7 +3,6 @@ import ContactHero from '../components/contact/ContactHero';
 import ContactInfo from '../components/contact/ContactInfo';
 import ContactForm from '../components/contact/ContactForm';
 import ContactSocials from '../components/contact/ContactSocials';
-import { Beaker } from 'lucide-react';
 
 const Contact = () => {
   useEffect(() => {

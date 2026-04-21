@@ -9,6 +9,7 @@ import CreateRequestModal from '../components/manager/CreateRequestModal';
 import RequestsList from '../components/manager/RequestsList';
 import { useWallet } from '../hooks/useWallet';
 import { LayoutDashboard, Plus } from 'lucide-react';
+import ManagerFinancialCard from '../components/manager/ManagerFinancialCard';
 
 const CampaignDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -89,6 +90,15 @@ const CampaignDetail: React.FC = () => {
           </div>
         )}
 
+        {/* Manager Financial Status */}
+        {isManager && summary && (
+          <ManagerFinancialCard 
+            totalBalance={summary.balance}
+            availableFunds={summary.availableFunds}
+            lockedFunds={summary.lockedFunds}
+          />
+        )}
+
         <CampaignHero
           address={address}
           title={summary.title}
@@ -97,6 +107,7 @@ const CampaignDetail: React.FC = () => {
           minimumContribution={summary.minimumContribution}
           donorsCount={summary.donorsCount}
           active={summary.active}
+          isManager={isManager}
           onSuccess={handleDonationSuccess}
         />
 

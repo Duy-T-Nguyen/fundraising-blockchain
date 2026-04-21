@@ -6,11 +6,13 @@ import {
   Layout,
   Menu,
   X,
-  Truck
+  Truck,
+  ShieldCheck
 } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
 import { useSupplier } from '../hooks/useSupplier';
+import { useAdmin } from '../hooks/useAdmin';
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,6 +20,7 @@ const Sidebar: React.FC = () => {
   const { address } = useWallet();
   const { managedCampaigns } = useUserActivity(address as `0x${string}`);
   const { info } = useSupplier(address || undefined);
+  const { isAdmin } = useAdmin();
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -34,6 +37,7 @@ const Sidebar: React.FC = () => {
     { name: 'Donation Activity', path: '/dashboard/activity', icon: <Activity size={22} /> },
     ...(managedCampaigns.length > 0 ? [{ name: 'Creator Dashboard', path: '/dashboard/creator', icon: <Layout size={22} /> }] : []),
     ...(info?.isRegistered ? [{ name: 'Supplier Portal', path: '/supplier', icon: <Truck size={22} /> }] : []),
+    ...(isAdmin ? [{ name: 'Platform Admin', path: '/admin', icon: <ShieldCheck size={22} className="text-amber-400" /> }] : []),
     { name: 'Launch Project', path: '/campaigns/create', icon: <PlusCircle size={22} /> },
   ];
 

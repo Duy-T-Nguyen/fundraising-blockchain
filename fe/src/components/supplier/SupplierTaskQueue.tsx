@@ -6,6 +6,7 @@ import type { SupplierTask } from '../../types/supplier';
 interface SupplierTaskQueueProps {
   tasks: SupplierTask[];
   isLoading: boolean;
+  onRefresh?: () => Promise<void>;
   uploadedEvidences: Record<string, string>;
   uploadingTaskId: string | null;
   onUpload: (campaignAddress: string, requestId: number) => void;

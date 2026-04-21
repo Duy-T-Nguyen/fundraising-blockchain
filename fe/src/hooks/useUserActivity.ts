@@ -28,10 +28,10 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
 
   const fetchActivity = useCallback(async () => {
     if (!userAddress || isFetching.current) return;
-    
+
     const checksumAddress = getAddress(userAddress);
     const cacheKey = `donations_${checksumAddress}`;
-    
+
     // Quick load from storage
     const cached = localStorage.getItem(cacheKey);
     if (cached) setUserDonations(JSON.parse(cached));
@@ -53,7 +53,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
         functionName: 'getCampaigns',
-        args: [1, checksumAddress, 0, 0n, 30n], 
+        args: [1, checksumAddress, 0, 0n, 30n],
       } as any) as `0x${string}`[];
 
       if (managedAddresses.length > 0) {
@@ -70,7 +70,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         for (let i = 0; i < managedAddresses.length; i++) {
           const name = results[i * 2].result as string;
           const summary = results[i * 2 + 1].result as any[];
-          
+
           if (name && summary) {
             managedData.push({
               address: managedAddresses[i],
@@ -86,12 +86,12 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
 
       // 3. RAPID MODE: Scan last ~1 day for instant results
       const currentBlock = await publicClient.getBlockNumber();
-      const LOOKBACK = 50000n; 
+      const LOOKBACK = 50000n;
       const scanLimit = currentBlock - LOOKBACK;
       const CHUNK_SIZE = 50000n;
-      
+
       const allLogs: any[] = [];
-      const chunks: {from: bigint, to: bigint}[] = [];
+      const chunks: { from: bigint, to: bigint }[] = [];
       for (let from = scanLimit; from < currentBlock; from += CHUNK_SIZE) {
         let to = from + CHUNK_SIZE - 1n;
         if (to > currentBlock) to = currentBlock;
@@ -103,7 +103,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         const batch = chunks.slice(Math.max(0, i - 4), i + 1);
         try {
           const batchResults = await Promise.all(
-            batch.map(chunk => 
+            batch.map(chunk =>
               publicClient.getLogs({
                 address: allCampaignAddresses,
                 event: {
@@ -118,10 +118,10 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
             )
           );
           allLogs.push(...batchResults.flat());
-          
+
           if (allLogs.length > 0) {
-              const partialDonations = await resolveLogNames(allLogs);
-              setUserDonations(partialDonations);
+            const partialDonations = await resolveLogNames(allLogs);
+            setUserDonations(partialDonations);
           }
         } catch (e) {
           console.warn('Batch logs query failed', e);
