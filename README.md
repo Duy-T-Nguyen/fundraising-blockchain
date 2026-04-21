@@ -71,9 +71,9 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x63081f46eD33a05bDad8C9E5a33312E1c228624F` |
-| **CampaignFactory** | `0xc05Ee3eBAd73cfee07f055ae50974ad98CD307DC` |
-| **SupplierRegistry** | `0x93aC66c9ABe2eE53ec896B7f3b4b660c9f968878` |
+| **Forwarder** | `0x3A02b0ff80476186E8D2352F17999A2c980A527D` |
+| **CampaignFactory** | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
+| **SupplierRegistry** | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
 
 **Các tính năng mới nhất (Cập nhật v4.1 - 21/04/2026):**
 - **Decentralized Validator Selection (Governance)**: Chuyển đổi cơ chế chọn Validator sang phi tập trung hoàn toàn trong `Campaign.sol`. Sử dụng `donorAtId` để snapshot và chọn ngẫu nhiên từ pool donor tại thời điểm tạo request. Loại bỏ hoàn toàn phụ thuộc vào hợp đồng `ValidatorPool` độc lập. Kết hợp với cơ chế blacklist (`failedValidators`) để đảm bảo liveness.
@@ -84,6 +84,7 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 - **Bytecode Optimization**: Smart Contract được tối ưu hóa dung lượng (<24KB) bằng cách hợp nhất sự kiện và logic validation, giúp tiết kiệm Gas và đảm bảo khả năng triển khai trên Mainnet.
 - **WFP 2-Stage Payment Logic**: Tích hợp chuẩn thanh toán của World Food Programme. Việc phê duyệt (Vote) chỉ có ý nghĩa "Duyệt Ngân sách". Tiền chỉ thực sự được giải ngân khi có chữ ký số (ECDSA Signature) nghiệm thu bằng chứng giao hàng từ một bên thứ 3 độc lập (`Verifier`).
 - **Weighted Voting**: Bảo vệ hệ thống khỏi tấn công Sybil bằng cách yêu cầu biểu quyết giải ngân dựa trên **trọng số vốn** (>50% tổng quỹ chiến dịch) thay vì số lượng người bình chọn.
+- **Budget Reservation (Over-commitment Prevention)**: Ngăn chặn triệt để lỗ hổng cấp vốn khống. Contract tự động theo dõi và khóa (`lockedFunds`) ngân sách ngay khi một yêu cầu chi tiêu được khởi tạo. Đảm bảo tổng số tiền của tất cả các yêu cầu đang chờ xử lý không bao giờ được phép vượt quá số dư thực tế hiện có của chiến dịch.
 
 ---
 *Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026.*

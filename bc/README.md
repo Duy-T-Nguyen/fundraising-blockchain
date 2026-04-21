@@ -35,9 +35,9 @@ Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepoli
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x63081f46eD33a05bDad8C9E5a33312E1c228624F` |
-| **CampaignFactory** | `0xc05Ee3eBAd73cfee07f055ae50974ad98CD307DC` |
-| **SupplierRegistry** | `0x93aC66c9ABe2eE53ec896B7f3b4b660c9f968878` |
+| **Forwarder** | `0x3A02b0ff80476186E8D2352F17999A2c980A527D` |
+| **CampaignFactory** | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
+| **SupplierRegistry** | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
 
 ---
 
@@ -602,6 +602,7 @@ uint256 public totalDonors;                      // Tổng số donors duy nhấ
 mapping(address => uint256) public contributions; // Mapping: donor → số tiền đã đóng góp
 RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu chi tiêu
 bool public active;                              // Chiến dịch có đang hoạt động không?
+uint256 public lockedFunds;                      // [Bảo Mật] Số tiền đang bị khóa bởi các Request chưa giải ngân
 
 string public campaignName;                      // Tên chiến dịch
 string public description;                       // Mô tả chi tiết
@@ -710,6 +711,11 @@ function createRequest(
     r.evidenceHash = evidenceHash;
     r.requestType = RequestLib.RequestType.SINGLE;
     r.verifier = verifier; // Lưu lại verifier
+
+    // CƠ CHẾ BẢO MẬT: KHÓA TIỀN (Budget Reservation)
+    // Đảm bảo số tiền request không vượt quá số dư thực tế đang rảnh
+    if (value > address(this).balance - lockedFunds) revert InsufficientAvailableFunds();
+    lockedFunds += value; // Khóa tiền lại để các request sau không dùng lạm vào
 
     // Logic chọn ngẫu nhiên Validator nếu số tiền nhỏ (bỏ qua chi tiết)
     // ...
@@ -1346,10 +1352,10 @@ npx hardhat verify --network sepolia <ĐỊA_CHỈ_FACTORY> "<ĐỊA_CHỈ_REGIS
 **Lệnh thực tế (với lần deploy gần nhất của bạn)**:
 ```bash
 # Verify SupplierRegistry
-npx hardhat verify --network sepolia 0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"
+npx hardhat verify --network sepolia 0x22e68c084B0580EA120a07BDdeDaecC35239bb83 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" "0x3A02b0ff80476186E8D2352F17999A2c980A527D"
 
 # Verify CampaignFactory
-npx hardhat verify --network sepolia 0xC178A1E8054b2aC73E43d10a6EBa573C12FA24ce "0x34569f934dC3a22Fb5e3bd8D688FA4244bF9066f"
+npx hardhat verify --network sepolia 0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe "0x22e68c084B0580EA120a07BDdeDaecC35239bb83" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" "0x3A02b0ff80476186E8D2352F17999A2c980A527D"
 ```
 
 **Sau khi verify thành công**, bạn có thể xem mã nguồn tại:
@@ -1363,9 +1369,9 @@ https://sepolia.etherscan.io/address/<ĐỊA_CHỈ>#code
 |---|---|
 | Mạng | Sepolia Testnet |
 | Platform Admin | `0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06` |
-| SupplierRegistry Address | `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F` |
-| CampaignFactory Address | `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6` |
-| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#code) |
+| SupplierRegistry Address | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
+| CampaignFactory Address | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
+| Etherscan | [Xem Factory](https://sepolia.etherscan.io/address/0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe#code) |
 
 #### 💡 Giải thích các địa chỉ 
 
@@ -1396,7 +1402,7 @@ Trước khi một chiến dịch có thể chi tiền, bạn (Admin) phải đ�
 4.  Nhấn **"Write"** để xác nhận.
 
 ### Bước 1: Gửi yêu cầu tạo Chiến dịch (Campaign Manager)
-1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract](https://sepolia.etherscan.io/address/0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6#writeContract)
+1.  Truy cập **CampaignFactory**: [https://sepolia.etherscan.io/address/0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe#writeContract](https://sepolia.etherscan.io/address/0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe#writeContract)
 2.  Dùng hàm **`submitCampaignRequest`**: 
     - `name`: Tên chiến dịch (ví dụ: "Cứu trợ lũ lụt").
     - `description`: Mô tả chi tiết chiến dịch.
@@ -1438,8 +1444,8 @@ Dưới đây là mã nguồn mẫu để bạn tương tác tự động bằng
 
 ```javascript
 async function main() {
-  const REGISTRY_ADDR = "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F";
-  const FACTORY_ADDR = "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6";
+  const REGISTRY_ADDR = "0x22e68c084B0580EA120a07BDdeDaecC35239bb83";
+  const FACTORY_ADDR = "0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe";
 
   // 1. Thêm Supplier
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDR);
@@ -1478,7 +1484,7 @@ npx hardhat console --network sepolia
 
 ```javascript
 // Trong console:
-const factory = await ethers.getContractAt("CampaignFactory", "0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6");
+const factory = await ethers.getContractAt("CampaignFactory", "0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe");
 const campaigns = await factory.getDeployedCampaigns();
 console.log(campaigns);
 ```
@@ -1699,8 +1705,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia 0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
-npx hardhat verify --network sepolia 0x9FCc4133983903EdADB61D592450079c2185d750 "0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" # Verify Factory
+npx hardhat verify --network sepolia 0x22e68c084B0580EA120a07BDdeDaecC35239bb83 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" "0x3A02b0ff80476186E8D2352F17999A2c980A527D"  # Verify Registry
+npx hardhat verify --network sepolia 0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe "0x22e68c084B0580EA120a07BDdeDaecC35239bb83" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" "0x3A02b0ff80476186E8D2352F17999A2c980A527D" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví

@@ -25,6 +25,7 @@ error CampaignNotActive();
 // Validation Errors
 // =====================
 error InsufficientFunds();
+error InsufficientAvailableFunds();
 error InvalidAddress();
 error InvalidRequestIndex();
 error EmptyName();

@@ -4,8 +4,8 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.log("Running post-deploy setup with:", deployer.address);
 
-  const FACTORY_ADDRESS = "0x9FCc4133983903EdADB61D592450079c2185d750";
-  const REGISTRY_ADDRESS = "0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3";
+  const FACTORY_ADDRESS = "0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe";
+  const REGISTRY_ADDRESS = "0x22e68c084B0580EA120a07BDdeDaecC35239bb83";
 
   // 1. Link Factory to SupplierRegistry
   const registry = await ethers.getContractAt("SupplierRegistry", REGISTRY_ADDRESS);

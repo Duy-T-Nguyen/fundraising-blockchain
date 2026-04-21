@@ -428,6 +428,8 @@ describe("Campaign & Factory", function () {
   describe("Create Request", function () {
     it("should allow manager to create a request", async () => {
       const verifier = donor2;
+      // FIX E: Need sufficient funds before creating request
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
       await campaign.createRequest("Buy supplies", ethers.parseEther("0.05"), recipient.address, verifier.address, "QmTestHash");
 
       const request = await campaign.requests(0);
@@ -440,6 +442,8 @@ describe("Campaign & Factory", function () {
     });
 
     it("should emit RequestCreated event", async () => {
+      // FIX E: Need sufficient funds before creating request
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
       await expect(
         campaign.createRequest(
           "Buy supplies",
@@ -512,6 +516,8 @@ describe("Campaign & Factory", function () {
     });
 
     it("should track multiple requests", async () => {
+      // FIX E: Need sufficient funds before creating requests
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
       await campaign.createRequest("Req 1", 100, recipient.address, donor2.address, "QmTestHash");
       await campaign.createRequest("Req 2", 200, recipient.address, donor2.address, "QmTestHash");
       await campaign.createRequest("Request 3", 300, recipient.address, donor2.address, "QmTestHash");
@@ -549,6 +555,115 @@ describe("Campaign & Factory", function () {
       await expect(
         campaign.createRequest("Buy supplies", 100, recipient.address, donor2.address, "")
       ).to.be.revertedWithCustomError(campaign, "EmptyEvidenceHash");
+    });
+  });
+
+  // =========================================================
+  // BUDGET RESERVATION (lockedFunds) - FIX E
+  // =========================================================
+  describe("Budget Reservation (lockedFunds)", function () {
+    beforeEach(async () => {
+      // Campaign has 5 ETH total
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("3") });
+      await campaign.connect(donor2).donate({ value: ethers.parseEther("2") });
+    });
+
+    it("should revert when single request exceeds available balance", async () => {
+      // Campaign balance = 5 ETH, try to create request for 6 ETH
+      await expect(
+        campaign.createRequest("Too expensive", ethers.parseEther("6"), recipient.address, donor2.address, "QmHash")
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
+    });
+
+    it("should revert when cumulative requests exceed balance", async () => {
+      // Create first request for 3 ETH (OK, 5-3=2 available)
+      await campaign.createRequest("Req 1", ethers.parseEther("3"), recipient.address, donor2.address, "QmHash1");
+      
+      // Create second request for 2 ETH (OK, 2-2=0 available)
+      await campaign.createRequest("Req 2", ethers.parseEther("2"), recipient.address, donor2.address, "QmHash2");
+      
+      // Create third request for even 1 wei (should FAIL, 0 available)
+      await expect(
+        campaign.createRequest("Req 3", 1, recipient.address, donor2.address, "QmHash3")
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
+    });
+
+    it("should allow new request after finalize releases locked funds", async () => {
+      // Lock all 5 ETH
+      await campaign.createRequest("Req 1", ethers.parseEther("5"), recipient.address, donor2.address, "QmHash1");
+      
+      // No more room
+      await expect(
+        campaign.createRequest("Req 2", 1, recipient.address, donor2.address, "QmHash2")
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
+
+      // Approve and finalize Req 1 → releases 5 ETH from locked
+      await campaign.connect(donor1).approveRequest(0);
+      await campaign.connect(donor2).approveRequest(0);
+      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 0);
+      await campaign.finalizeRequest(0, sig, "QmProof");
+
+      // Now balance = 0, lockedFunds = 0 → still can't create (no actual ETH)
+      await expect(
+        campaign.createRequest("Req After", ethers.parseEther("1"), recipient.address, donor2.address, "QmH")
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
+    });
+
+    it("should track availableFunds correctly", async () => {
+      expect(await campaign.availableFunds()).to.equal(ethers.parseEther("5"));
+      
+      await campaign.createRequest("Req 1", ethers.parseEther("2"), recipient.address, donor2.address, "QmHash1");
+      expect(await campaign.availableFunds()).to.equal(ethers.parseEther("3"));
+      
+      await campaign.createRequest("Req 2", ethers.parseEther("3"), recipient.address, donor2.address, "QmHash2");
+      expect(await campaign.availableFunds()).to.equal(ethers.parseEther("0"));
+    });
+
+    it("should revert when multi-stage request exceeds available balance", async () => {
+      // Lock 4 ETH first
+      await campaign.createRequest("Req 1", ethers.parseEther("4"), recipient.address, donor2.address, "QmHash1");
+      
+      // Try to create multi-stage with total 2 ETH (only 1 available)
+      await expect(
+        campaign.createMultiStageRequest(
+          "Multi too big",
+          recipient.address,
+          donor2.address,
+          [ethers.parseEther("1"), ethers.parseEther("1")],
+          ["M1", "M2"],
+          "QmInitial"
+        )
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
+    });
+
+    it("should release locked funds after milestone execution", async () => {
+      // Create multi-stage request for 2 ETH total
+      await campaign.createMultiStageRequest(
+        "Multi project",
+        recipient.address,
+        donor2.address,
+        [ethers.parseEther("1"), ethers.parseEther("1")],
+        ["Phase 1", "Phase 2"],
+        "QmInitial"
+      );
+      
+      // Available = 5 - 2 = 3 ETH
+      expect(await campaign.availableFunds()).to.equal(ethers.parseEther("3"));
+
+      // Approve the multi-stage request
+      await campaign.connect(donor1).approveRequest(0);
+      await campaign.connect(donor2).approveRequest(0);
+
+      // Execute milestone 0 → releases 1 ETH from locked
+      const msgHash0 = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256"],
+        [await campaign.getAddress(), 0, 0]
+      );
+      const sig0 = await donor2.signMessage(ethers.toBeArray(msgHash0));
+      await campaign.executeMilestone(0, sig0, "QmM1");
+
+      // Available = (5-1) balance - (2-1) locked = 4 - 1 = 3 ETH
+      expect(await campaign.lockedFunds()).to.equal(ethers.parseEther("1"));
     });
   });
 
@@ -741,22 +856,16 @@ describe("Campaign & Factory", function () {
     });
 
     it("should revert if contract balance is insufficient", async () => {
-      // Create a request for more than the balance
-      await campaign.createRequest(
-        "Expensive",
-        ethers.parseEther("100"),
-        recipient.address,
-        donor2.address,
-        "QmTestHash"
-      );
-
-      await campaign.connect(donor1).approveRequest(1);
-      await campaign.connect(donor2).approveRequest(1);
-
-      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 1);
+      // FIX E: Now the check happens at createRequest time, not finalizeRequest
       await expect(
-        campaign.finalizeRequest(1, sig, "QmProof")
-      ).to.be.revertedWithCustomError(campaign, "InsufficientFunds");
+        campaign.createRequest(
+          "Expensive",
+          ethers.parseEther("100"),
+          recipient.address,
+          donor2.address,
+          "QmTestHash"
+        )
+      ).to.be.revertedWithCustomError(campaign, "InsufficientAvailableFunds");
     });
 
     it("should revert for invalid request index", async () => {
@@ -919,6 +1028,8 @@ describe("Campaign & Factory", function () {
     it("getRequestsCount returns correct count", async () => {
       expect(await campaign.getRequestsCount()).to.equal(0);
 
+      // FIX E: Need sufficient funds before creating requests
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
       await campaign.createRequest("Req 1", 100, recipient.address, donor2.address, "QmTestHash");
       expect(await campaign.getRequestsCount()).to.equal(1);
 
