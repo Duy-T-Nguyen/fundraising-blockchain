@@ -34,6 +34,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     RequestLib.Request[] public requests;
     bool public active;
 
+    /// @notice Tổng số tiền đã được cam kết (locked) cho các request chưa hoàn thành
+    uint256 public lockedFunds;
+
     string public campaignName;
     string public description;
     string public imageHash;
@@ -174,6 +177,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
     ) external onlyManager onlyActive {
         _validateRequest(value, recipient, verifier, desc);
         if (bytes(evidenceHash).length == 0) revert EmptyEvidenceHash();
+
+        // FIX E: Kiểm tra số dư khả dụng (trừ đi tiền đã cam kết cho request cũ)
+        if (value > address(this).balance - lockedFunds) revert InsufficientAvailableFunds();
         
         RequestLib.Request storage r = requests.push();
         r.description = desc;
@@ -185,6 +191,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         r.requestType = RequestLib.RequestType.SINGLE;
         r.verifier = verifier;
         
+        // FIX E: Khóa số tiền cho request này
+        lockedFunds += value;
+
         // Snapshot bảo mật (FIX C)
         r.snapshotTotalFunds = totalFundsRaised;
         r.snapshotDonorCount = totalDonors;
@@ -238,6 +247,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         }
 
         _validateRequest(totalBudget, recipient, verifier, desc);
+
+        // FIX E: Kiểm tra số dư khả dụng
+        if (totalBudget > address(this).balance - lockedFunds) revert InsufficientAvailableFunds();
         
         RequestLib.Request storage r = requests.push();
         r.description = desc;
@@ -248,6 +260,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         r.verifier = verifier;
         r.currentMilestone = 0;
         r.evidenceHash = initialEvidenceHash;
+
+        // FIX E: Khóa số tiền cho request này
+        lockedFunds += totalBudget;
 
         // Snapshot bảo mật
         r.snapshotTotalFunds = totalFundsRaised;
@@ -385,6 +400,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         r.complete = true;
         r.evidenceHash = finalEvidenceHash;
 
+        // FIX E: Giải phóng số tiền đã khóa
+        lockedFunds -= r.value;
+
         (bool success, ) = r.recipient.call{value: r.value}("");
         if (!success) revert TransferFailed();
 
@@ -430,6 +448,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         m.released = true;
         m.evidenceHash = evidenceHash;
         r.currentMilestone++;
+
+        // FIX E: Giải phóng phần milestone vừa thanh toán
+        lockedFunds -= m.value;
 
         if (r.currentMilestone == r.milestones.length) {
             r.complete = true;
@@ -493,6 +514,13 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, ERC2771Context {
         if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
         if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
         if (bytes(desc).length == 0) revert EmptyDescription();
+    }
+
+    /**
+     * @notice Trả về số dư khả dụng (chưa bị khóa bởi các request đang chờ).
+     */
+    function availableFunds() external view returns (uint256) {
+        return address(this).balance - lockedFunds;
     }
 
     /**
