@@ -11,6 +11,6 @@ export const ABIS = {
   CAMPAIGN_FACTORY: CampaignFactoryABI.abi,
   CAMPAIGN: CampaignABI.abi,
   SUPPLIER_REGISTRY: SupplierRegistryABI.abi,
-};
+} as const;
 
 export const SEPOLIA_CHAIN_ID = 11155111;

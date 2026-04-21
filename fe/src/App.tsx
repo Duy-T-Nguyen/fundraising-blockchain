@@ -9,6 +9,7 @@ import Activity from './pages/Activity';
 import CreatorDashboard from './pages/CreatorDashboard';
 import Resources from './pages/Resources';
 import Contact from './pages/Contact';
+import SupplierDashboard from './pages/SupplierDashboard';
 
 import Sidebar from './layouts/Sidebar';
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="/campaign/:slug" element={<CampaignDetail />} />
             <Route path="/dashboard/activity" element={<Activity />} />
             <Route path="/dashboard/creator" element={<CreatorDashboard />} />
+            <Route path="/supplier" element={<SupplierDashboard />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>

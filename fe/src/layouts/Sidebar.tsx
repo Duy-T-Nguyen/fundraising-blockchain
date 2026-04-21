@@ -6,16 +6,18 @@ import {
   Layout,
   Menu,
   X,
-  ChevronRight
+  Truck
 } from 'lucide-react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
+import { useSupplier } from '../hooks/useSupplier';
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const { address } = useWallet();
   const { managedCampaigns } = useUserActivity(address as `0x${string}`);
+  const { info } = useSupplier(address || undefined);
 
   // Close sidebar when clicking outside
   useEffect(() => {
@@ -31,6 +33,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { name: 'Donation Activity', path: '/dashboard/activity', icon: <Activity size={22} /> },
     ...(managedCampaigns.length > 0 ? [{ name: 'Creator Dashboard', path: '/dashboard/creator', icon: <Layout size={22} /> }] : []),
+    ...(info?.isRegistered ? [{ name: 'Supplier Portal', path: '/supplier', icon: <Truck size={22} /> }] : []),
     { name: 'Launch Project', path: '/campaigns/create', icon: <PlusCircle size={22} /> },
   ];
 

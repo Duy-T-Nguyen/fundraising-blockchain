@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import CampaignHero from '../components/campaigndetail/CampaignHero';
 import DonorsTable from '../components/campaigndetail/DonorsTable';
 import { useCampaign } from '../hooks/useCampaign';
+import { useRequests } from '../hooks/useRequests';
 import { useCampaignResolver } from '../hooks/useCampaignResolver';
 import CreateRequestModal from '../components/manager/CreateRequestModal';
 import RequestsList from '../components/manager/RequestsList';
@@ -13,11 +14,12 @@ const CampaignDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { address: userAddress } = useWallet();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  
+
   // Resolve slug to address
   const { address, isLoading: isResolving, error: resolutionError } = useCampaignResolver(slug);
-  
+
   const { summary, isLoading, refresh } = useCampaign(address || undefined, userAddress || undefined);
+  const { votedRequestIds } = useRequests(address || undefined, userAddress || undefined);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   const isManager = !!(userAddress && summary && userAddress.toLowerCase() === summary.manager.toLowerCase());
@@ -72,8 +74,8 @@ const CampaignDetail: React.FC = () => {
               <h3 className="text-2xl font-black">Campaign Control Center</h3>
               <p className="text-blue-100/70 text-sm font-medium mt-1">You can create spending requests to use the funds.</p>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setIsModalOpen(true)}
               className="relative z-10 px-8 py-4 bg-white text-blue-600 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg"
             >
@@ -107,28 +109,29 @@ const CampaignDetail: React.FC = () => {
             </p>
           </div>
         </div>
-        
+
         {/* Spending Requests Section */}
-        <RequestsList 
-          address={address as string} 
-          isManager={isManager} 
+        <RequestsList
+          address={address as string}
+          isManager={isManager}
           hasDonated={hasDonated}
           userFirstDonationBlock={summary.firstDonationBlock}
-          donorsCount={summary.donorsCount} 
+          donorsCount={summary.donorsCount}
+          votedRequestIds={votedRequestIds}
         />
 
         <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-white/50">
-          <DonorsTable 
-            address={address || undefined} 
+          <DonorsTable
+            address={address || undefined}
             refreshTrigger={refreshKey}
           />
         </div>
       </div>
 
       {isModalOpen && address && (
-        <CreateRequestModal 
-          address={address} 
-          onClose={() => setIsModalOpen(false)} 
+        <CreateRequestModal
+          address={address}
+          onClose={() => setIsModalOpen(false)}
           onSuccess={() => refresh()}
         />
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import ResourcesHero from '../components/resources/ResourcesHero';
 import HowPlatformWorks from '../components/resources/HowPlatformWorks';
 import BlockchainTransparency from '../components/resources/BlockchainTransparency';
