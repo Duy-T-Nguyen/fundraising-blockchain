@@ -58,7 +58,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </div>
             )}
           </div>
-          <h3 className="text-2xl font-black text-slate-900">{task.description}</h3>
+          <h3 className="text-xl font-black text-slate-900">{task.description}</h3>
         </div>
 
         <div className="flex flex-col items-end gap-2 shrink-0">

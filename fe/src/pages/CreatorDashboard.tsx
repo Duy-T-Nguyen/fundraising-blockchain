@@ -3,6 +3,7 @@ import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
 import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
 
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
@@ -134,7 +135,7 @@ const CreatorDashboard: React.FC = () => {
                           </div>
                         </div>
                         <Link
-                          to={`/campaign/${camp.address}`}
+                          to={`/campaign/${slugify(camp.name)}`}
                           className="absolute top-6 right-6 p-2 bg-white/90 backdrop-blur-md rounded-xl text-slate-900 hover:bg-blue-600 hover:text-white transition-all shadow-lg"
                         >
                           <ExternalLink size={18} />
@@ -164,7 +165,7 @@ const CreatorDashboard: React.FC = () => {
                           </div>
 
                           <Link
-                            to={`/campaign/${camp.address}`}
+                            to={`/campaign/${slugify(camp.name)}`}
                             className="w-full py-4 mt-2 bg-slate-900 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-slate-900/10 group-hover/card:shadow-blue-600/20"
                           >
                             <Settings size={18} />

@@ -1,12 +1,11 @@
 import React from 'react';
-import { ClipboardList, RefreshCw } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import { TaskCard } from './TaskCard';
 import type { SupplierTask } from '../../types/supplier';
 
 interface SupplierTaskQueueProps {
   tasks: SupplierTask[];
   isLoading: boolean;
-  onRefresh: () => void;
   uploadedEvidences: Record<string, string>;
   uploadingTaskId: string | null;
   onUpload: (campaignAddress: string, requestId: number) => void;
@@ -16,7 +15,6 @@ interface SupplierTaskQueueProps {
 export const SupplierTaskQueue: React.FC<SupplierTaskQueueProps> = ({
   tasks,
   isLoading,
-  onRefresh,
   uploadedEvidences,
   uploadingTaskId,
   onUpload,

@@ -10,6 +10,7 @@ import CreatorDashboard from './pages/CreatorDashboard';
 import Resources from './pages/Resources';
 import Contact from './pages/Contact';
 import SupplierDashboard from './pages/SupplierDashboard';
+import VerifierDashboard from './pages/VerifierDashboard';
 
 import Sidebar from './layouts/Sidebar';
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="/supplier" element={<SupplierDashboard />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/verifier" element={<VerifierDashboard />} />
           </Routes>
           <Footer />
         </main>

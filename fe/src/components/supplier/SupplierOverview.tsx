@@ -4,7 +4,6 @@ import {
   Package, 
   CheckCircle2, 
   CreditCard, 
-  RefreshCw,
   History,
   ExternalLink
 } from 'lucide-react';
@@ -13,15 +12,11 @@ import type { SupplierTask } from '../../types/supplier';
 interface SupplierOverviewProps {
   info: any;
   tasks: SupplierTask[];
-  isLoading: boolean;
-  onRefresh: () => void;
 }
 
 export const SupplierOverview: React.FC<SupplierOverviewProps> = ({
   info,
   tasks,
-  isLoading,
-  onRefresh
 }) => {
   const activeTasks = tasks.filter(t => !t.complete);
   const settledTasks = tasks.filter(t => t.complete);
