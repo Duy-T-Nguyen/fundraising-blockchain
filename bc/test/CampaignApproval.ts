@@ -15,12 +15,16 @@ describe("Campaign Approval Workflow", function () {
   beforeEach(async () => {
     [owner, admin, manager, other] = await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    const forwarder = await Forwarder.deploy();
+    const forwarderAddress = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(admin.address);
+    supplierRegistry = await SupplierRegistry.deploy(admin.address, forwarderAddress);
 
     const CampaignFactory = await ethers.getContractFactory("CampaignFactory");
-    // Constructor: address _supplierRegistry, address _admin
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address);
+    // Constructor: address _supplierRegistry, address _admin, address _trustedForwarder
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), admin.address, forwarderAddress);
   });
 
   it("should allow any user to submit a campaign request", async () => {

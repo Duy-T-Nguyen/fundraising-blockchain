@@ -32,31 +32,40 @@ async function main() {
 
   // 2. Deploy các contract phụ trợ
   console.log("2. Đang khởi tạo các contract phụ trợ...");
+  
+  // 2.1 Deploy Forwarder
+  const Forwarder = await ethers.getContractFactory("Forwarder");
+  const forwarder = await Forwarder.deploy();
+  const forwarderAddress = await forwarder.getAddress();
+
   const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-  const sr = await SupplierRegistry.deploy(manager.address);
+  const sr = await SupplierRegistry.deploy(manager.address, forwarderAddress);
   
   const recipient = (await ethers.getSigners())[1];
-  await sr.addSupplier(recipient.address);
-
-  // Cần một ValidatorPool thực tế để qua được check constructor
-  const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-  const vp = await ValidatorPool.deploy(manager.address);
+  // addSupplier: address, name, metadata
+  await sr.addSupplier(recipient.address, "Supplier 1", "ipfs://metadata");
 
   console.log("3. Đang deploy Campaign...");
   const Campaign = await ethers.getContractFactory("Campaign");
   const campaign = await Campaign.deploy(
+    "Chiến dịch mẫu",
+    "Mô tả mẫu",
+    "QmImage",
+    0, // Category
     ethers.parseEther("0.01"), 
     manager.address, 
-    await vp.getAddress(), 
-    await sr.getAddress()
+    await sr.getAddress(),
+    forwarderAddress
   );
 
   // 3. Tạo Request kèm CID
   console.log("3. Đang tạo Spend Request với CID:", cid);
+  // createRequest: description, value, recipient, verifier, evidenceHash
   const tx = await campaign.createRequest(
     "Mua vật tư y tế", 
     ethers.parseEther("0.1"), 
     recipient.address, 
+    manager.address, // Verifier (dùng tạm manager)
     cid
   );
   await tx.wait();
@@ -68,9 +77,9 @@ async function main() {
   console.log("   Evidence CID:", request.evidenceHash);
 
   if (request.evidenceHash === cid) {
-    console.log("\n✅ KIỂM THỬ THÀNH CÔNG: Minh chứng đã được lưu trữ vĩnh viễn trên Blockchain!");
+    console.log("\n KIỂM THỬ THÀNH CÔNG: Minh chứng đã được lưu trữ vĩnh viễn trên Blockchain!");
   } else {
-    console.error("\n❌ KIỂM THỬ THẤT BẠI: CID không khớp.");
+    console.error("\n KIỂM THỬ THẤT BẠI: CID không khớp.");
   }
 
   // Dọn dẹp

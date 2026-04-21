@@ -7,7 +7,8 @@ describe("Campaign & Factory", function () {
   let factory: any;
   let campaign: any;
   let supplierRegistry: any;
-  let validatorPool: any;
+  let forwarder: any;
+  let forwarderAddress: string;
   let owner: HardhatEthersSigner;
   let donor1: HardhatEthersSigner;
   let donor2: HardhatEthersSigner;
@@ -22,11 +23,15 @@ describe("Campaign & Factory", function () {
     [owner, donor1, donor2, donor3, recipient, nonDonor] =
       await ethers.getSigners();
 
+    const Forwarder = await ethers.getContractFactory("Forwarder");
+    forwarder = await Forwarder.deploy();
+    forwarderAddress = await forwarder.getAddress();
+
     const SupplierRegistry = await ethers.getContractFactory("SupplierRegistry");
-    supplierRegistry = await SupplierRegistry.deploy(owner.address);
+    supplierRegistry = await SupplierRegistry.deploy(owner.address, forwarderAddress);
     const CampaignFactory =
       await ethers.getContractFactory("CampaignFactory");
-    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address);
+    factory = await CampaignFactory.deploy(await supplierRegistry.getAddress(), owner.address, forwarderAddress);
 
     await supplierRegistry.setFactory(await factory.getAddress());
     await supplierRegistry.addSupplier(recipient.address, "Tech Global", "ipfs://techglobal");
@@ -42,15 +47,6 @@ describe("Campaign & Factory", function () {
 
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
-
-    // Setup ValidatorPool for this campaign
-    const validatorPoolAddress = await campaign.validatorPool();
-    const ValidatorPool = await ethers.getContractFactory("ValidatorPool");
-    validatorPool = await ValidatorPool.attach(validatorPoolAddress);
-    
-    await validatorPool.connect(owner).addValidator(donor1.address);
-    await validatorPool.connect(owner).addValidator(donor2.address);
-    await validatorPool.connect(owner).addValidator(donor3.address);
 
     // Expose helper to tests
     (factory as any).createAndApprove = createAndApprove;
@@ -468,7 +464,9 @@ describe("Campaign & Factory", function () {
 
     it("should allow manager to re-select validators after timeout", async () => {
         // Donate first to enable validator path
-        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("0.5") });
+        await campaign.connect(donor2).donate({ value: ethers.parseEther("0.3") });
+        await campaign.connect(donor3).donate({ value: ethers.parseEther("0.2") });
         
         // Create small request
         await campaign.createRequest("Small", 100, recipient.address, donor2.address, "QmTest");
@@ -488,7 +486,9 @@ describe("Campaign & Factory", function () {
 
     it("should include selectedValidators in RequestCreated event for small requests", async () => {
       // Cần có donor donate đủ lớn để totalFundsRaised > 0 và value <= threshold
-      await campaign.connect(donor1).donate({ value: ethers.parseEther("10") });
+      await campaign.connect(donor1).donate({ value: ethers.parseEther("5") });
+      await campaign.connect(donor2).donate({ value: ethers.parseEther("3") });
+      await campaign.connect(donor3).donate({ value: ethers.parseEther("2") });
 
       // Value nhỏ (0.01 ETH) <= 0.5% of 10 ETH (0.05 ETH) -> sẽ kích hoạt validator selection
       const tx = await campaign.createRequest("Small purchase", ethers.parseEther("0.01"), recipient.address, donor2.address, "QmEvidence");
@@ -599,15 +599,16 @@ describe("Campaign & Factory", function () {
       ).to.be.revertedWithCustomError(campaign, "AlreadyVoted");
     });
 
-    it("should revert if manager tries to vote", async () => {
-      // Manager donates first to become a donor
-      await campaign
-        .connect(owner)
-        .donate({ value: ethers.parseEther("1") });
+    it("should prevent manager from donating and voting", async () => {
+      // Manager cannot even donate to become a donor
+      await expect(
+        campaign.connect(owner).donate({ value: ethers.parseEther("1") })
+      ).to.be.revertedWithCustomError(campaign, "ManagerCannotDonate");
 
+      // Even if they try to vote directly, they are not a donor
       await expect(
         campaign.connect(owner).approveRequest(0)
-      ).to.be.revertedWithCustomError(campaign, "ManagerCannotVote");
+      ).to.be.revertedWithCustomError(campaign, "NotDonor");
     });
 
     it("should revert for invalid request index", async () => {
@@ -1055,7 +1056,8 @@ describe("Campaign & Factory", function () {
       const verifier = donor2;
       await campaign.createMultiStageRequest(
         "Phase 1", recipient.address, verifier.address, 
-        [ethers.parseEther("0.1"), ethers.parseEther("0.2")], ["M1", "M2"]
+        [ethers.parseEther("0.1"), ethers.parseEther("0.2")], ["M1", "M2"],
+        "ipfs://initial"
       );
       
       await campaign.connect(donor1).approveRequest(0);

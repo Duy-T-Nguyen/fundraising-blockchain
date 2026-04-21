@@ -32,8 +32,8 @@ yarn dev
 Frontend tương tác với 2 thành phần khác:
 - **Backend (be/)**: Gọi API `POST /evidence/upload` để lấy mã CID cho hình ảnh/hóa đơn.
 - **Blockchain (bc/)**: Sử dụng thư viện `ethers.js` để gọi các hàm của Smart Contract đã deploy tại:
-  - Factory: `0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6`
-  - Registry: `0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F`
+  - Factory: `0x9FCc4133983903EdADB61D592450079c2185d750`
+  - Registry: `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3`
 
 ## 📂 Cấu trúc thư mục
 

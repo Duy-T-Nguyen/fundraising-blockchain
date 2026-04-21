@@ -35,8 +35,8 @@ Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepoli
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **CampaignFactory** | `0x9F24fd3F2c387Ed8CEa41621ca001faAfC385952` |
-| **SupplierRegistry** | `0x13f469706e509B7E4aB4Eca1Ec580A42bE7b79d7` |
+| **CampaignFactory** | `0x9FCc4133983903EdADB61D592450079c2185d750` |
+| **SupplierRegistry** | `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3` |
 
 ---
 
@@ -398,7 +398,7 @@ contract Events {
     event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount, string evidenceHash);
 
     /// Phát ra khi validator pool được cập nhật
-    event ValidatorPoolUpdated(address indexed poolAddress);
+    event ValidatorPoolUpdated(address indexed poolAddress); // Trình xác thực (Donors) được chọn
 
     /// Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
@@ -605,8 +605,8 @@ bool public active;                              // Chiến dịch có đang ho�
 string public campaignName;                      // Tên chiến dịch
 string public description;                       // Mô tả chi tiết
 string public imageHash;                         // Mã IPFS CID của ảnh đại diện
-Category public category;                        // Danh mục
-ValidatorPool public validatorPool;              // Pool của Validators
+uint256 public snapshotDonorCount;              // Số lượng donor tại thời điểm tạo request
+mapping(uint256 => address) public donorAtId;   // Indexing donor phục vụ bốc thăm ngẫu nhiên
 SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```
 
@@ -614,21 +614,24 @@ SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 ```solidity
 constructor(
     string memory _name,
+    string memory _description,
+    string memory _imageHash,
     Category _category,
     uint256 _minimum,
     address _manager,
-    address _validatorPool,
-    address _supplierRegistry
+    address _supplierRegistry,
+    address trustedForwarder
 ) {
     if (_minimum == 0) revert InsufficientFunds();
-    if (_manager == address(0) || _validatorPool == address(0) || _supplierRegistry == address(0))
+    if (_manager == address(0) || _supplierRegistry == address(0))
         revert InvalidAddress();
     
     campaignName = _name;
+    description = _description;
+    imageHash = _imageHash;
     category = _category;
     manager = _manager;
     minimumContribution = _minimum;
-    validatorPool = ValidatorPool(_validatorPool);
     supplierRegistry = SupplierRegistry(_supplierRegistry);
     active = true;
 }
@@ -643,6 +646,8 @@ constructor(
 | `approveRequest(index)` | Write | Chỉ Donor | Bỏ phiếu đồng ý cho request | ~50.000 |
 | `finalizeRequest(index)` | Write | Chỉ Manager | Giải ngân khi đủ phiếu | ~60.000 |
 | `executeMilestone(...)` | Write | Manager/Verifier | Giải ngân theo giai đoạn + **Evidence** | ~120.000 |
+| `reselectValidators(index)` | Write | Chỉ Manager | Chọn lại Validator nếu đội cũ treo (48h) | ~80.000 |
+| `claimRefund()` | Write | Chỉ Donor | Rút lại tiền theo tỷ lệ khi dự án dừng | ~50.000 |
 | `deactivateCampaign()` | Write | Chỉ Manager | Tạm dừng chiến dịch | ~30.000 |
 | `getSummary()` | Read (miễn phí) | Bất kỳ ai | Xem thông tin tổng quan (có imageHash) | 0 |
 | `getRequestsCount()` | Read (miễn phí) | Bất kỳ ai | Đếm số requests | 0 |
@@ -808,6 +813,7 @@ function getSummary() external view returns (
     uint256 numRequests,      // Số lượng requests
     uint256 donors,           // Số lượng donors
     address managerAddr,      // Địa chỉ manager
+    string memory imgHash,    // IPFS Hash của ảnh chiến dịch
     bool isActive             // Đang hoạt động?
 ) {
     return (
@@ -816,6 +822,7 @@ function getSummary() external view returns (
         requests.length,
         totalDonors,
         manager,
+        imageHash,
         active
     );
 }
@@ -1109,9 +1116,9 @@ Hệ thống sử dụng các danh mục cố định để người dùng dễ 
 - **4 - Others** (Khác)
 
 ### 2. Cách tạo Chiến dịch có phân loại
-Hàm `createCampaign` hiện yêu cầu 3 tham số thay vì 1 như trước:
+Hàm `submitCampaignRequest` hiện yêu cầu 5 tham số để tạo yêu cầu (sau đó Admin mới duyệt để deploy):
 ```solidity
-function createCampaign(string calldata name, Category category, uint256 minimum) external;
+function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external payable;
 ```
 **Hướng dẫn tương tác:**
 - `name`: Nhập tên chiến dịch (ví dụ: "Cứu trợ lũ lụt Miền Trung").
@@ -1691,8 +1698,8 @@ npx hardhat node                               # Chạy blockchain local
 # ===== DEPLOY =====
 npx hardhat run scripts/deploy.ts              # Deploy local
 npx hardhat run scripts/deploy.ts --network sepolia  # Deploy Sepolia
-npx hardhat verify --network sepolia 0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
-npx hardhat verify --network sepolia 0x09fDbe64a9b0bC47d3E166e011196CfAEAcC5aE6 "0xfD0F2333C45B4ec5E9086A5A40d7f936B052671F" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" # Verify Factory
+npx hardhat verify --network sepolia 0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3 "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06"  # Verify Registry
+npx hardhat verify --network sepolia 0x9FCc4133983903EdADB61D592450079c2185d750 "0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3" "0xe9BC90cee5a039B49ded5E3113E0C23D32ef2f06" # Verify Factory
 
 # ===== TIỆN ÍCH =====
 npx hardhat run scripts/check-balance.ts --network sepolia  # Check số dư ví
@@ -1702,4 +1709,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 15/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026**

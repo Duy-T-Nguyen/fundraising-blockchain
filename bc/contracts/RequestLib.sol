@@ -24,6 +24,7 @@ library RequestLib {
         uint256 totalApprovalWeight;
         string evidenceHash;    // IPFS Hash minh chứng
         mapping(address => bool) approvals;
+        mapping(address => uint256) votedAmount; // Số tiền Donor đã dùng để biểu quyết cho request này
         
         // Cấu trúc cho Multi-stage
         RequestType requestType;
@@ -31,9 +32,14 @@ library RequestLib {
         uint256 currentMilestone;
         address verifier;       // Địa chỉ Oracle/Validator xác thực
 
+        // Snapshot bảo mật
+        uint256 snapshotTotalFunds; // Tổng quỹ tại thời điểm tạo
+        uint256 snapshotDonorCount; // Số lượng donor tại thời điểm tạo
+
         // Cấu trúc cho Validator path (Small Request)
         uint256 validatorApprovalCount;
         mapping(address => bool) validatorApprovals;
+        mapping(address => bool) failedValidators; // NEW: Những người đã từng được chọn nhưng không làm việc
         address[] selectedValidators;
         uint256 lastValidatorSelection;
     }

@@ -8,6 +8,10 @@ error NotManager();
 error NotDonor();
 error ManagerCannotVote();
 error NotAuthorized();
+error ManagerCannotDonate();
+error JoinedAfterRequest();
+error CampaignStillActive();
+error NoContributionFound();
 
 // =====================
 // State Errors

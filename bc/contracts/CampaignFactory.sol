@@ -2,8 +2,8 @@
 pragma solidity ^0.8.28;
 
 import "./Campaign.sol";
-import "./ValidatorPool.sol";
 import "./SupplierRegistry.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title CampaignFactory
@@ -11,12 +11,15 @@ import "./SupplierRegistry.sol";
  * @notice Contract trung tâm để khởi tạo và quản lý các chiến dịch gây quỹ.
  * @dev Áp dụng quy trình: Gửi yêu cầu -> Admin duyệt -> Deploy.
  */
-contract CampaignFactory is Events {
+contract CampaignFactory is Events, ERC2771Context {
     /// @notice Địa chỉ Platform Admin (người deploy hoặc quản trị hệ thống)
     address public admin;
 
     /// @notice Phí chống spam khi tạo chiến dịch (0.005 ETH)
     uint256 public antiSpamFee = 0.005 ether;
+
+    /// @notice Tỷ lệ hoàn phí khi bị từ chối (80% = 8000/10000)
+    uint256 public constant REJECTION_REFUND_BPS = 8000;
 
     /// @notice Danh sách địa chỉ các chiến dịch đã deploy
     address[] public deployedCampaigns;
@@ -69,19 +72,24 @@ contract CampaignFactory is Events {
 
     /// @dev Chỉ cho phép Admin gọi
     modifier onlyAdmin() {
-        if (msg.sender != admin) revert NotAdmin();
+        if (_msgSender() != admin) revert NotAdmin();
         _;
     }
+
+    /// @notice Địa chỉ Trusted Forwarder (cho Meta-Transactions)
+    address public immutable campaignTrustedForwarder;
 
     /**
      * @notice Khởi tạo Factory với SupplierRegistry đã deploy sẵn.
      * @param _supplierRegistry Địa chỉ của SupplierRegistry contract.
      * @param _admin Địa chỉ quản trị viên.
+     * @param _trustedForwarder Địa chỉ của relayer (Meta-Transaction).
      */
-    constructor(address _supplierRegistry, address _admin) {
+    constructor(address _supplierRegistry, address _admin, address _trustedForwarder) ERC2771Context(_trustedForwarder) {
         if (_admin == address(0) || _supplierRegistry == address(0)) revert InvalidAddress();
         supplierRegistry = SupplierRegistry(_supplierRegistry);
         admin = _admin;
+        campaignTrustedForwarder = _trustedForwarder;
     }
 
     /**
@@ -120,7 +128,7 @@ contract CampaignFactory is Events {
 
         uint256 requestId = requestCount++;
         campaignRequests[requestId] = CampaignRequest({
-            manager: msg.sender,
+            manager: _msgSender(),
             name: name,
             description: description,
             imageHash: imageHash,
@@ -130,9 +138,9 @@ contract CampaignFactory is Events {
             deployedAddress: address(0)
         });
 
-        requestIdsByManager[msg.sender].push(requestId);
+        requestIdsByManager[_msgSender()].push(requestId);
 
-        emit CampaignRequestSubmitted(requestId, msg.sender, name, description, imageHash, category, minimum);
+        emit CampaignRequestSubmitted(requestId, _msgSender(), name, description, imageHash, category, minimum);
     }
 
     /**
@@ -146,8 +154,7 @@ contract CampaignFactory is Events {
 
         req.status = RequestStatus.APPROVED;
         
-        // Deploy các contract liên quan
-        ValidatorPool pool = new ValidatorPool(req.manager);
+        // Deploy Campaign trực tiếp (không cần ValidatorPool global)
         Campaign newCampaign = new Campaign(
             req.name,
             req.description,
@@ -155,8 +162,8 @@ contract CampaignFactory is Events {
             req.category,
             req.minimumContribution,
             req.manager,
-            address(pool),
-            address(supplierRegistry)
+            address(supplierRegistry),
+            campaignTrustedForwarder
         );
         
         address campaignAddr = address(newCampaign);
@@ -182,6 +189,13 @@ contract CampaignFactory is Events {
         if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
 
         req.status = RequestStatus.REJECTED;
+
+        // Hoàn lại 80% phí Anti-Spam cho Manager
+        uint256 refundAmount = (antiSpamFee * REJECTION_REFUND_BPS) / 10000;
+        if (refundAmount > 0 && address(this).balance >= refundAmount) {
+            (bool success, ) = req.manager.call{value: refundAmount}("");
+            if (!success) revert TransferFailed();
+        }
 
         emit CampaignRequestRejected(requestId);
     }

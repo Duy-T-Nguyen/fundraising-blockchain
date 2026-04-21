@@ -3,6 +3,7 @@ pragma solidity ^0.8.28;
 
 import "./Errors.sol";
 import "./Events.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 interface ICampaignFactory {
     function isChildCampaign(address) external view returns (bool);
@@ -14,7 +15,7 @@ interface ICampaignFactory {
  * @author Fundraising Blockchain Team
  * @notice Sổ cái toàn cầu lưu trữ danh sách Nhà cung cấp uy tín.
  */
-contract SupplierRegistry is Events {
+contract SupplierRegistry is Events, ERC2771Context {
     /// @notice Địa chỉ Platform Admin
     address public admin;
     
@@ -45,11 +46,11 @@ contract SupplierRegistry is Events {
 
     /// @dev Chỉ cho phép Admin gọi
     modifier onlyAdmin() {
-        if (msg.sender != admin) revert NotAdmin();
+        if (_msgSender() != admin) revert NotAdmin();
         _;
     }
 
-    constructor(address _admin) {
+    constructor(address _admin, address trustedForwarder) ERC2771Context(trustedForwarder) {
         if (_admin == address(0)) revert InvalidAddress();
         admin = _admin;
     }
@@ -96,7 +97,7 @@ contract SupplierRegistry is Events {
      * @notice Cập nhật thông tin cho Supplier.
      */
     function updateSupplierInfo(address _supplier, string calldata _name, string calldata _metadata) external {
-        if (msg.sender != admin && msg.sender != _supplier) revert NotAdmin();
+        if (_msgSender() != admin && _msgSender() != _supplier) revert NotAdmin();
         if (!suppliers[_supplier].exists) revert NotWhitelisted();
 
         suppliers[_supplier].name = _name;
