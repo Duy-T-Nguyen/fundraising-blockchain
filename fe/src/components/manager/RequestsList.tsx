@@ -10,11 +10,18 @@ import {
   ShieldCheck,
   Zap,
   LayoutDashboard,
+  ExternalLink,
+  Image as ImageIcon,
+  Clock,
+  XCircle,
+  Eye,
+  Camera,
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { encodeFunctionData, formatEther } from 'viem';
 import { publicClient, getWalletClient } from '../../blockchain/client';
 import { useRelayer } from '../../hooks/useRelayer';
+import { useSupplierEvidence } from '../../hooks/useSupplierEvidence';
 
 interface RequestsListProps {
   address: string;
@@ -25,10 +32,78 @@ interface RequestsListProps {
 }
 
 const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDonated, userDonorId, donorsCount }) => {
-  const { address: userAddress } = useWallet();
+  const { address: userAddress, isConnected, connect } = useWallet();
   const { requests, votedRequestIds, pendingRequestIds, isLoading, refresh } = useRequests(address, userAddress || undefined);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const { executeGasless, isRelaying } = useRelayer();
+  const { 
+    uploadingTaskId, 
+    uploadedEvidences, 
+    fileInputRef, 
+    startUpload, 
+    handleFileChange, 
+    openIPFS 
+  } = useSupplierEvidence(userAddress || undefined, isConnected, connect);
+
+  // --- Verification Handlers ---
+  const handleSubmitProof = async (requestId: number, proofCID: string) => {
+    if (!userAddress) return;
+    setProcessingId(requestId);
+    try {
+      const data = encodeFunctionData({
+        abi: ABIS.CAMPAIGN,
+        functionName: 'submitProof',
+        args: [BigInt(requestId), proofCID],
+      });
+      await executeGasless(address, data);
+      refresh();
+    } catch (err) {
+      console.error('Submit proof failed:', err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleVerify = async (requestId: number) => {
+    if (!userAddress) return;
+    setProcessingId(requestId);
+    try {
+      const data = encodeFunctionData({
+        abi: ABIS.CAMPAIGN,
+        functionName: 'verifyRequest',
+        args: [BigInt(requestId)],
+      });
+      await executeGasless(address, data);
+      refresh();
+    } catch (err) {
+      console.error('Verification failed:', err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (requestId: number) => {
+    if (!userAddress) return;
+    const reason = prompt("Please enter the reason for rejection (will be stored on IPFS/Chain):");
+    if (!reason) return;
+
+    setProcessingId(requestId);
+    try {
+      // In a real app, we would upload the reason to IPFS first
+      // For now, we'll use a placeholder or the raw text if short
+      const data = encodeFunctionData({
+        abi: ABIS.CAMPAIGN,
+        functionName: 'rejectRequest',
+        args: [BigInt(requestId), reason], 
+      });
+      await executeGasless(address, data);
+      refresh();
+    } catch (err) {
+      console.error('Rejection failed:', err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   // --- AI Approve (Gasless, queued) ---
   const handleApprove = async (index: number) => {
@@ -139,10 +214,20 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
           const currentAmount = parseFloat(formatEther(BigInt(req.approvalWeights)));
           const targetAmount = parseFloat(formatEther(req.snapshotTotalFunds)) / 2;
           const isComplete = req.complete;
-          const canFinalize = currentAmount > targetAmount;
+          const isVerified = req.verifyStatus === 1; // APPROVED
+          const isRejected = req.verifyStatus === 2; // REJECTED
+          const canFinalize = currentAmount > targetAmount && isVerified;
+          
           const isEligible = userDonorId > BigInt(0) && userDonorId <= req.snapshotDonorCount;
           const isVoted = votedRequestIds.has(req.id);
           const isPending = pendingRequestIds.has(req.id);
+
+          const isSupplier = userAddress?.toLowerCase() === req.recipient.toLowerCase();
+          const isVerifier = userAddress?.toLowerCase() === req.verifier.toLowerCase();
+          
+          const hasProof = req.proofCID && req.proofCID !== "";
+          const taskKey = `${address}-${req.id}`;
+          const localProof = uploadedEvidences[taskKey];
 
           return (
             <div
@@ -159,9 +244,25 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                 <div className="space-y-6 flex-1 w-full">
                   {/* Status badge */}
                   <div className="flex items-center gap-3">
-                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isComplete ? 'bg-slate-100 text-slate-400' : 'bg-amber-100 text-amber-600'}`}>
-                      {isComplete ? 'Completed' : 'Under Review'}
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${isComplete ? 'bg-slate-100 text-slate-400' : isRejected ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                      {isComplete ? 'Completed' : isRejected ? 'Rejected' : 'Under Review'}
                     </span>
+                    
+                    {/* Verification Status Badge */}
+                    {!isComplete && (
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                        req.verifyStatus === 1 ? 'bg-emerald-100 text-emerald-600' : 
+                        req.verifyStatus === 2 ? 'bg-rose-100 text-rose-600' : 
+                        'bg-blue-100 text-blue-600'
+                      }`}>
+                        {req.verifyStatus === 1 ? <ShieldCheck size={12} /> : 
+                         req.verifyStatus === 2 ? <XCircle size={12} /> : 
+                         <Clock size={12} />}
+                        {req.verifyStatus === 1 ? 'Verified' : 
+                         req.verifyStatus === 2 ? 'Rejection Final' : 
+                         hasProof ? 'Pending Verifier' : 'Waiting for Proof'}
+                      </span>
+                    )}
                     <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">ID: #{req.id}</span>
                   </div>
 
@@ -183,7 +284,18 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       <div className="flex items-center gap-2 text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-lg">
                         <ArrowUpRight size={14} />
                         <span className="font-mono text-xs truncate max-w-[120px]">{req.recipient}</span>
+                        {isSupplier && <span className="text-[8px] bg-blue-600 text-white px-1.5 py-0.5 rounded uppercase">You</span>}
                       </div>
+                      {hasProof && (
+                        <button 
+                          onClick={() => openIPFS(req.proofCID)}
+                          className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors"
+                        >
+                          <ImageIcon size={14} />
+                          <span className="text-xs">View Proof</span>
+                          <ExternalLink size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -191,7 +303,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                   <div className="flex items-center gap-4">
 
                     {/* === DONOR SECTION === */}
-                    {!isManager && !isComplete && (
+                    {!isManager && !isSupplier && !isVerifier && !isComplete && (
                       <div className="flex flex-col gap-3 w-full min-w-[160px]">
                         {/* Already voted on-chain */}
                         {isVoted && (
@@ -279,6 +391,79 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       </div>
                     )}
 
+                    {/* === SUPPLIER SECTION === */}
+                    {isSupplier && !isComplete && !isRejected && (
+                      <div className="flex flex-col gap-2 min-w-[200px]">
+                        {!hasProof ? (
+                          <>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e)}
+                            />
+                            {localProof ? (
+                              <button
+                                onClick={() => handleSubmitProof(req.id, `ipfs://${localProof}`)}
+                                disabled={processingId === req.id || isRelaying}
+                                className="w-full h-[52px] bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                              >
+                                {processingId === req.id ? <span className="animate-spin">🌀</span> : <CheckCircle2 size={14} />}
+                                Submit Proof to Chain
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => startUpload(address, req.id)}
+                                disabled={uploadingTaskId === taskKey}
+                                className="w-full h-[52px] bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+                              >
+                                {uploadingTaskId === taskKey ? <span className="animate-spin">🌀</span> : <Camera size={14} />}
+                                {uploadingTaskId === taskKey ? 'Uploading...' : 'Upload Proof (Image)'}
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
+                            <CheckCircle2 size={14} />
+                            <span>Proof Submitted</span>
+                            <span className="text-[8px] normal-case tracking-normal">Awaiting verification</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* === VERIFIER SECTION === */}
+                    {isVerifier && !isComplete && !isVerified && !isRejected && (
+                      <div className="flex flex-col gap-2 min-w-[200px]">
+                        {!hasProof ? (
+                          <div className="w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-400 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
+                            <Clock size={14} />
+                            <span>Waiting for Supplier</span>
+                            <span className="text-[8px] normal-case tracking-normal italic">Proof required to verify</span>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleVerify(req.id)}
+                              disabled={processingId === req.id || isRelaying}
+                              className="flex-1 h-[52px] bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                            >
+                              {processingId === req.id ? <span className="animate-spin">🌀</span> : <ShieldCheck size={14} />}
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleReject(req.id)}
+                              disabled={processingId === req.id || isRelaying}
+                              className="flex-1 h-[52px] bg-rose-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-rose-700 transition-all flex items-center justify-center gap-2"
+                            >
+                              {processingId === req.id ? <span className="animate-spin">🌀</span> : <XCircle size={14} />}
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* === MANAGER SECTION === */}
                     {isManager && !isComplete && (
                       <div className="flex flex-col items-center gap-2">
@@ -297,6 +482,21 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                             'Finalize & Pay'
                           )}
                         </button>
+                        {!isVerified && !isRejected && (
+                          <span className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1">
+                            <Clock size={12} /> Awaiting Verification
+                          </span>
+                        )}
+                        {isVerified && !canFinalize && (
+                          <span className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1">
+                            <Users size={12} /> Awaiting Donor Approvals
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="text-[10px] font-bold text-rose-500 uppercase flex items-center gap-1">
+                            <XCircle size={12} /> Rejected by Verifier
+                          </span>
+                        )}
                         {canFinalize && !isRelaying && (
                           <span className="text-[8px] text-emerald-500 font-bold uppercase tracking-tighter flex items-center gap-1">
                             <Zap size={8} /> Gasless AI Optimized

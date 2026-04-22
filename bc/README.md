@@ -36,9 +36,9 @@ Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepoli
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x2a64df874a162534674D09E0d01c4e4f3cbC5819` |
-| **CampaignFactory** | `0xA0F736Da6e3DA5DB2805f11f34df4CC11edDF182` |
-| **SupplierRegistry** | `0x864b6Bb917222e511fA7EcaA2df8188dbbA1996C` |
+| **Forwarder** | `0x26aCb6E756C2b014C247A86c9614C8bf511AE33B` |
+| **CampaignFactory** | `0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028` |
+| **SupplierRegistry** | `0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5` |
 
 ---
 
@@ -55,6 +55,8 @@ Bản cập nhật này tập trung vào **tối ưu hóa chi phí Gas** và **n
 
 ### 2. Tính Năng Mới (New Features)
 
+- **On-chain Verification Lifecycle (V6.0)**: Chuyển đổi từ cơ chế chữ ký Off-chain (ECDSA) sang xác thực **On-chain 100%**. Supplier nộp bằng chứng trực tiếp qua `submitProof`. Verifier thực hiện `verifyRequest` hoặc `rejectRequest` ngay trên chuỗi. Loại bỏ rủi ro lộ Private Key backend và tăng cường tính phi tập trung.
+- **Hard Reject & Fund Release**: Khi Verifier từ chối một yêu cầu gian lận, hệ thống tự động giải phóng `lockedFunds` và trả lại ngân sách khả dụng cho chiến dịch.
 - **Vòng Đời Yêu Cầu (Request Lifecycle)**: Chuyển đổi từ cờ boolean đơn giản sang hệ thống **Enum Status** (`OPEN`, `COMPLETED`, `CANCELLED`) giúp quản lý trạng thái chính xác hơn.
 - **Cơ Chế Hủy Yêu Cầu (Cancellation)**: Manager có quyền hủy các yêu cầu đang chờ (`OPEN`) nếu không còn cần thiết, giúp giải phóng ngay lập tức số tiền đang bị khóa (`lockedFunds`).
 - **Hạn Chót Biểu Quyết (Voting Deadline)**: Áp dụng thời hạn biểu quyết nghiêm ngặt (mặc định 7 ngày). Sau thời gian này, request sẽ hết hạn nếu không đủ phiếu bầu, ngăn chặn tình trạng treo vốn.
@@ -759,9 +761,7 @@ function approveRequest(uint256 index) external onlyActive {
 
 ```solidity
 function finalizeRequest(
-    uint256 index,
-    bytes calldata signature,       // Chữ ký số của Verifier
-    string calldata finalMetadataCID // JSON IPFS cuối cùng
+    uint256 index
 ) external onlyManager nonReentrant {
     if (index >= requests.length) revert InvalidRequestIndex();
 
@@ -774,12 +774,8 @@ function finalizeRequest(
     // Cần > 50% tổng quỹ hoặc 2/3 validator đồng ý...
     // ...
 
-    // 2. Kiểm tra chữ ký của Verifier (Chuẩn WFP)
-    bytes32 messageHash = keccak256(abi.encodePacked(address(this), index, "FINAL"));
-    bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
-    address signer = ECDSA.recover(ethSignedMessageHash, signature);
-
-    if (signer != r.verifier) revert InvalidSignature(); // Chỉ Verifier mới được ký duyệt chi!
+    // 2. Kiểm tra trạng thái xác thực on-chain (Verifier đã duyệt chưa?)
+    if (r.verifyStatus != RequestLib.VerificationStatus.APPROVED) revert NotVerified();
 
     r.status = RequestLib.Status.COMPLETED;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
     

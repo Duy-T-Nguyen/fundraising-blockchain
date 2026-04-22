@@ -59,3 +59,8 @@ error ActionForbidden();
 // =====================
 error RequestExpired();
 error RequestAlreadyReleased();
+error NotVerified();
+error ProofRequired();
+error NotRecipient();
+error NotVerifier();
+error RequestRejectedByVerifier();

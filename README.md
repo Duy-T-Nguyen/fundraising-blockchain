@@ -71,18 +71,18 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x2a64df874a162534674D09E0d01c4e4f3cbC5819` |
-| **CampaignFactory** | `0xA0F736Da6e3DA5DB2805f11f34df4CC11edDF182` |
-| **SupplierRegistry** | `0x864b6Bb917222e511fA7EcaA2df8188dbbA1996C` |
+| **Forwarder** | `0x26aCb6E756C2b014C247A86c9614C8bf511AE33B` |
+| **CampaignFactory** | `0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028` |
+| **SupplierRegistry** | `0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5` |
 
 **Các tính năng mới nhất (Cập nhật v6.0 - 22/04/2026):**
+- **On-chain Verification Lifecycle (100% Decentralized)**: Loại bỏ hoàn toàn chữ ký Off-chain (ECDSA) phụ thuộc vào backend. Supplier trực tiếp nộp bằng chứng (`submitProof`) và Verifier trực tiếp xác thực (`verifyRequest`/`rejectRequest`) bằng ví cá nhân trên chuỗi, đảm bảo tính chống thông đồng (collusion-resistant).
+- **Hard Reject & Fund Release**: Cơ chế tự động hoàn trả tiền từ yêu cầu bị từ chối về số dư khả dụng của chiến dịch. Khi Verifier thực hiện "Hard Reject", `lockedFunds` được giải phóng ngay lập tức, tối ưu hóa hiệu quả sử dụng vốn.
 - **IPFS JSON Metadata Refactoring**: Loại bỏ lưu trữ on-chain trực tiếp thông qua `bytes32` bị giới hạn ký tự. Toàn bộ thông tin Chiến dịch và Yêu cầu chi tiêu (Tên, Mô tả, Hình ảnh, Bằng chứng) giờ đây được băm thành một JSON đẩy lên IPFS thông qua hệ thống NestJS Backend. Smart Contract chỉ lưu duy nhất mã băm CID dạng string, tối ưu hóa đáng kể phí Gas cho toàn bộ hệ thống!
 - **Request Lifecycle (Advanced State Management)**: Chuyển đổi cơ chế quản lý Request từ cờ boolean sang hệ thống **Status Enum** (`OPEN`, `COMPLETED`, `CANCELLED`). Cho phép Manager hủy bỏ các yêu cầu không còn cần thiết để giải phóng nguồn vốn ngay lập tức.
 - **Strict Voting Deadline**: Thiết lập thời hạn biểu quyết nghiêm ngặt (7 ngày). Các yêu cầu không đạt đủ phiếu bầu trong thời gian này sẽ tự động hết hạn, đảm bảo tính luân chuyển của dòng vốn và tránh tình trạng treo ngân sách vô thời hạn.
-- **Gas-Optimized Storage Pattern**: Tái cấu trúc bộ nhớ lưu trữ (Storage) bằng cách tách các mapping biểu quyết ra khỏi struct `Request` và sử dụng cơ chế **Struct Packing**. Giảm thiểu chi phí Gas cho các thao tác tạo và duyệt yêu cầu chi tiêu.
 - **Budget Reservation (Locked Funds)**: Cơ chế bảo mật tự động khóa ngân sách ngay khi Request được tạo. Đảm bảo tổng số tiền của các yêu cầu đang chờ không bao giờ vượt quá số dư thực tế, loại bỏ hoàn toàn rủi ro thâm hụt ngân sách.
-- **Weighted Voting & Decentralized Selection**: Phiếu bầu được tính trọng số theo số tiền đóng góp. Tự động chọn ngẫu nhiên 3 Donors làm Validators cho các khoản chi nhỏ, kết hợp với cơ chế Blacklist để đảm bảo tính minh bạch tối đa.
-- **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và chữ ký nghiệm thu từ Verifier độc lập.
+- **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và xác thực on-chain từ Verifier độc lập.
 
 ---
 *Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 22/04/2026.*

@@ -15,7 +15,6 @@ describe("Campaign & Factory", function () {
   let donor3: HardhatEthersSigner;
   let recipient: HardhatEthersSigner;
   let nonDonor: HardhatEthersSigner;
-  let getFinalSignature: (signer: HardhatEthersSigner, campaignAddr: string, index: number) => Promise<string>;
 
   const MIN_CONTRIBUTION = ethers.parseEther("0.01");
 
@@ -53,18 +52,8 @@ describe("Campaign & Factory", function () {
     const Campaign = await ethers.getContractFactory("Campaign");
     campaign = await Campaign.attach(addresses[0]);
 
-    // Expose helper to tests
+    // factory.createAndApprove helper
     (factory as any).createAndApprove = createAndApprove;
-
-    // Helper for FINAL signatures
-    getFinalSignature = async (signer: HardhatEthersSigner, campaignAddr: string, index: number) => {
-        const network = await ethers.provider.getNetwork();
-        const messageHash = ethers.solidityPackedKeccak256(
-            ["uint256", "address", "uint256", "string"],
-            [network.chainId, campaignAddr, index, "FINAL"]
-        );
-        return await signer.signMessage(ethers.toBeArray(messageHash));
-    };
   });
 
   // =========================================================
@@ -606,8 +595,10 @@ describe("Campaign & Factory", function () {
       // Approve and finalize Req 1 → releases 5 ETH from locked
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, sig, "ipfs://dummy");
+      
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+      await campaign.finalizeRequest(0);
 
       // Now balance = 0, lockedFunds = 0 → still can't create (no actual ETH)
       await expect(
@@ -647,13 +638,9 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor2).approveRequest(0);
 
       // Execute milestone 0 → releases 1 ETH from locked
-      const network = await ethers.provider.getNetwork();
-      const msgHash0 = ethers.solidityPackedKeccak256(
-        ["uint256", "address", "uint256", "uint256"],
-        [network.chainId, await campaign.getAddress(), 0, 0]
-      );
-      const sig0 = await donor2.signMessage(ethers.toBeArray(msgHash0));
-      await campaign.executeMilestone(0, sig0, "ipfs://dummy");
+      await campaign.connect(recipient).submitMilestoneProof(0, "ipfs://proof-m0");
+      await campaign.connect(donor2).verifyMilestone(0);
+      await campaign.executeMilestone(0);
 
       // Available = (5-1) balance - (2-1) locked = 4 - 1 = 3 ETH
       expect(await campaign.lockedFunds()).to.equal(ethers.parseEther("1"));
@@ -723,8 +710,10 @@ describe("Campaign & Factory", function () {
       // Get 100% vote and finalize
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
+      
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+      await campaign.finalizeRequest(0);
 
       // donor3 joins and tries to vote on completed request
       await campaign
@@ -751,27 +740,30 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest("ipfs://dummy", ethers.parseEther("1"), recipient.address, donor2.address);
     });
 
-    it("should finalize when > 50% approval (2/2 donors)", async () => {
+    it("should finalize when > 50% approval (2/2 donors) and verified", async () => {
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
 
-      const before = await ethers.provider.getBalance(recipient.address);
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
-      const after = await ethers.provider.getBalance(recipient.address);
-
-      expect(after - before).to.equal(ethers.parseEther("1"));
+      // On-chain Verification Flow
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0); // donor2 is verifier
+      
+      await expect(() => campaign.finalizeRequest(0))
+        .to.changeEtherBalance(recipient, ethers.parseEther("1"));
     });
 
-    it("should fail if not enough approvals", async () => {
+    it("should fail if not enough approvals even if verified", async () => {
       const verifier = donor2;
       await campaign.createRequest("ipfs://dummy", ethers.parseEther("1"), recipient.address, verifier.address);
-      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
-      await expect(campaign.finalizeRequest(0, signature, "ipfs://dummy"))
+      
+      await campaign.connect(recipient).submitProof(1, "ipfs://proof");
+      await campaign.connect(verifier).verifyRequest(1);
+
+      await expect(campaign.finalizeRequest(1))
         .to.be.revertedWithCustomError(campaign, "NotEnoughApprovals");
     });
 
-    it("should finalize with > 50% (2 out of 3 donors)", async () => {
+    it("should finalize with > 50% (2 out of 3 donors) and verified", async () => {
       // Add a third donor
       await campaign
         .connect(donor3)
@@ -781,12 +773,11 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor2).approveRequest(0);
       // 2/3 > 50%, should pass
 
-      const before = await ethers.provider.getBalance(recipient.address);
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
-      const after = await ethers.provider.getBalance(recipient.address);
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
 
-      expect(after - before).to.equal(ethers.parseEther("1"));
+      await expect(() => campaign.finalizeRequest(0))
+        .to.changeEtherBalance(recipient, ethers.parseEther("1"));
     });
 
     it("should revert if not enough votes (1 out of 3 donors)", async () => {
@@ -794,11 +785,12 @@ describe("Campaign & Factory", function () {
         .connect(donor3)
         .donate({ value: ethers.parseEther("1") });
       await campaign.connect(donor1).approveRequest(0);
-      // 1/3 <= 50%
+      
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
 
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
       await expect(
-        campaign.finalizeRequest(0, signature, "ipfs://dummy")
+        campaign.finalizeRequest(0)
       ).to.be.revertedWithCustomError(campaign, "NotEnoughApprovals");
     });
 
@@ -809,8 +801,10 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(1);
       await campaign.connect(donor2).approveRequest(1);
 
-      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 1);
-      await expect(campaign.finalizeRequest(1, signature, "ipfs://dummy"))
+      await campaign.connect(recipient).submitProof(1, "ipfs://proof");
+      await campaign.connect(verifier).verifyRequest(1);
+
+      await expect(campaign.finalizeRequest(1))
         .to.emit(campaign, "FundsReleased")
         .withArgs(1, recipient.address);
     });
@@ -820,19 +814,24 @@ describe("Campaign & Factory", function () {
       await campaign.createRequest("ipfs://dummy", ethers.parseEther("0.1"), recipient.address, verifier.address);
       await campaign.connect(donor1).approveRequest(1);
       await campaign.connect(donor2).approveRequest(1);
-      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 1);
-      await expect(campaign.connect(donor1).finalizeRequest(1, signature, "ipfs://dummy"))
+      
+      await campaign.connect(recipient).submitProof(1, "ipfs://proof");
+      await campaign.connect(verifier).verifyRequest(1);
+
+      await expect(campaign.connect(donor1).finalizeRequest(1))
         .to.be.revertedWithCustomError(campaign, "NotManager");
     });
 
     it("should not allow double finalization", async () => {
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
+      
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+      await campaign.finalizeRequest(0);
 
       await expect(
-        campaign.finalizeRequest(0, signature, "ipfs://dummy")
+        campaign.finalizeRequest(0)
       ).to.be.revertedWithCustomError(campaign, "RequestAlreadyProcessed");
     });
 
@@ -844,9 +843,8 @@ describe("Campaign & Factory", function () {
     });
 
     it("should revert for invalid request index", async () => {
-      const sig = await getFinalSignature(donor2, await campaign.getAddress(), 99);
       await expect(
-        campaign.finalizeRequest(99, sig, "ipfs://dummy")
+        campaign.finalizeRequest(99)
       ).to.be.revertedWithCustomError(campaign, "InvalidRequestIndex");
     });
 
@@ -857,8 +855,9 @@ describe("Campaign & Factory", function () {
       // Vote and finalize first request
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
-      const sig0 = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, sig0, "ipfs://dummy");
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof0");
+      await campaign.connect(donor2).verifyRequest(0);
+      await campaign.finalizeRequest(0);
 
       // Second request should still be pending
       const req = await campaign.requests(1);
@@ -868,12 +867,11 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(1);
       await campaign.connect(donor2).approveRequest(1);
 
-      const before = await ethers.provider.getBalance(recipient.address);
-      const sig1 = await getFinalSignature(donor2, await campaign.getAddress(), 1);
-      await campaign.finalizeRequest(1, sig1, "ipfs://dummy");
-      const after = await ethers.provider.getBalance(recipient.address);
-
-      expect(after - before).to.equal(ethers.parseEther("0.5"));
+      await campaign.connect(recipient).submitProof(1, "ipfs://proof1");
+      await campaign.connect(donor2).verifyRequest(1);
+      
+      await expect(() => campaign.finalizeRequest(1))
+        .to.changeEtherBalance(recipient, ethers.parseEther("0.5"));
     });
   });
 
@@ -947,10 +945,13 @@ describe("Campaign & Factory", function () {
       // Deactivate campaign
       await campaign.deactivateCampaign();
 
+      // Verification Flow
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+
       // Manager can still finalize (no onlyActive modifier on finalize)
       const before = await ethers.provider.getBalance(recipient.address);
-      const signatureF = await getFinalSignature(donor2, await campaign.getAddress(), 0); 
-      await campaign.finalizeRequest(0, signatureF, "ipfs://dummy");
+      await campaign.finalizeRequest(0);
       const after = await ethers.provider.getBalance(recipient.address);
 
       expect(after - before).to.equal(ethers.parseEther("0.5"));
@@ -994,7 +995,7 @@ describe("Campaign & Factory", function () {
   // END-TO-END / INTEGRATION
   // =========================================================
   describe("End-to-End Flow", function () {
-    it("full lifecycle: create campaign → donate → request → vote → finalize", async () => {
+    it("full lifecycle: create campaign → donate → request → vote → submit proof -> verify -> finalize", async () => {
       // 1. Multiple donors donate
       await campaign
         .connect(donor1)
@@ -1013,12 +1014,15 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(0);
       await campaign.connect(donor2).approveRequest(0);
 
-      // 4. Manager finalizes
+      // 4. Verification
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+
+      // 5. Manager finalizes
       const recipientBefore = await ethers.provider.getBalance(
         recipient.address
       );
-      const signature0 = await getFinalSignature(donor2, await campaign.getAddress(), 0); 
-      await campaign.finalizeRequest(0, signature0, "ipfs://dummy");
+      await campaign.finalizeRequest(0);
       const recipientAfter = await ethers.provider.getBalance(
         recipient.address
       );
@@ -1027,7 +1031,7 @@ describe("Campaign & Factory", function () {
         ethers.parseEther("4")
       );
 
-      // 5. Verify final state
+      // 6. Verify final state
       const summary = await campaign.getSummary();
       expect(summary.balance).to.equal(ethers.parseEther("6")); // 10 - 4
       expect(summary.donors).to.equal(3n);
@@ -1049,8 +1053,9 @@ describe("Campaign & Factory", function () {
       // Approve and finalize all
       for (let i = 0; i < 3; i++) {
         await campaign.connect(donor1).approveRequest(i);
-        const sig = await getFinalSignature(donor1, await campaign.getAddress(), i);
-        await campaign.finalizeRequest(i, sig, "ipfs://dummy");
+        await campaign.connect(recipient).submitProof(i, `ipfs://proof${i}`);
+        await campaign.connect(donor1).verifyRequest(i);
+        await campaign.finalizeRequest(i);
       }
 
       const summary = await campaign.getSummary();
@@ -1086,9 +1091,11 @@ describe("Campaign & Factory", function () {
       // Approve by 100% weight
       await campaign.connect(donor1).approveRequest(0);
       
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(verifier).verifyRequest(0);
+
       const beforeEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
-      const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
+      await campaign.finalizeRequest(0);
       const afterEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
       
       expect(afterEarnings - beforeEarnings).to.equal(ethers.parseEther("0.5"));
@@ -1102,16 +1109,12 @@ describe("Campaign & Factory", function () {
       
       await campaign.connect(donor1).approveRequest(0);
 
-      // Verifier signs for milestone 0
-      const network = await ethers.provider.getNetwork();
-      const messageHash = ethers.solidityPackedKeccak256(
-        ["uint256", "address", "uint256", "uint256"],
-        [network.chainId, await campaign.getAddress(), 0, 0]
-      );
-      const signature = await verifier.signMessage(ethers.toBeArray(messageHash));
+      // On-chain Milestone Verification Flow
+      await campaign.connect(recipient).submitMilestoneProof(0, "ipfs://proof-m1");
+      await campaign.connect(verifier).verifyMilestone(0);
 
       const beforeEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
-      await campaign.executeMilestone(0, signature, "ipfs://dummy");
+      await campaign.executeMilestone(0);
       const afterEarnings = (await supplierRegistry.suppliers(recipient.address)).totalEarned;
 
       expect(afterEarnings - beforeEarnings).to.equal(ethers.parseEther("0.1"));
@@ -1124,8 +1127,10 @@ describe("Campaign & Factory", function () {
             .to.emit(campaign, "RequestCreated");
         await campaign.connect(donor1).approveRequest(0);
 
-        const signature = await getFinalSignature(verifier, await campaign.getAddress(), 0);
-        await expect(campaign.finalizeRequest(0, signature, "ipfs://dummy"))
+        await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+        await campaign.connect(verifier).verifyRequest(0);
+
+        await expect(campaign.finalizeRequest(0))
             .to.emit(supplierRegistry, "SupplierEarningsUpdated");
     });
 
@@ -1165,8 +1170,10 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
       await campaign.createRequest("ipfs://dummy", ethers.parseEther("0.1"), recipient.address, donor2.address);
       await campaign.connect(donor1).approveRequest(0);
-      const signature = await getFinalSignature(donor2, await campaign.getAddress(), 0);
-      await campaign.finalizeRequest(0, signature, "ipfs://dummy");
+      
+      await campaign.connect(recipient).submitProof(0, "ipfs://proof");
+      await campaign.connect(donor2).verifyRequest(0);
+      await campaign.finalizeRequest(0);
       
       await expect(campaign.cancelRequest(0))
         .to.be.revertedWithCustomError(campaign, "RequestAlreadyProcessed");
@@ -1179,13 +1186,9 @@ describe("Campaign & Factory", function () {
       await campaign.connect(donor1).approveRequest(0);
       
       // Execute M1
-      const network = await ethers.provider.getNetwork();
-      const msgHash = ethers.solidityPackedKeccak256(
-        ["uint256", "address", "uint256", "uint256"],
-        [network.chainId, await campaign.getAddress(), 0, 0]
-      );
-      const sig = await donor2.signMessage(ethers.toBeArray(msgHash));
-      await campaign.executeMilestone(0, sig, "ipfs://dummy");
+      await campaign.connect(recipient).submitMilestoneProof(0, "ipfs://proof-m1");
+      await campaign.connect(donor2).verifyMilestone(0);
+      await campaign.executeMilestone(0);
       
       // Try cancel
       await expect(campaign.cancelRequest(0))
@@ -1202,6 +1205,28 @@ describe("Campaign & Factory", function () {
       
       await expect(campaign.connect(donor1).approveRequest(0))
         .to.be.revertedWithCustomError(campaign, "RequestExpired");
+    });
+
+    describe("Reject Request (Hard Reject)", function () {
+      it("should allow verifier to reject a request and release funds", async () => {
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        await campaign.createRequest("ipfs://dummy", ethers.parseEther("0.1"), recipient.address, donor2.address);
+        
+        const beforeLocked = await campaign.lockedFunds();
+        await campaign.connect(donor2).rejectRequest(0, "ipfs://fraud");
+        
+        expect(await campaign.lockedFunds()).to.equal(beforeLocked - ethers.parseEther("0.1"));
+        const request = await campaign.requests(0);
+        expect(request.status).to.equal(2); // CANCELLED
+        expect(request.verifyStatus).to.equal(2); // REJECTED
+      });
+
+      it("should fail if non-verifier tries to reject", async () => {
+        await campaign.connect(donor1).donate({ value: ethers.parseEther("1") });
+        await campaign.createRequest("ipfs://dummy", ethers.parseEther("0.1"), recipient.address, donor2.address);
+        await expect(campaign.connect(donor1).rejectRequest(0, "ipfs://reason"))
+          .to.be.revertedWithCustomError(campaign, "NotVerifier");
+      });
     });
   });
 });

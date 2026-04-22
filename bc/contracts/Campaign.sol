@@ -238,7 +238,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
                 RequestLib.Milestone({
                     value: milestoneValues[i],
                     metadataCID: milestoneMetadataCIDs[i],
-                    released: false
+                    proofCID: "",
+                    released: false,
+                    isVerified: false
                 })
             );
         }
@@ -307,11 +309,49 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         emit Voted(sender, index);
     }
 
-    function finalizeRequest(
+    function submitProof(uint256 index, string calldata proofCID) external {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+        if (_msgSender() != r.recipient) revert NotRecipient();
+        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+
+        r.proofCID = proofCID;
+        r.verifyStatus = RequestLib.VerificationStatus.PENDING;
+
+        emit ProofSubmitted(index, proofCID);
+    }
+
+    function verifyRequest(uint256 index) external {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+        if (_msgSender() != r.verifier) revert NotVerifier();
+        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+        if (bytes(r.proofCID).length == 0) revert ProofRequired();
+
+        r.verifyStatus = RequestLib.VerificationStatus.APPROVED;
+        emit RequestVerified(index, _msgSender());
+    }
+
+    function rejectRequest(
         uint256 index,
-        bytes calldata signature,
-        string calldata finalMetadataCID
-    ) external onlyManager nonReentrant {
+        string calldata reasonCID
+    ) external nonReentrant {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+        if (_msgSender() != r.verifier) revert NotVerifier();
+        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+
+        r.status = RequestLib.Status.CANCELLED;
+        r.rejectionReasonCID = reasonCID;
+        r.verifyStatus = RequestLib.VerificationStatus.REJECTED;
+
+        lockedFunds -= r.value;
+
+        emit RequestRejected(index, _msgSender(), reasonCID);
+        emit RequestCancelled(index);
+    }
+
+    function finalizeRequest(uint256 index) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
@@ -329,16 +369,11 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         }
         if (!canFinalize) revert NotEnoughApprovals();
 
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(block.chainid, address(this), index, "FINAL")
-        );
-        address signer = MessageHashUtils
-            .toEthSignedMessageHash(messageHash)
-            .recover(signature);
-        if (signer != r.verifier) revert InvalidSignature();
+        // On-chain Verification Check
+        if (r.verifyStatus != RequestLib.VerificationStatus.APPROVED)
+            revert NotVerified();
 
         r.status = RequestLib.Status.COMPLETED;
-        r.metadataCID = finalMetadataCID;
         lockedFunds -= r.value;
 
         (bool success, ) = r.recipient.call{value: r.value}("");
@@ -348,10 +383,38 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         emit FundsReleased(index, r.recipient);
     }
 
-    function executeMilestone(
+    function submitMilestoneProof(
         uint256 index,
-        bytes calldata signature,
-        string calldata metadataCID_
+        string calldata proofCID
+    ) external {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+        if (_msgSender() != r.recipient) revert NotRecipient();
+        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+
+        uint256 current = r.currentMilestone;
+        RequestLib.Milestone storage m = r.milestones[current];
+        m.proofCID = proofCID;
+
+        emit ProofSubmitted(index, proofCID);
+    }
+
+    function verifyMilestone(uint256 index) external {
+        if (index >= requests.length) revert InvalidRequestIndex();
+        RequestLib.Request storage r = requests[index];
+        if (_msgSender() != r.verifier) revert NotVerifier();
+        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+
+        uint256 current = r.currentMilestone;
+        RequestLib.Milestone storage m = r.milestones[current];
+        if (bytes(m.proofCID).length == 0) revert ProofRequired();
+
+        m.isVerified = true;
+        emit MilestoneVerified(index, current, _msgSender());
+    }
+
+    function executeMilestone(
+        uint256 index
     ) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
@@ -366,16 +429,10 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         uint256 current = r.currentMilestone;
         RequestLib.Milestone storage m = r.milestones[current];
 
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(block.chainid, address(this), index, current)
-        );
-        address signer = MessageHashUtils
-            .toEthSignedMessageHash(messageHash)
-            .recover(signature);
-        if (signer != r.verifier) revert InvalidSignature();
+        // On-chain Verification Check
+        if (!m.isVerified) revert NotVerified();
 
         m.released = true;
-        m.metadataCID = metadataCID_;
         unchecked {
             r.currentMilestone++;
         }
@@ -394,7 +451,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
             current,
             m.value,
             r.recipient,
-            metadataCID_
+            m.proofCID
         );
     }
 

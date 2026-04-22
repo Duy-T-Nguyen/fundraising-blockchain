@@ -16,7 +16,11 @@ export type CampaignRequest = {
   createdBlock: bigint;
   snapshotTotalFunds: bigint;
   snapshotDonorCount: bigint;
-  voterCount: number; // Added to track number of people
+  voterCount: number;
+  verifier: string;
+  proofCID: string;
+  verifyStatus: number; // 0: PENDING, 1: APPROVED, 2: REJECTED
+  rejectionReasonCID: string;
 }
 
 export function useRequests(address: string | undefined, userAddress?: string) {
@@ -144,6 +148,10 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             snapshotTotalFunds: req[3] || BigInt(0),
             snapshotDonorCount: req[4] || BigInt(0),
             voterCount: voterCountMap.get(i) || 0,
+            verifier: req[7],
+            proofCID: req[8],
+            verifyStatus: Number(req[12]),
+            rejectionReasonCID: req[13],
           };
         })
       );

@@ -121,4 +121,24 @@ contract Events {
     event AuthorizedCampaignUpdated(address indexed campaign, bool status);
     /// @notice Phát ra khi một yêu cầu chi tiêu bị hủy
     event RequestCancelled(uint256 indexed requestId);
+
+    /// @notice Phát ra khi Supplier nộp minh chứng On-chain
+    event ProofSubmitted(uint256 indexed requestId, string proofCID);
+
+    /// @notice Phát ra khi Verifier xác nhận yêu cầu On-chain
+    event RequestVerified(uint256 indexed requestId, address indexed verifier);
+
+    /// @notice Phát ra khi Verifier từ chối yêu cầu On-chain
+    event RequestRejected(
+        uint256 indexed requestId,
+        address indexed verifier,
+        string reasonCID
+    );
+
+    /// @notice Phát ra khi một milestone được xác thực
+    event MilestoneVerified(
+        uint256 indexed requestId,
+        uint256 milestoneIndex,
+        address indexed verifier
+    );
 }
