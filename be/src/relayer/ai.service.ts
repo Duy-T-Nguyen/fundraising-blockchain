@@ -23,12 +23,13 @@ export class AiService {
    */
   async getDecision(state: number[]): Promise<number> {
     try {
-      this.logger.debug(`Calling AI with state: [${state.join(', ')}]`);
+      this.logger.log(`[AI Request] State Vector: [${state.join(', ')}]`);
       
       const { data } = await firstValueFrom(
         this.httpService.post(this.aiUrl, { state })
-      );
+      ) as any;
 
+      this.logger.log(`[AI Response] Action Code: ${data.action} | Confidence: ${data.confidence || 'N/A'}`);
       return data.action;
     } catch (error) {
       this.logger.error(`AI Sidecar Error: ${error.message}`);
@@ -45,7 +46,7 @@ export class AiService {
       const baseUrl = this.configService.get<string>('AI_SIDECAR_URL') || 'http://localhost:8000';
       const { data } = await firstValueFrom(
         this.httpService.get(`${baseUrl}/health`)
-      );
+      ) as any;
       return data.status === 'ready';
     } catch {
       return false;

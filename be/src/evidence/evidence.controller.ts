@@ -7,12 +7,15 @@ import {
   MaxFileSizeValidator,
   FileTypeValidator,
   Body,
+  Get, 
+  Query,
   UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { EvidenceService } from './evidence.service';
 import { UploadEvidenceDto } from './dto/upload-evidence.dto';
+import { UploadMetadataDto } from './dto/upload-metadata.dto';
 
 @ApiTags('Evidence')
 @Controller('evidence')
@@ -47,5 +50,33 @@ export class EvidenceController {
     this.evidenceService.verifySignature(uploadEvidenceDto.address, uploadEvidenceDto.signature);
 
     return this.evidenceService.uploadToIPFS(file);
+  }
+
+  @Post('metadata')
+  @ApiOperation({ summary: 'Tải JSON metadata lên IPFS' })
+  @ApiBody({
+    description: 'Dữ liệu metadata',
+    type: UploadMetadataDto,
+  })
+  async uploadMetadata(@Body() uploadMetadataDto: UploadMetadataDto) {
+    if (!uploadMetadataDto.address || !uploadMetadataDto.signature) {
+      throw new UnauthorizedException('Thiếu chữ ký số hoặc địa chỉ ví');
+    }
+
+    // Yêu cầu Service xác thực
+    this.evidenceService.verifySignature(uploadMetadataDto.address, uploadMetadataDto.signature);
+
+    return this.evidenceService.uploadJSONToIPFS(uploadMetadataDto.metadata);
+  }
+
+  @Post('metadata-fetch') // Temporary fallback if GET is blocked or for specific reasons
+  async fetchMetadataPost(@Body('cid') cid: string) {
+    return this.evidenceService.getMetadata(cid);
+  }
+
+  @Get('metadata')
+  @ApiOperation({ summary: 'Lấy JSON metadata từ IPFS bằng CID' })
+  async getMetadata(@Query('cid') cid: string) {
+    return this.evidenceService.getMetadata(cid);
   }
 }

@@ -35,8 +35,8 @@ export class BlockchainListenerService implements OnModuleInit {
 
     // Relevant part of the ABI
     const abi = [
-      'event CampaignStarted(address indexed campaignAddress, address indexed manager, string campaignName, string description, string imageHash, uint8 indexed category, uint256 minContribution)',
-      'event CampaignRequestSubmitted(uint256 indexed requestId, address indexed manager, string name, string description, string imageHash, uint8 category, uint256 minimum)',
+      'event CampaignStarted(address indexed campaignAddress, address indexed manager, string metadataCID, uint8 indexed category, uint256 minContribution)',
+      'event CampaignRequestSubmitted(uint256 indexed requestId, address indexed manager, string metadataCID, uint8 category, uint256 minimum)',
       'function supplierRegistry() view returns (address)',
       'function deployedCampaigns(uint256) view returns (address)',
       'function getCampaigns(uint8, address, uint256, uint256, uint256) view returns (address[])'
@@ -56,8 +56,8 @@ export class BlockchainListenerService implements OnModuleInit {
       const missedEvents = await this.factoryContract.queryFilter('CampaignStarted', lastBlock, 'latest');
       for (const event of missedEvents) {
         if ('args' in event) {
-          const [campaignAddress, manager, name, description, imageHash, category, minContribution] = event.args;
-          await this.handleCampaignStarted(campaignAddress, manager, name, description, imageHash, category, minContribution);
+          const [campaignAddress, manager, metadataCID, category, minContribution] = event.args;
+          await this.handleCampaignStarted(campaignAddress, manager, metadataCID, category, minContribution);
         }
       }
     } catch (error) {
@@ -65,12 +65,12 @@ export class BlockchainListenerService implements OnModuleInit {
     }
 
     // 1. Lắng nghe yêu cầu tạo Campaign mới (Cho Admin)
-    this.factoryContract.on('CampaignRequestSubmitted', async (requestId, manager, name, description) => {
+    this.factoryContract.on('CampaignRequestSubmitted', async (requestId, manager, metadataCID) => {
       this.logger.log(`[Notification] New Campaign Request #${requestId} from ${manager}`);
       const adminAddress = this.configService.get<string>('ADMIN_ADDRESS');
       if (adminAddress) {
         await this.saveAndEmit(adminAddress, 'CAMPAIGN_SUBMITTED', ethers.ZeroAddress, Number(requestId), {
-          description: `New Campaign: ${name} by ${manager}`
+          description: `New Campaign Request from ${manager}`
         });
       }
     });
@@ -78,13 +78,13 @@ export class BlockchainListenerService implements OnModuleInit {
     // 2. Lắng nghe Campaign chính thức hoạt động (Cho Manager)
     this.factoryContract.on(
       'CampaignStarted',
-      async (campaignAddress, manager, name, description, imageHash, category, minContribution, event) => {
-        this.logger.log(`[Notification] Campaign Approved: ${name} at ${campaignAddress}`);
+      async (campaignAddress, manager, metadataCID, category, minContribution, event) => {
+        this.logger.log(`[Notification] Campaign Approved at ${campaignAddress}`);
         await this.saveAndEmit(manager, 'CAMPAIGN_APPROVED', campaignAddress, 0, {
-          description: `Your campaign "${name}" has been approved and deployed!`
+          description: `Your campaign has been approved and deployed!`
         });
         
-        await this.handleCampaignStarted(campaignAddress, manager, name, description, imageHash, category, minContribution);
+        await this.handleCampaignStarted(campaignAddress, manager, metadataCID, category, minContribution);
         
         // Setup listener for this specific campaign's requests
         this.setupCampaignListener(campaignAddress);
@@ -118,33 +118,33 @@ export class BlockchainListenerService implements OnModuleInit {
 
   private setupCampaignListener(campaignAddress: string) {
     const campaignAbi = [
-      'event RequestCreated(uint256 indexed requestId, string description, uint256 value, address recipient, address verifier, string evidenceHash, address[] selectedValidators, uint256 lastValidatorSelection)',
+      'event RequestCreated(uint256 indexed requestId, string metadataCID, uint256 value, address recipient, address verifier, address[] selectedValidators, uint256 lastValidatorSelection)',
       'event FundsReleased(uint256 indexed requestId, address indexed recipient)',
       'event MilestoneReleased(uint256 indexed requestId, uint256 milestoneIndex, uint256 amount, address indexed recipient, string evidenceHash)',
       'event Donation(address indexed donor, uint256 amount)'
     ];
     const campaignContract = new ethers.Contract(campaignAddress, campaignAbi, this.provider);
 
-    campaignContract.on('RequestCreated', async (requestId, description, value, recipient, verifier, evidenceHash, selectedValidators, lastValidatorSelection) => {
+    campaignContract.on('RequestCreated', async (requestId, metadataCID, value, recipient, verifier, selectedValidators, lastValidatorSelection) => {
       this.logger.log(`[Notification] New Request #${requestId} in Campaign ${campaignAddress}`);
       
       // Notify Validators
       if (selectedValidators) {
         for (const validatorAddress of selectedValidators) {
           await this.saveAndEmit(validatorAddress, 'VALIDATION_ASSIGNED', campaignAddress, Number(requestId), {
-            description, value: value.toString(), lastValidatorSelection: Number(lastValidatorSelection)
+            description: "New validation assignment", value: value.toString(), lastValidatorSelection: Number(lastValidatorSelection)
           });
         }
       }
 
       // Notify Supplier
       await this.saveAndEmit(recipient, 'REQUEST_ASSIGNED_SUPPLIER', campaignAddress, Number(requestId), {
-        description, value: value.toString()
+        description: "New order received", value: value.toString()
       });
 
       // Notify Verifier
       await this.saveAndEmit(verifier, 'REQUEST_ASSIGNED_VERIFIER', campaignAddress, Number(requestId), {
-        description, value: value.toString()
+        description: "New verification task", value: value.toString()
       });
     });
 
@@ -162,8 +162,8 @@ export class BlockchainListenerService implements OnModuleInit {
     });
   }
 
-  private async handleCampaignStarted(campaignAddress: string, manager: string, name: string, description: string, imageHash: string, category: number, minContribution: any) {
-    this.logger.log(`New Campaign detected: ${name} at ${campaignAddress}`);
+  private async handleCampaignStarted(campaignAddress: string, manager: string, metadataCID: string, category: number, minContribution: any) {
+    this.logger.log(`New Campaign detected at ${campaignAddress}`);
 
         // Wait for Etherscan to index (60 seconds)
         this.logger.log(`Waiting 60s before triggering verification for ${campaignAddress}...`);
@@ -180,9 +180,7 @@ export class BlockchainListenerService implements OnModuleInit {
             const registryAddress = await this.factoryContract.supplierRegistry();
 
             await this.verificationService.verifyCampaign(campaignAddress, poolAddress, {
-              name,
-              description,
-              imageHash,
+              metadataCID,
               category,
               minimum: minContribution.toString(),
               manager,
