@@ -1,31 +1,18 @@
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: fundraising-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - fundraising-network
-    restart: unless-stopped
-
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: fundraising-backend
-    expose:
+    ports:
       - "1609:1609"
     env_file:
       - .env
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/fundchain
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - AI_SIDECAR_URL=http://ai-sidecar:8000
     depends_on:
-      - mongodb
       - redis
       - ai-sidecar
     networks:
@@ -45,7 +32,7 @@ services:
       context: ./ai-sidecar
       dockerfile: Dockerfile
     container_name: fundraising-ai-sidecar
-    expose:
+    ports:
       - "8000:8000"
     networks:
       - fundraising-network

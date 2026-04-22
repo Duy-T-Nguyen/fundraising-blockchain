@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type SyncStateDocument = SyncState & Document;
 
-@Schema()
+@Schema({ collection: 'sync_states' })
 export class SyncState {
   @Prop({ required: true, unique: true })
   id: string; // Identifier for the sync state, e.g., 'campaignFactoryListener'
