@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCampaign } from '../../hooks/useCampaign';
 import { Users, ArrowRight } from 'lucide-react';
-import { slugify } from '../../utils/slugify';
 import EthIcon from '../common/EthIcon';
 
 interface CampaignCardProps {
@@ -46,8 +45,7 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
     ? `https://gateway.pinata.cloud/ipfs/${summary.imageHash.replace('ipfs://', '')}`
     : getPlaceholderImage();
 
-  const slug = slugify(summary.title);
-  const detailUrl = `/campaign/${slug}`;
+  const detailUrl = `/campaign/${address}`;
 
   return (
     <Link

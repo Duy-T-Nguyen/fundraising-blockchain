@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Signature, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Signature, ShieldCheck, Loader2 } from 'lucide-react';
 import type { VerifierTask } from '../../types/verifier';
 import { hashVerificationMessage } from '../../utils/signatures';
 import { getWalletClient } from '../../blockchain/client';
+import { useNotification } from '../../context/NotificationContext';
 
 interface SignatureModalProps {
   task: VerifierTask | null;
@@ -12,7 +13,7 @@ interface SignatureModalProps {
 
 export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, onSuccess }) => {
   const [isSigning, setIsSigning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useNotification();
 
   if (!task) return null;
 
@@ -25,14 +26,13 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, o
       if (!walletClient) throw new Error('Wallet not connected');
 
       const [address] = await walletClient.getAddresses();
-      
+
       const messageHash = hashVerificationMessage(
         task.campaignAddress,
         task.requestIndex,
         task.milestoneIndex
       );
 
-      // Theo Campaign.sol, chúng ta ký Ethereum Signed Message Hash
       const signature = await walletClient.signMessage({
         account: address,
         message: { raw: messageHash }
@@ -41,7 +41,7 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, o
       onSuccess(signature);
     } catch (err: any) {
       console.error('Signing failed:', err);
-      setError(err.message || 'Verification signing failed');
+      toast.error(err.message || 'Verification signing failed');
     } finally {
       setIsSigning(false);
     }
@@ -50,7 +50,7 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, o
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
-      
+
       <div className="bg-white rounded-[3rem] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8 border-b border-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -90,12 +90,7 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, o
             By signing this message, you cryptographically certify that the goods/services for this request have been delivered as described in the evidence.
           </p>
 
-          {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 animate-in slide-in-from-top-2">
-              <AlertCircle size={18} className="shrink-0" />
-              <p className="text-xs font-medium">{error}</p>
-            </div>
-          )}
+
 
           <button
             onClick={handleSign}
@@ -115,7 +110,7 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ task, onClose, o
             )}
           </button>
         </div>
-        
+
         <div className="p-6 bg-slate-50 border-t border-slate-100">
           <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-tighter">
             This operation does not consume Gas. It is a signature only.

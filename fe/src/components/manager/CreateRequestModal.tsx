@@ -3,8 +3,10 @@ import { publicClient, getWalletClient } from '../../blockchain/client';
 import { ABIS } from '../../blockchain/constants';
 import { encodeFunctionData, parseEther, formatEther } from 'viem';
 import { useEffect } from 'react';
-import { X, Send, AlertCircle, CheckCircle2, ImagePlus, Loader2, ChevronDown } from 'lucide-react';
+import { X, Send, ImagePlus, Loader2, ChevronDown, CheckCircle2, Zap, ShieldCheck } from 'lucide-react';
 import { useSuppliers } from '../../hooks/useSuppliers';
+import { useRelayer } from '../../hooks/useRelayer';
+import { useNotification } from '../../context/NotificationContext';
 
 interface CreateRequestModalProps {
   address: string;
@@ -12,24 +14,26 @@ interface CreateRequestModalProps {
   onSuccess: () => void;
 }
 
-// v1.0.1 - Forced Refresh
+// v1.1.0 - AI Relayer Integrated
 const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClose, onSuccess }) => {
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
   const [recipient, setRecipient] = useState('');
-  const [verifier, setVerifier] = useState(''); // Initial empty
-  
-  // Image handling
+  const [verifier, setVerifier] = useState('');
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
+  const [isGasless, setIsGasless] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState('');
   const [campaignBalance, setCampaignBalance] = useState<string>('0');
 
+
   const { suppliers, isLoading: loadingSuppliers } = useSuppliers();
+  const { executeGasless, isRelaying, relayerError } = useRelayer();
+  const toast = useNotification();
 
   // Fetch campaign balance on mount
   useEffect(() => {
@@ -64,7 +68,6 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
     setIsLoading(true);
     setStatus('pending');
-    setErrorMessage('');
 
     try {
       const walletClient = getWalletClient();
@@ -73,7 +76,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
       if (!walletClient || !userAccount) throw new Error('Wallet not connected');
 
-      // 1. Sign message for Backend verification (MUST match backend exactly: 'FundChain IPFS Upload')
+      // 1. Sign message for Backend verification
       const message = 'FundChain IPFS Upload';
       const signature = await walletClient.signMessage({
         account: userAccount as `0x${string}`,
@@ -96,40 +99,71 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
         throw new Error(errData.message || 'Failed to upload evidence to IPFS');
       }
 
-      const { cid } = await uploadRes.json();
-      const ipfsHash = `ipfs://${cid}`;
+      const { cid: imageCid } = await uploadRes.json();
+      const imageUrl = `ipfs://${imageCid}`;
 
-      // 3. Encode function data (WFP v4.0 expects 5 args: desc, value, recipient, verifier, evidenceHash)
-      const data = encodeFunctionData({
-        abi: ABIS.CAMPAIGN,
-        functionName: 'createRequest',
-        args: [description, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`, ipfsHash],
+      // 3. Upload Metadata JSON to Backend (IPFS)
+      const metadata = {
+        description: description.trim(),
+        evidence: imageUrl,
+        value: value,
+        recipient,
+        verifier,
+      };
+
+      const metaRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metadata,
+          address: userAccount,
+          signature,
+        }),
       });
 
-      // 4. Send transaction
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{
-          from: userAccount,
-          to: address,
-          data: data,
-        }],
-      });
+      if (!metaRes.ok) {
+        const errData = await metaRes.json();
+        throw new Error(errData.message || 'Failed to upload metadata to IPFS');
+      }
 
-      console.log('Transaction sent:', txHash);
-      
-      // 5. Wait for receipt
-      await publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` });
-      
+      const { cid: metadataCid } = await metaRes.json();
+
+      if (isGasless) {
+        // Method A: AI Relayer (Gasless!)
+        const callData = encodeFunctionData({
+          abi: ABIS.CAMPAIGN,
+          functionName: 'createRequest',
+          args: [metadataCid, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`],
+        });
+
+        console.log('Sending via AI Relayer...');
+        await executeGasless(address, callData);
+      } else {
+        // Method B: Direct Transaction (User pays gas)
+        console.log('Sending direct transaction...');
+        const { request } = await publicClient.simulateContract({
+          account: userAccount as `0x${string}`,
+          address: address as `0x${string}`,
+          abi: ABIS.CAMPAIGN,
+          functionName: 'createRequest',
+          args: [metadataCid, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`],
+        });
+
+        const hash = await walletClient.writeContract(request);
+        await publicClient.waitForTransactionReceipt({ hash });
+      }
+
       setStatus('success');
+      toast.success('Request created successfully!');
       setTimeout(() => {
         onSuccess();
         onClose();
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
       console.error('Error creating request:', err);
+      const msg = err.message || relayerError || 'Failed to create request';
       setStatus('error');
-      setErrorMessage(err.message || 'Failed to create request');
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -195,41 +229,41 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
             </div>
           </div>
 
-            {/* Evidence (Image Upload) */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Evidence / Receipt (Image)</label>
-              <div
-                className={`relative border-2 border-dashed rounded-2xl overflow-hidden h-32 flex flex-col items-center justify-center gap-2 transition-all duration-200 cursor-pointer
+          {/* Evidence (Image Upload) */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Evidence / Receipt (Image)</label>
+            <div
+              className={`relative border-2 border-dashed rounded-2xl overflow-hidden h-32 flex flex-col items-center justify-center gap-2 transition-all duration-200 cursor-pointer
                   ${imagePreview ? 'border-blue-400 bg-white' : 'border-gray-200 bg-gray-50 hover:bg-gray-100'}`}
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={onDrop}
-                onDragOver={(e) => e.preventDefault()}
-              >
-                {imagePreview ? (
-                  <>
-                    <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-                    <div className="z-10 flex flex-col items-center">
-                      <CheckCircle2 className="text-blue-500 mb-1" size={20} />
-                      <span className="text-[10px] font-black text-blue-600 uppercase">Image Selected</span>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <ImagePlus size={24} className="text-gray-400" />
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center px-4">
-                      Upload Proof (JPG, PNG)
-                    </span>
-                  </>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-                />
-              </div>
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={onDrop}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              {imagePreview ? (
+                <>
+                  <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+                  <div className="z-10 flex flex-col items-center">
+                    <CheckCircle2 className="text-blue-500 mb-1" size={20} />
+                    <span className="text-[10px] font-black text-blue-600 uppercase">Image Selected</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <ImagePlus size={24} className="text-gray-400" />
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center px-4">
+                    Upload Proof (JPG, PNG)
+                  </span>
+                </>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+              />
             </div>
+          </div>
 
           {/* Recipient Address (Supplier Selection) */}
           <div className="space-y-2">
@@ -255,32 +289,53 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
             )}
           </div>
 
-          {status === 'error' && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold">
-              <AlertCircle size={18} />
-              {errorMessage}
-            </div>
-          )}
 
-          {status === 'success' && (
-            <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3 text-emerald-600 text-sm font-bold">
-              <CheckCircle2 size={18} />
-              Request created successfully!
+
+          {/* Gas Mode Toggle */}
+          <div className="pt-2 border-t border-gray-50">
+            <div 
+              onClick={() => setIsGasless(!isGasless)}
+              className="group/toggle flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-[1.5rem] cursor-pointer transition-all border border-transparent hover:border-gray-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isGasless ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
+                  {isGasless ? <Zap size={20} fill="currentColor" /> : <ShieldCheck size={20} />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Transaction Mode</p>
+                  <p className="text-sm font-black text-gray-900">{isGasless ? 'AI-Powered (Gasless)' : 'Direct (Self-paid Gas)'}</p>
+                </div>
+              </div>
+              <div className={`w-12 h-6 rounded-full relative transition-all duration-300 ${isGasless ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isGasless ? 'right-1' : 'left-1'}`} />
+              </div>
             </div>
-          )}
+            <p className="text-[9px] font-bold text-gray-400 mt-2 px-2 leading-relaxed">
+              {isGasless 
+                ? "AI will batch this transaction and pay for your Gas when fees are optimal." 
+                : "Transaction will be sent immediately. You will need to pay Gas via your wallet."}
+            </p>
+          </div>
 
           <button
             type="submit"
-            disabled={isLoading || status === 'success' || !selectedFile}
-            className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all hover:shadow-xl hover:shadow-black/10 disabled:opacity-50"
+            disabled={isLoading || isRelaying || status === 'success' || !selectedFile}
+            className={`w-full py-5 ${isGasless ? 'bg-gray-900' : 'bg-blue-600'} text-white rounded-2xl font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 hover:brightness-110 transition-all hover:shadow-xl disabled:opacity-50`}
           >
-            {isLoading ? (
-              <><Loader2 size={18} className="animate-spin" /> Processing...</>
-            ) : (
-              <>
-                <Send size={18} />
-                Submit Request
-              </>
+            <div className="flex items-center gap-3">
+              {(isLoading || isRelaying) ? (
+                <><Loader2 size={18} className="animate-spin" /> {isRelaying ? 'AI Optimizing...' : 'Processing...'}</>
+              ) : (
+                <>
+                  <Send size={18} />
+                  {isGasless ? 'Submit Gasless' : 'Submit Direct'}
+                </>
+              )}
+            </div>
+            {(!isLoading && !isRelaying && status !== 'success') && (
+              <span className="text-[9px] text-blue-400 font-bold tracking-tight">
+                {isGasless ? 'AI-POWERED GASLESS TRANSACTION' : 'USER-PAID DIRECT TRANSACTION'}
+              </span>
             )}
           </button>
         </form>

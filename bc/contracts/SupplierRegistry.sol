@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 interface ICampaignFactory {
     function isChildCampaign(address) external view returns (bool);
+
     function recordDonation(address donor, uint256 amount) external;
 }
 
@@ -18,14 +19,17 @@ interface ICampaignFactory {
 contract SupplierRegistry is Events, ERC2771Context {
     /// @notice Địa chỉ Platform Admin
     address public admin;
-    
+
     /// @notice Địa chỉ CampaignFactory để xác thực Campaign hợp lệ
     address public factory;
 
+    /// @notice Mapping kiểm tra xem một campaign có được quyền thanh toán không
+    mapping(address => bool) public authorizedCampaigns;
+
     struct Supplier {
+        uint256 totalEarned;
         string name;
-        string metadataHash; // IPFS hash chứa Website, Profile, etc.
-        uint256 totalEarned; // Tổng thu nhập tích lũy (Wei)
+        string metadataCID;
         bool exists;
     }
 
@@ -38,29 +42,45 @@ contract SupplierRegistry is Events, ERC2771Context {
     /// @notice Danh sách tất cả địa chỉ Supplier (để truy vấn)
     address[] public supplierList;
 
-    /// @notice Phát ra khi Supplier mới được thêm vào danh sách
-    event SupplierAdded(address indexed supplier, string name);
-
-    /// @notice Phát ra khi Supplier bị xóa khỏi danh sách
-    event SupplierRemoved(address indexed supplier);
-
     /// @dev Chỉ cho phép Admin gọi
     modifier onlyAdmin() {
         if (_msgSender() != admin) revert NotAdmin();
         _;
     }
 
-    constructor(address _admin, address trustedForwarder) ERC2771Context(trustedForwarder) {
+    /// @dev Chỉ cho phép Factory gọi
+    modifier onlyFactory() {
+        if (msg.sender != factory) revert NotAuthorized();
+        _;
+    }
+
+    constructor(
+        address _admin,
+        address trustedForwarder
+    ) ERC2771Context(trustedForwarder) {
         if (_admin == address(0)) revert InvalidAddress();
         admin = _admin;
     }
 
     /**
-     * @notice Thiết lập địa chỉ Factory (chỉ được gọi một lần hoặc bởi Admin)
+     * @notice Thiết lập địa chỉ Factory (chỉ được gọi một lần bởi Admin)
      */
     function setFactory(address _factory) external onlyAdmin {
         if (_factory == address(0)) revert InvalidAddress();
+        if (factory != address(0)) revert ActionForbidden(); // Chỉ set 1 lần
         factory = _factory;
+    }
+
+    /**
+     * @notice Ủy quyền hoặc hủy ủy quyền cho một Campaign được phép tương tác với Registry.
+     * @dev Chỉ được gọi bởi Factory khi tạo campaign mới.
+     */
+    function setAuthorizedCampaign(
+        address _campaign,
+        bool _status
+    ) external onlyFactory {
+        authorizedCampaigns[_campaign] = _status;
+        emit AuthorizedCampaignUpdated(_campaign, _status);
     }
 
     /**
@@ -77,31 +97,41 @@ contract SupplierRegistry is Events, ERC2771Context {
     /**
      * @notice Thêm Nhà cung cấp vào danh sách trắng.
      */
-    function addSupplier(address _supplier, string calldata _name, string calldata _metadata) external onlyAdmin {
+    function addSupplier(
+        address _supplier,
+        string calldata _name,
+        string calldata _metadata
+    ) external onlyAdmin {
         if (_supplier == address(0)) revert InvalidAddress();
         if (suppliers[_supplier].exists) revert AlreadyWhitelisted();
-        
+
         supplierIndex[_supplier] = supplierList.length;
         suppliers[_supplier] = Supplier({
             name: _name,
-            metadataHash: _metadata,
+            metadataCID: _metadata,
             totalEarned: 0,
             exists: true
         });
         supplierList.push(_supplier);
 
-        emit SupplierAdded(_supplier, _name);
+        emit SupplierAdded(_supplier, _name, _metadata);
     }
 
     /**
      * @notice Cập nhật thông tin cho Supplier.
      */
-    function updateSupplierInfo(address _supplier, string calldata _name, string calldata _metadata) external {
+    function updateSupplierInfo(
+        address _supplier,
+        string calldata _name,
+        string calldata _metadata
+    ) external {
         if (_msgSender() != admin && _msgSender() != _supplier) revert NotAdmin();
         if (!suppliers[_supplier].exists) revert NotWhitelisted();
 
         suppliers[_supplier].name = _name;
-        suppliers[_supplier].metadataHash = _metadata;
+        suppliers[_supplier].metadataCID = _metadata;
+
+        emit SupplierInfoUpdated(_supplier, _name, _metadata);
     }
 
     /**
@@ -130,15 +160,18 @@ contract SupplierRegistry is Events, ERC2771Context {
      * @notice Ghi nhận thanh toán cho Supplier (gọi từ Campaign hợp lệ).
      */
     function recordPayment(address _supplier, uint256 _amount) external {
-        // Xác thực: người gọi phải là một Campaign hợp lệ được tạo từ Factory
-        if (factory == address(0) || !ICampaignFactory(factory).isChildCampaign(msg.sender)) {
+        // Kiểm tra ủy quyền tại chỗ (Local mapping) - Tiết kiệm gas so với gọi Factory
+        if (!authorizedCampaigns[msg.sender]) {
             revert NotAuthorized();
         }
         if (!suppliers[_supplier].exists) revert NotWhitelisted();
 
         suppliers[_supplier].totalEarned += _amount;
-        
-        emit SupplierEarningsUpdated(_supplier, suppliers[_supplier].totalEarned);
+
+        emit SupplierEarningsUpdated(
+            _supplier,
+            suppliers[_supplier].totalEarned
+        );
     }
 
     function isSupplier(address _addr) external view returns (bool) {
@@ -152,14 +185,24 @@ contract SupplierRegistry is Events, ERC2771Context {
     /**
      * @notice Lấy danh sách Supplier có phân trang kèm theo metadata.
      */
-    function getSuppliers(uint256 offset, uint256 limit) external view returns (
-        address[] memory addresses,
-        string[] memory names,
-        string[] memory metadatas,
-        uint256[] memory earnings
-    ) {
+    function getSuppliers(uint256 offset, uint256 limit)
+        external
+        view
+        returns (
+            address[] memory addresses,
+            string[] memory names,
+            string[] memory metadatas,
+            uint256[] memory earnings
+        )
+    {
         uint256 total = supplierList.length;
-        if (offset >= total || limit == 0) return (new address[](0), new string[](0), new string[](0), new uint256[](0));
+        if (offset >= total || limit == 0)
+            return (
+                new address[](0),
+                new string[](0),
+                new string[](0),
+                new uint256[](0)
+            );
 
         uint256 size = limit;
         if (offset + limit > total) size = total - offset;
@@ -173,7 +216,7 @@ contract SupplierRegistry is Events, ERC2771Context {
             address addr = supplierList[offset + i];
             addresses[i] = addr;
             names[i] = suppliers[addr].name;
-            metadatas[i] = suppliers[addr].metadataHash;
+            metadatas[i] = suppliers[addr].metadataCID;
             earnings[i] = suppliers[addr].totalEarned;
         }
     }

@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
   cors: {
     origin: '*',
   },
+  path: '/api/socket.io'
 })
 export class SocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect

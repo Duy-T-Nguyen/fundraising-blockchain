@@ -1,6 +1,6 @@
 # 🖥️ Yêu cầu Chức năng cho Frontend (DApp)
 
-Tài liệu này đặc tả các chức năng chi tiết mà Frontend cần triển khai để tương tác với Hệ thống Blockchain và Backend v4.0.
+Tài liệu này đặc tả các chức năng chi tiết mà Frontend cần triển khai để tương tác với Hệ thống Blockchain và Backend v5.0.
 
 ---
 
@@ -23,9 +23,10 @@ Tài liệu này đặc tả các chức năng chi tiết mà Frontend cần tri
 1. **Tạo chiến dịch**: Form nhập Tên, Mô tả, Ảnh (Upload qua Backend -> IPFS).
 2. **Quản lý Request**:
     - Tạo Request mới: Chọn Supplier (từ Whitelist), chọn Verifier, nhập số tiền, upload bằng chứng IPFS.
-    - Theo dõi tiến độ vote.
+    - Theo dõi tiến độ vote & **Thời gian còn lại**: Hiển thị đếm ngược (7 ngày từ khi tạo) trước khi Request hết hạn.
+    - **Hủy Request (Cancel)**: Hiển thị nút "Cancel Request" cho các yêu cầu đang ở trạng thái `OPEN` để thu hồi vốn.
     - **Reselect Validators**: Nếu sau 48h chưa đủ vote, hiển thị nút "Reset Validators" (khi hàm `canReselect` trả về true).
-3. **Giải ngân**: Giao diện nhập Signature từ Verifier và gọi `finalizeRequest`.
+3. **Giải ngân**: Giao diện nhập Signature từ Verifier và gọi `finalizeRequest`. Trạng thái chuyển sang `COMPLETED`.
 
 ### C. Vai trò: Admin (Quản trị nền tảng)
 1. **Duyệt Chiến dịch**: Dashboard hiển thị các `CampaignRequestSubmitted`. Nút "Approve" để deploy contract thật.
@@ -74,4 +75,4 @@ Mọi thao tác upload file (Ảnh chiến dịch, Hóa đơn) phải tuân th�
 - **Responsive**: Giao diện hoạt động tốt trên cả Mobile (MetaMask Browser) và Desktop.
 
 ---
-*Bản đặc tả v4.0 — Cập nhật lần cuối: 20/04/2026*
+*Bản đặc tả v5.0 — Cập nhật lần cuối: 21/04/2026*

@@ -25,19 +25,43 @@
     - [Chi tiết Luồng tiền (MONEY_FLOW.md)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/MONEY_FLOW.md)
 11. [Humanitarian Accountability Protocol (DAO x WFP v4.0)](#-humanitarian-accountability-protocol-dao-x-wfp)
 12. [Thông tin Triển khai (Sepolia)](#-thông-tin-triển-khai-sepolia)
-13. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
+13. [Tối Ưu Hóa & Tính Năng Mới (V5.0)](#-tối-ưu-hóa--tính-năng-mới-v50)
+14. [Thuật Ngữ Blockchain](#-thuật-ngữ-blockchain-glossary)
 
 ---
 
-## 🚀 Thông tin Triển khai (Cập nhật 21/04/2026)
+## 🚀 Thông tin Triển khai (Cập nhật 22/04/2026)
 
 Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepolia Testnet**:
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x3A02b0ff80476186E8D2352F17999A2c980A527D` |
-| **CampaignFactory** | `0xc2BC51D10a0c1baEe743A7BC6DFfA13ac915bcFe` |
-| **SupplierRegistry** | `0x22e68c084B0580EA120a07BDdeDaecC35239bb83` |
+| **Forwarder** | `0x26aCb6E756C2b014C247A86c9614C8bf511AE33B` |
+| **CampaignFactory** | `0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028` |
+| **SupplierRegistry** | `0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5` |
+
+---
+
+## ⚡ Tối Ưu Hóa & Tính Năng Mới (V6.0)
+
+Bản cập nhật này tập trung vào **tối ưu hóa chi phí Gas** và **nâng cao tính minh bạch** trong quy trình quản lý yêu cầu chi tiêu.
+
+### 1. Tối Ưu Hóa Gas (Gas Optimization)
+
+- **IPFS JSON Metadata (V6.0)**: Băm toàn bộ nội dung Tên, Mô tả, Hình ảnh thành 1 JSON đẩy lên IPFS. Smart Contract chỉ lưu một chuỗi `metadataCID` duy nhất thay vì nhiều trường `bytes32`. Điều này giảm triệt để giới hạn ký tự và tiết kiệm phí Gas tối đa!
+- **Storage Extraction**: Di chuyển các mapping lớn (`approvals`, `votedAmount`) ra khỏi struct `Request` để tránh việc mở rộng struct trong storage, giúp giảm đáng kể gas khi tạo request mới.
+- **Struct Packing**: Sắp xếp lại các trường dữ liệu trong `RequestLib` để đóng gói (pack) nhiều biến vào cùng một slot 32-byte (ví dụ: `recipient`, `type`, `status`), giúp giảm số lượng lệnh `SSTORE`.
+- **Unchecked Blocks**: Sử dụng `unchecked` cho các phép toán tăng/giảm biến đếm (`totalDonors`, `approvalCount`) khi đảm bảo không xảy ra tràn số.
+
+### 2. Tính Năng Mới (New Features)
+
+- **On-chain Verification Lifecycle (V6.0)**: Chuyển đổi từ cơ chế chữ ký Off-chain (ECDSA) sang xác thực **On-chain 100%**. Supplier nộp bằng chứng trực tiếp qua `submitProof`. Verifier thực hiện `verifyRequest` hoặc `rejectRequest` ngay trên chuỗi. Loại bỏ rủi ro lộ Private Key backend và tăng cường tính phi tập trung.
+- **Hard Reject & Fund Release**: Khi Verifier từ chối một yêu cầu gian lận, hệ thống tự động giải phóng `lockedFunds` và trả lại ngân sách khả dụng cho chiến dịch.
+- **Vòng Đời Yêu Cầu (Request Lifecycle)**: Chuyển đổi từ cờ boolean đơn giản sang hệ thống **Enum Status** (`OPEN`, `COMPLETED`, `CANCELLED`) giúp quản lý trạng thái chính xác hơn.
+- **Cơ Chế Hủy Yêu Cầu (Cancellation)**: Manager có quyền hủy các yêu cầu đang chờ (`OPEN`) nếu không còn cần thiết, giúp giải phóng ngay lập tức số tiền đang bị khóa (`lockedFunds`).
+- **Hạn Chót Biểu Quyết (Voting Deadline)**: Áp dụng thời hạn biểu quyết nghiêm ngặt (mặc định 7 ngày). Sau thời gian này, request sẽ hết hạn nếu không đủ phiếu bầu, ngăn chặn tình trạng treo vốn.
+- **Biểu Quyết Theo Trọng Số (Weighted Voting)**: Phiếu bầu của donor được tính theo tỉ lệ số tiền đã đóng góp, đảm bảo tiếng nói của những người đóng góp lớn.
+- **Validator Pool Phi Tập Trung**: Tự động chọn ngẫu nhiên 3 donors làm Validator cho các request nhỏ, tăng cường tính minh bạch và giám sát cộng đồng.
 
 ---
 
@@ -437,10 +461,10 @@ pragma solidity ^0.8.28;
 
 library RequestLib {
     struct Request {
-        string description;              // Mô tả mục đích chi tiêu ("Mua máy tính", "Thuê server"...)
+        string metadataCID;              // Chứa đường dẫn IPFS tới JSON (description, evidence, value)
         uint256 value;                   // Số tiền yêu cầu (wei)
         address payable recipient;       // Địa chỉ nhận tiền
-        bool complete;                   // Đã giải ngân chưa? (true = đã xong)
+        Status status;                   // Trạng thái (OPEN, COMPLETED, CANCELLED)
         uint256 totalApprovalWeight;     // Tổng số lượng ETH đã vote đồng ý (Wei)
         mapping(address => bool) approvals; // Ai đã vote? (tránh vote 2 lần)
     }
@@ -451,10 +475,10 @@ library RequestLib {
 
 | Trường | Kiểu | Ý nghĩa |
 |---|---|---|
-| `description` | `string` | Mô tả chi tiêu dùng tiền quỹ để làm gì |
+| `metadataCID` | `string` | Đường dẫn IPFS chứa nội dung chi tiết (JSON) của yêu cầu |
 | `value` | `uint256` | Số tiền yêu cầu giải ngân (đơn vị Wei) |
 | `recipient` | `address payable` | Địa chỉ ví nhận tiền. `payable` = có thể nhận ETH |
-| `complete` | `bool` | `false` = đang chờ, `true` = đã giải ngân |
+| `status` | `Status` | `OPEN` = đang chờ, `COMPLETED` = đã giải ngân, `CANCELLED` = đã hủy |
 | `totalApprovalWeight` | `uint256` | Tổng số lượng ETH của những người đã vote đồng ý |
 | `approvals` | `mapping` | Bản đồ: `địa chỉ → đã vote chưa` (tránh double-vote) |
 
@@ -604,9 +628,7 @@ RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu
 bool public active;                              // Chiến dịch có đang hoạt động không?
 uint256 public lockedFunds;                      // [Bảo Mật] Số tiền đang bị khóa bởi các Request chưa giải ngân
 
-string public campaignName;                      // Tên chiến dịch
-string public description;                       // Mô tả chi tiết
-string public imageHash;                         // Mã IPFS CID của ảnh đại diện
+string public metadataCID;                       // IPFS CID chứa thông tin (Tên, Mô tả, Hình ảnh)
 uint256 public snapshotDonorCount;              // Số lượng donor tại thời điểm tạo request
 mapping(uint256 => address) public donorAtId;   // Indexing donor phục vụ bốc thăm ngẫu nhiên
 SupplierRegistry public supplierRegistry;        // Registry của Suppliers
@@ -614,29 +636,18 @@ SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 
 **Constructor**:
 ```solidity
-constructor(
-    string memory _name,
-    string memory _description,
-    string memory _imageHash,
-    Category _category,
-    uint256 _minimum,
-    address _manager,
-    address _supplierRegistry,
-    address trustedForwarder
-) {
-    if (_minimum == 0) revert InsufficientFunds();
-    if (_manager == address(0) || _supplierRegistry == address(0))
-        revert InvalidAddress();
-    
-    campaignName = _name;
-    description = _description;
-    imageHash = _imageHash;
-    category = _category;
-    manager = _manager;
-    minimumContribution = _minimum;
-    supplierRegistry = SupplierRegistry(_supplierRegistry);
-    active = true;
-}
+    function initialize(
+        string calldata metadataCID_,
+        uint8 category_,
+        uint256 minContribution_,
+        address manager_,
+        address registry_,
+        address forwarder_
+    ) external initializer {
+        // Khởi tạo các giá trị...
+        metadataCID = metadataCID_;
+        // ...
+    }
 ```
 
 **Bảng tóm tắt TẤT CẢ các hàm**:
@@ -686,11 +697,10 @@ function donate() external payable onlyActive {
 
 ```solidity
 function createRequest(
-    string calldata desc,       // Mô tả
+    string calldata metadataCID_, // IPFS JSON chứa nội dung yêu cầu và hóa đơn
     uint256 value,              // Số tiền
     address payable recipient,  // Người nhận (Supplier)
-    address verifier,           // Người xác minh (Chuẩn WFP)
-    string calldata evidenceHash // CID từ IPFS (hóa đơn, chứng từ)
+    address verifier            // Người xác minh (Chuẩn WFP)
 ) external onlyManager onlyActive {
     if (value == 0) revert InsufficientFunds();
     if (recipient == address(0)) revert InvalidAddress();
@@ -698,17 +708,15 @@ function createRequest(
     if (verifier == manager) revert ManagerNotAllowedAsVerifier();
     if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
     if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
-    if (bytes(desc).length == 0) revert EmptyDescription();
-    if (bytes(evidenceHash).length == 0) revert EmptyDescription();
+    if (bytes(metadataCID_).length == 0) revert EmptyDescription();
 
     // Tạo Request mới và thêm vào mảng
     RequestLib.Request storage r = requests.push();
-    r.description = desc;
+    r.metadataCID = metadataCID_;
     r.value = value;
     r.recipient = recipient;
-    r.complete = false;
+    r.status = RequestLib.Status.OPEN;
     r.totalApprovalWeight = 0;
-    r.evidenceHash = evidenceHash;
     r.requestType = RequestLib.RequestType.SINGLE;
     r.verifier = verifier; // Lưu lại verifier
 
@@ -720,7 +728,7 @@ function createRequest(
     // Logic chọn ngẫu nhiên Validator nếu số tiền nhỏ (bỏ qua chi tiết)
     // ...
 
-    emit RequestCreated(requests.length - 1, desc, value, recipient, selectedValidators);
+    emit RequestCreated(requests.length - 1, metadataCID_, value, recipient, selectedValidators);
 }
 ```
 
@@ -753,9 +761,7 @@ function approveRequest(uint256 index) external onlyActive {
 
 ```solidity
 function finalizeRequest(
-    uint256 index,
-    bytes calldata signature,       // Chữ ký số của Verifier
-    string calldata finalEvidenceHash // Bằng chứng giao hàng cuối cùng
+    uint256 index
 ) external onlyManager nonReentrant {
     if (index >= requests.length) revert InvalidRequestIndex();
 
@@ -768,14 +774,10 @@ function finalizeRequest(
     // Cần > 50% tổng quỹ hoặc 2/3 validator đồng ý...
     // ...
 
-    // 2. Kiểm tra chữ ký của Verifier (Chuẩn WFP)
-    bytes32 messageHash = keccak256(abi.encodePacked(address(this), index, "FINAL"));
-    bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
-    address signer = ECDSA.recover(ethSignedMessageHash, signature);
+    // 2. Kiểm tra trạng thái xác thực on-chain (Verifier đã duyệt chưa?)
+    if (r.verifyStatus != RequestLib.VerificationStatus.APPROVED) revert NotVerified();
 
-    if (signer != r.verifier) revert InvalidSignature(); // Chỉ Verifier mới được ký duyệt chi!
-
-    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
+    r.status = RequestLib.Status.COMPLETED;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
     
     // Ghi nhận thu nhập cho Supplier
     supplierRegistry.recordPayment(r.recipient, r.value);
@@ -1716,4 +1718,4 @@ npx hardhat clean                              # Xóa cache + artifacts
 
 ---
 
-> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 20/04/2026**
+> 📌 **Tài liệu này được tạo bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026**

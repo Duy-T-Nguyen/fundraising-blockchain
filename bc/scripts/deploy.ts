@@ -29,6 +29,12 @@ async function main() {
   const factoryAddress = await factory.getAddress();
   console.log("CampaignFactory deployed to:", factoryAddress);
 
+  // 4. Link Factory to SupplierRegistry (CRITICAL for Approve functionality)
+  console.log("Linking Factory to SupplierRegistry...");
+  const setFactoryTx = await supplierRegistry.setFactory(factoryAddress);
+  await setFactoryTx.wait();
+  console.log("Factory successfully linked to Registry!");
+
   console.log("\n--- Deployment Summary ---");
   console.log("Platform Admin:", deployer.address);
   console.log("Forwarder:", forwarderAddress);

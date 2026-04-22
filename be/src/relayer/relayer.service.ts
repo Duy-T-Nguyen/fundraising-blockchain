@@ -4,6 +4,15 @@ import { Queue } from 'bullmq';
 import { ethers } from 'ethers';
 import { SubmitIntentDto } from './dto/submit-intent.dto';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
+import { AiService } from './ai.service';
+import { GasMonitorService } from '../blockchain/gas-monitor.service';
+import { SocketGateway } from '../blockchain/socket.gateway';
+
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { RelayerStats, RelayerStatsDocument } from './schemas/relayer-stats.schema';
+import { RelayerActionLog, RelayerActionLogDocument } from './schemas/relayer-action-log.schema';
 
 @Injectable()
 export class RelayerService implements OnModuleInit {
@@ -11,10 +20,21 @@ export class RelayerService implements OnModuleInit {
   private provider: ethers.JsonRpcProvider;
   private wallet: ethers.Wallet;
   private forwarderContract: ethers.Contract;
+  
+  // Chỉ số hiệu quả AI (State managed in DB, cached in memory)
+  private cumulativeSavings: number = 0; // ETH
+  private lastDecision: string = 'WAIT';
+  private lastActionRatio: number = 0;
+  private lastState: number[] = [];
 
   constructor(
     @InjectQueue('gas-optimization-queue') private gasQueue: Queue,
     private configService: ConfigService,
+    private aiService: AiService,
+    private gasMonitor: GasMonitorService,
+    private socketGateway: SocketGateway,
+    @InjectModel(RelayerStats.name) private statsModel: Model<RelayerStatsDocument>,
+    @InjectModel(RelayerActionLog.name) private actionLogModel: Model<RelayerActionLogDocument>,
   ) {}
 
   async onModuleInit() {
@@ -27,13 +47,178 @@ export class RelayerService implements OnModuleInit {
       this.wallet = new ethers.Wallet(privateKey, this.provider);
       
       const abi = [
-        "function execute((address from, address to, uint256 value, uint256 gas, uint256 nonce, bytes data), bytes signature) public payable returns (bool, bytes)",
-        "function executeBatch((address from, address to, uint256 value, uint256 gas, uint256 nonce, bytes data)[], bytes[]) public payable",
-        "function getNonce(address from) public view returns (uint256)"
+        {
+          "inputs": [
+            {
+              "components": [
+                { "internalType": "address", "name": "from", "type": "address" },
+                { "internalType": "address", "name": "to", "type": "address" },
+                { "internalType": "uint256", "name": "value", "type": "uint256" },
+                { "internalType": "uint256", "name": "gas", "type": "uint256" },
+                { "internalType": "uint256", "name": "nonce", "type": "uint256" },
+                { "internalType": "bytes", "name": "data", "type": "bytes" }
+              ],
+              "internalType": "struct Forwarder.ForwardRequest",
+              "name": "req",
+              "type": "tuple"
+            },
+            { "internalType": "bytes", "name": "signature", "type": "bytes" }
+          ],
+          "name": "execute",
+          "outputs": [
+            { "internalType": "bool", "name": "", "type": "bool" },
+            { "internalType": "bytes", "name": "", "type": "bytes" }
+          ],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "components": [
+                { "internalType": "address", "name": "from", "type": "address" },
+                { "internalType": "address", "name": "to", "type": "address" },
+                { "internalType": "uint256", "name": "value", "type": "uint256" },
+                { "internalType": "uint256", "name": "gas", "type": "uint256" },
+                { "internalType": "uint256", "name": "nonce", "type": "uint256" },
+                { "internalType": "bytes", "name": "data", "type": "bytes" }
+              ],
+              "internalType": "struct Forwarder.ForwardRequest[]",
+              "name": "reqs",
+              "type": "tuple[]"
+            },
+            { "internalType": "bytes[]", "name": "signatures", "type": "bytes[]" }
+          ],
+          "name": "executeBatch",
+          "outputs": [],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [{ "internalType": "address", "name": "from", "type": "address" }],
+          "name": "getNonce",
+          "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+          "stateMutability": "view",
+          "type": "function"
+        }
       ];
 
       this.forwarderContract = new ethers.Contract(forwarderAddress, abi, this.wallet);
       this.logger.log(`Relayer Service initialized with wallet: ${this.wallet.address}`);
+    }
+
+    // Load persistent stats from DB
+    await this.loadStats();
+  }
+
+  private async loadStats() {
+    try {
+      let stats = await this.statsModel.findOne({ id: 'GLOBAL_STATS' });
+      if (!stats) {
+        stats = await this.statsModel.create({ id: 'GLOBAL_STATS' });
+      }
+      this.cumulativeSavings = stats.cumulativeSavings;
+      this.lastDecision = stats.lastDecision;
+      this.lastState = stats.lastState;
+      this.logger.log(`Loaded persistent stats: Savings=${this.cumulativeSavings} ETH`);
+    } catch (error) {
+      this.logger.error(`Failed to load stats from DB: ${error.message}`);
+    }
+  }
+
+  private async saveStats() {
+    try {
+      await this.statsModel.updateOne(
+        { id: 'GLOBAL_STATS' },
+        {
+          cumulativeSavings: this.cumulativeSavings,
+          lastDecision: this.lastDecision,
+          lastState: this.lastState,
+          lastActionRatio: this.lastActionRatio,
+        },
+        { upsert: true }
+      );
+    } catch (error) {
+      this.logger.error(`Failed to save stats to DB: ${error.message}`);
+    }
+  }
+
+  /**
+   * Vòng lặp quyết định của AI - Chạy mỗi 12 giây (Khớp với Sepolia Block Time)
+   */
+  @Cron('*/12 * * * * *')
+  async handleAiOptimization() {
+    try {
+      this.logger.debug('--- AI Gas Optimization Cycle ---');
+      
+      // 1. Kiểm tra hàng đợi
+      const stats = await this.getQueueStats();
+      if (stats.queueSize === 0) {
+        return;
+      }
+
+      // 2. Lấy 11 thôgn số trạng thái từ thị trường và hàng đợi
+      // s_time_left = Thời gian còn lại cho đến deadline (Giảm xuống 5 phút để AI quyết đoán hơn trong demo)
+      const MAX_WAIT_HOURS = 23.99; // 5 minutes 
+      const ageHours = stats.oldestJobAge / 3600;
+      const timeLeftHours = Math.max(0, MAX_WAIT_HOURS - ageHours);
+      
+      const state = await this.gasMonitor.getCurrentState(
+        stats.queueSize,
+        timeLeftHours
+      );
+
+      // 3. Hỏi ý kiến AI Sidecar
+      const action = await this.aiService.getDecision(state);
+      this.lastState = state;
+
+      // 4. Thực thi hành động dựa trên Tỷ lệ % (Action Ratio)
+      const actionBins = [0.0, 0.25, 0.5, 0.75, 1.0]; 
+      const ratio = actionBins[action] !== undefined ? actionBins[action] : 0;
+      this.lastActionRatio = ratio;
+
+      if (ratio === 0) {
+        this.lastDecision = 'WAIT';
+        this.logger.log(`AI Decision: [WAIT] (Queue: ${stats.queueSize}, Gas is high/unstable)`);
+      } else {
+        this.lastDecision = 'EXECUTE';
+        const dynamicBatchSize = Math.max(1, Math.floor(ratio * stats.queueSize));
+        this.logger.log(`AI Decision: [EXECUTE] (Ratio: ${ratio * 100}%). Sending ${dynamicBatchSize} transactions...`);
+        
+        // 4.1 Tính toán tiết kiệm THỰC TẾ (Real Batching Savings)
+        // Tiết kiệm = [Phí khởi tạo tiết kiệm được + Chênh lệch giá gas tối ưu]
+        const currentGasPrice = state[0];
+        const gasRef = state[10];
+        const batchSize = dynamicBatchSize;
+        
+        // Phí khởi tạo tiết kiệm (L2 benefit): (n-1) * 21000
+        const batchingBenefit = (batchSize - 1) * 21000 * currentGasPrice;
+        
+        // Chênh lệch giá (AI benefit): n * (gasRef - currentGas) * 21000
+        const priceBenefit = batchSize * Math.max(0, gasRef - currentGasPrice) * 21000;
+        
+        const totalSavingsWei = batchingBenefit + priceBenefit;
+        const totalSavingsEth = Number(totalSavingsWei) / 1e18;
+        
+        this.cumulativeSavings += totalSavingsEth;
+
+        await this.processBatch(dynamicBatchSize);
+      }
+      
+      // Save to Action Log for history
+      await this.actionLogModel.create({
+        state,
+        decision: this.lastDecision,
+        actionRatio: ratio,
+        gasPrice: state[0],
+        gasRef: state[10],
+        savings: 0 // Will be updated if we calculate accurately per batch
+      });
+
+      // Notify stats update after AI decision
+      await this.notifyStatsChange();
+    } catch (error) {
+      this.logger.error(`Error in AI Optimization cycle: ${error.message}`);
     }
   }
 
@@ -51,15 +236,26 @@ export class RelayerService implements OnModuleInit {
         throw new Error('Chữ ký không hợp lệ: Người ký không khớp với trường "from"');
       }
 
-      // 2. Đưa vào hàng đợi BullMQ
+      // 2. Đưa vào hàng đợi BullMQ kèm theo giá Gas lúc gửi để tính toán tiết kiệm sau này
+      const currentGasPrice = await this.gasMonitor.getLatestBaseFee();
       const job = await this.gasQueue.add('execute-intent', {
         forwardRequest,
         signature,
         timestamp: Date.now(),
+        submissionGasPrice: currentGasPrice,
       });
 
-      this.logger.log(`Intent submitted successfully. Job ID: ${job.id}`);
-      return { success: true, jobId: job.id };
+      this.logger.log(`[Queue] Intent added to BullMQ. Job ID: ${job.id} | From: ${recoveredAddress}`);
+      
+      // Notify via Socket.io
+      await this.notifyStatsChange();
+
+      return { 
+        success: true, 
+        jobId: job.id,
+        recoveredAddress,
+        status: 'queued'
+      };
     } catch (error) {
       this.logger.error(`Failed to submit intent: ${error.message}`);
       throw error;
@@ -67,11 +263,7 @@ export class RelayerService implements OnModuleInit {
   }
 
   /**
-   * Lấy thống kê hàng đợi để cung cấp "State" cho mô hình RL
-   */
-  /**
    * Thực thi gom mẻ nhiều giao dịch (Chế độ Eco - AI điều khiển)
-   * @param batchSize Số lượng giao dịch muốn gom
    */
   async processBatch(batchSize: number = 10) {
     const jobs = await this.gasQueue.getJobs(['waiting'], 0, batchSize - 1);
@@ -84,7 +276,15 @@ export class RelayerService implements OnModuleInit {
     const signatures: any[] = [];
 
     for (const job of jobs) {
-      requests.push(job.data.forwardRequest);
+      const req = job.data.forwardRequest;
+      requests.push({
+        from: req.from,
+        to: req.to,
+        value: BigInt(req.value),
+        gas: BigInt(req.gas),
+        nonce: BigInt(req.nonce),
+        data: req.data
+      });
       signatures.push(job.data.signature);
     }
 
@@ -93,13 +293,45 @@ export class RelayerService implements OnModuleInit {
         throw new Error('Forwarder contract chưa được khởi tạo. Kiểm tra .env');
       }
 
+      const currentGasPrice = await this.gasMonitor.getLatestBaseFee();
+      let totalBatchSavingsEth = 0;
+
+      // 1. Tính toán tiết kiệm từ chênh lệch giá cho từng Intent
+      for (const job of jobs) {
+        const submissionGasPrice = job.data.submissionGasPrice || currentGasPrice;
+        const gasDiff = Number(submissionGasPrice) - Number(currentGasPrice);
+        
+        // Nếu AI đợi được giá rẻ hơn, cộng tiền tiết kiệm (giả định mỗi giao dịch dùng 150k gas cho Campaign)
+        if (gasDiff > 0) {
+          totalBatchSavingsEth += (gasDiff * 150000) / 1e18;
+        }
+      }
+
+      // 2. Cộng thêm lợi ích từ Batching (tiết kiệm 21000 gas cho mỗi giao dịch từ thứ 2 trở đi)
+      if (jobs.length > 1) {
+        const batchingSavingsEth = ((jobs.length - 1) * 21000 * Number(currentGasPrice)) / 1e18;
+        totalBatchSavingsEth += batchingSavingsEth;
+      }
+
       const tx = await this.forwarderContract.executeBatch(requests, signatures);
       const receipt = await tx.wait();
 
-      // Sau khi thành công, xóa các job đã xử lý khỏi hàng đợi
-      for (const job of jobs) {
-        await job.remove();
-      }
+      this.cumulativeSavings += totalBatchSavingsEth;
+      this.logger.log(`Batch successful. Real Savings from this batch: ${totalBatchSavingsEth.toFixed(8)} ETH`);
+
+      // Track batch metrics in DB
+      await this.statsModel.updateOne(
+        { id: 'GLOBAL_STATS' },
+        { 
+          $inc: { 
+            totalBatchesExecuted: 1,
+            totalIntentsProcessed: jobs.length 
+          } 
+        }
+      );
+
+      // Notify via Socket.io
+      await this.notifyStatsChange();
 
       return { success: true, txHash: tx.hash, count: jobs.length };
     } catch (error) {
@@ -114,25 +346,57 @@ export class RelayerService implements OnModuleInit {
     
     let oldestJobAge = 0;
     if (jobs.length > 0) {
-        // Sắp xếp lấy job cũ nhất
         const oldestJob = jobs.reduce((prev, curr) => (prev.timestamp < curr.timestamp ? prev : curr));
-        oldestJobAge = Math.floor((Date.now() - oldestJob.timestamp) / 1000); // Đổi ra giây
+        oldestJobAge = Math.floor((Date.now() - oldestJob.timestamp) / 1000); // Giây
     }
 
     return {
       queueSize,
       oldestJobAge,
+      cumulativeSavings: this.cumulativeSavings,
+      lastDecision: this.lastDecision,
+      lastActionRatio: this.lastActionRatio,
+      lastState: this.lastState,
       timestamp: Date.now()
     };
   }
 
+  async getHistory(limit: number = 50) {
+    return this.actionLogModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .exec();
+  }
+
+  async getPendingIntents(address: string): Promise<number[]> {
+    const jobs = await this.gasQueue.getJobs(['waiting', 'delayed']);
+    const pendingRequestIds: number[] = [];
+
+    for (const job of jobs) {
+      const req = job.data?.forwardRequest;
+      if (req && req.from && req.from.toLowerCase() === address.toLowerCase()) {
+        const data = req.data as string;
+        // Check if it's approveRequest(uint256 index) -> Selector: 0xd7d1bbdb
+        if (data && data.startsWith('0xd7d1bbdb')) {
+           const idHex = data.substring(10); // Remove 0xd7d1bbdb (10 chars: 0x + 8 chars)
+           const requestId = parseInt(idHex, 16);
+           if (!isNaN(requestId)) {
+             pendingRequestIds.push(requestId);
+           }
+        }
+      }
+    }
+    return pendingRequestIds;
+  }
+
   private verifyEIP712(forwardRequest: any, signature: string): string {
-    // Định nghĩa kiểu dữ liệu EIP-712 (Phải khớp 100% với Forwarder.sol)
+    const chainId = this.configService.get<number>('CHAIN_ID') || 31337;
     const domain = {
-      name: 'EcoFundForwarder',
+      name: 'FundraisingForwarder',
       version: '1',
-      chainId: 31337, // Hardhat Localhost (Cần chỉnh lại nếu dùng mạng khác)
-      verifyingContract: forwardRequest.to, // Thường là Forwarder Address, nhưng tùy cách bạn ký
+      chainId: Number(chainId),
+      verifyingContract: this.configService.get<string>('FORWARDER_ADDRESS'),
     };
 
     const types = {
@@ -146,7 +410,21 @@ export class RelayerService implements OnModuleInit {
       ],
     };
 
-    // Sử dụng ethers v6 để verify
     return ethers.verifyTypedData(domain, types, forwardRequest, signature);
+  }
+
+  /**
+   * Phát sóng thô thôgn số hàng đợi mới nhất cho toàn bộ client qua Socket.io
+   */
+  private async notifyStatsChange() {
+    try {
+      // Persist to DB before broadcasting
+      await this.saveStats();
+      
+      const stats = await this.getQueueStats();
+      this.socketGateway.broadcast('relayer-stats', stats);
+    } catch (error) {
+      this.logger.error(`Error broadcasting stats: ${error.message}`);
+    }
   }
 }

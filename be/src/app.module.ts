@@ -7,10 +7,12 @@ import { BlockchainModule } from './blockchain/blockchain.module';
 import { RelayerModule } from './relayer/relayer.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/fundchain'),
     BullModule.forRoot({
       connection: {

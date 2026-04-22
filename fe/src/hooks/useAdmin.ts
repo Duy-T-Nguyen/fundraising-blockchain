@@ -7,9 +7,10 @@ import { formatEther, parseEther } from 'viem';
 export type CampaignRequest = {
   id: number;
   manager: string;
-  name: string;
-  description: string;
-  imageHash: string;
+  metadataCID: string;
+  name?: string;
+  description?: string;
+  image?: string;
   category: number;
   minimumContribution: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -56,17 +57,20 @@ export const useAdmin = () => {
           address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
           abi: ABIS.CAMPAIGN_FACTORY,
           functionName: 'admin',
-        }) as Promise<string>,
+          args: [],
+        } as any) as Promise<string>,
         publicClient.readContract({
           address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
           abi: ABIS.CAMPAIGN_FACTORY,
           functionName: 'antiSpamFee',
-        }) as Promise<bigint>,
+          args: [],
+        } as any) as Promise<bigint>,
         publicClient.readContract({
           address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
           abi: ABIS.CAMPAIGN_FACTORY,
           functionName: 'getGlobalStats',
-        }) as Promise<[bigint, bigint]>,
+          args: [],
+        } as any) as Promise<[bigint, bigint]>,
         publicClient.getBalance({ address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY }),
       ]);
 
@@ -78,19 +82,36 @@ export const useAdmin = () => {
         abi: ABIS.CAMPAIGN_FACTORY,
         functionName: 'getCampaignRequests',
         args: [BigInt(0), BigInt(50)],
-      }) as [any[], bigint];
+      } as any) as [any[], bigint];
 
-      const formattedRequests = requestsData[0].map((r, i) => ({
+      const rawRequests = requestsData[0].map((r, i) => ({
         id: i,
         manager: r.manager,
-        name: r.name,
-        description: r.description,
-        imageHash: r.imageHash,
+        metadataCID: r.metadataCID,
         category: r.category,
         minimumContribution: formatEther(r.minimumContribution),
         status: ['PENDING', 'APPROVED', 'REJECTED'][r.status] as any,
         deployedAddress: r.deployedAddress,
       }));
+
+      // 2.1 Fetch IPFS Metadata for each request
+      const formattedRequests = await Promise.all(rawRequests.map(async (req) => {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata?cid=${req.metadataCID}`);
+          if (!res.ok) return req;
+          const metadata = await res.json();
+          return {
+            ...req,
+            name: metadata.name,
+            description: metadata.description,
+            image: metadata.image,
+          };
+        } catch (err) {
+          console.error(`Failed to fetch metadata for ${req.metadataCID}:`, err);
+          return req;
+        }
+      }));
+
       setRequests(formattedRequests);
 
       // 3. Fetch Suppliers
@@ -99,7 +120,7 @@ export const useAdmin = () => {
         abi: ABIS.SUPPLIER_REGISTRY,
         functionName: 'getSuppliers',
         args: [BigInt(0), BigInt(100)],
-      }) as [string[], string[], string[], bigint[]];
+      } as any) as [string[], string[], string[], bigint[]];
 
       const formattedSuppliers = suppliersData[0].map((addr, i) => ({
         address: addr,
@@ -116,7 +137,7 @@ export const useAdmin = () => {
         abi: ABIS.CAMPAIGN_FACTORY,
         functionName: 'getCampaigns',
         args: [0, '0x0000000000000000000000000000000000000000', 0, BigInt(0), BigInt(100)],
-      }) as `0x${string}`[];
+      } as any) as `0x${string}`[];
 
       let activeCount = 0;
       let donorSum = 0;
@@ -129,7 +150,7 @@ export const useAdmin = () => {
                 { address: addr, abi: ABIS.CAMPAIGN, functionName: 'active' },
                 { address: addr, abi: ABIS.CAMPAIGN, functionName: 'totalDonors' },
               ]
-            });
+            } as any);
           } catch { return null; }
         }));
 
@@ -171,7 +192,7 @@ export const useAdmin = () => {
       functionName: 'approveCampaignRequest',
       args: [BigInt(id)],
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -184,7 +205,7 @@ export const useAdmin = () => {
       functionName: 'rejectCampaignRequest',
       args: [BigInt(id)],
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -197,7 +218,7 @@ export const useAdmin = () => {
       functionName: 'updateAntiSpamFee',
       args: [parseEther(newFeeEther)],
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -209,7 +230,7 @@ export const useAdmin = () => {
       abi: ABIS.CAMPAIGN_FACTORY,
       functionName: 'withdrawFees',
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -222,7 +243,7 @@ export const useAdmin = () => {
       functionName: 'addSupplier',
       args: [supplierAddr as `0x${string}`, name, metadata],
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -235,7 +256,7 @@ export const useAdmin = () => {
       functionName: 'removeSupplier',
       args: [supplierAddr as `0x${string}`],
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 
@@ -247,7 +268,7 @@ export const useAdmin = () => {
       abi: ABIS.CAMPAIGN,
       functionName: 'withdrawGasFunds',
       account: address as `0x${string}`,
-    });
+    } as any);
     return hash;
   };
 

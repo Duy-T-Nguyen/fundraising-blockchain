@@ -802,6 +802,15 @@
   resolved "https://registry.npmjs.org/@solidity-parser/parser/-/parser-0.20.2.tgz"
   integrity sha512-rbu0bzwNvMcwAjH86hiEAcOeRI2EeK8zCkHDrFykh/Al8mvJeFmjy3UrE7GYQjNwOgbGUUtCn5/k8CB8zIu7QA==
 
+"@ts-morph/common@~0.29.0":
+  version "0.29.0"
+  resolved "https://registry.npmjs.org/@ts-morph/common/-/common-0.29.0.tgz"
+  integrity sha512-35oUmphHbJvQ/+UTwFNme/t2p3FoKiGJ5auTjjpNTop2dyREspirjMy82PLSC1pnDJ8ah1GU98hwpVt64YXQsg==
+  dependencies:
+    minimatch "^10.0.1"
+    path-browserify "^1.0.1"
+    tinyglobby "^0.2.14"
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.12"
   resolved "https://registry.npmjs.org/@tsconfig/node10/-/node10-1.0.12.tgz"
@@ -1147,6 +1156,11 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
+balanced-match@^4.0.2:
+  version "4.0.4"
+  resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-4.0.4.tgz"
+  integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
+
 base-x@^3.0.2:
   version "3.0.11"
   resolved "https://registry.npmjs.org/base-x/-/base-x-3.0.11.tgz"
@@ -1212,6 +1226,13 @@ brace-expansion@^2.0.1:
   integrity sha512-MCV/fYJEbqx68aE58kv2cA/kiky1G8vux3OR6/jbS+jIMe/6fJWa0DTzJU7dqijOWYwHi1t29FlfYI9uytqlpA==
   dependencies:
     balanced-match "^1.0.0"
+
+brace-expansion@^5.0.5:
+  version "5.0.5"
+  resolved "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.5.tgz"
+  integrity sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==
+  dependencies:
+    balanced-match "^4.0.2"
 
 braces@^3.0.3, braces@~3.0.2:
   version "3.0.3"
@@ -1436,6 +1457,11 @@ cliui@^7.0.2:
     string-width "^4.2.0"
     strip-ansi "^6.0.0"
     wrap-ansi "^7.0.0"
+
+code-block-writer@^13.0.3:
+  version "13.0.3"
+  resolved "https://registry.npmjs.org/code-block-writer/-/code-block-writer-13.0.3.tgz"
+  integrity sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==
 
 color-convert@^1.9.0:
   version "1.9.3"
@@ -2767,6 +2793,13 @@ minimalistic-crypto-utils@^1.0.1:
   resolved "https://registry.npmjs.org/minimalistic-crypto-utils/-/minimalistic-crypto-utils-1.0.1.tgz"
   integrity sha512-JIYlbt6g8i5jKfJ3xz7rF0LXmv2TkDxBLUkiBeZ7bAx4GnnNMr8xFpGnOxn6GhTEHx3SjRrZEoU+j04prX1ktg==
 
+minimatch@^10.0.1:
+  version "10.2.5"
+  resolved "https://registry.npmjs.org/minimatch/-/minimatch-10.2.5.tgz"
+  integrity sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==
+  dependencies:
+    brace-expansion "^5.0.5"
+
 minimatch@^3.0.4:
   version "3.1.5"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.1.5.tgz"
@@ -2989,6 +3022,11 @@ parse-cache-control@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/parse-cache-control/-/parse-cache-control-1.0.1.tgz"
   integrity sha512-60zvsJReQPX5/QP0Kzfd/VrpjScIQ7SHBW6bFCYfEP+fp0Eppr1SHhIO5nd1PjZtvclzSzES9D/p5nFJurwfWg==
+
+path-browserify@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/path-browserify/-/path-browserify-1.0.1.tgz"
+  integrity sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==
 
 path-exists@^4.0.0:
   version "4.0.0"
@@ -3661,7 +3699,7 @@ through2@^4.0.0:
   dependencies:
     readable-stream "3"
 
-tinyglobby@^0.2.6:
+tinyglobby@^0.2.14, tinyglobby@^0.2.6:
   version "0.2.16"
   resolved "https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.16.tgz"
   integrity sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==
@@ -3711,6 +3749,14 @@ ts-essentials@^7.0.1:
   version "7.0.3"
   resolved "https://registry.npmjs.org/ts-essentials/-/ts-essentials-7.0.3.tgz"
   integrity sha512-8+gr5+lqO3G84KdiTSMRLtuyJ+nTBVRKuCrK4lidMPdVeEp0uqC875uE5NMcaA7YYMN7XsNiFQuMvasF8HT/xQ==
+
+ts-morph@*:
+  version "28.0.0"
+  resolved "https://registry.npmjs.org/ts-morph/-/ts-morph-28.0.0.tgz"
+  integrity sha512-Wp3tnZ2bzwxyTZMtgWVzXDfm7lB1Drz+y9DmmYH/L702PQhPyVrp3pkou3yIz4qjS14GY9kcpmLiOOMvl8oG1g==
+  dependencies:
+    "@ts-morph/common" "~0.29.0"
+    code-block-writer "^13.0.3"
 
 ts-node@*, ts-node@^10.9.0, ts-node@>=8.0.0:
   version "10.9.2"

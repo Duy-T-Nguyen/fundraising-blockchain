@@ -3,13 +3,13 @@ import { useParams } from 'react-router-dom';
 import CampaignHero from '../components/campaigndetail/CampaignHero';
 import DonorsTable from '../components/campaigndetail/DonorsTable';
 import { useCampaign } from '../hooks/useCampaign';
-import { useRequests } from '../hooks/useRequests';
 import { useCampaignResolver } from '../hooks/useCampaignResolver';
 import CreateRequestModal from '../components/manager/CreateRequestModal';
 import RequestsList from '../components/manager/RequestsList';
 import { useWallet } from '../hooks/useWallet';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import ManagerFinancialCard from '../components/manager/ManagerFinancialCard';
+import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 const CampaignDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -20,11 +20,10 @@ const CampaignDetail: React.FC = () => {
   const { address, isLoading: isResolving, error: resolutionError } = useCampaignResolver(slug);
 
   const { summary, isLoading, refresh } = useCampaign(address || undefined, userAddress || undefined);
-  const { votedRequestIds } = useRequests(address || undefined, userAddress || undefined);
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   const isManager = !!(userAddress && summary && userAddress.toLowerCase() === summary.manager.toLowerCase());
-  const hasDonated = !!(summary && summary.userContribution > 0n);
+  const hasDonated = !!(summary && summary.userContribution > BigInt(0));
 
   const handleDonationSuccess = () => {
     refresh();
@@ -99,6 +98,9 @@ const CampaignDetail: React.FC = () => {
           />
         )}
 
+        {/* AI Status Section */}
+        <AIRelayerStatus />
+
         <CampaignHero
           address={address}
           title={summary.title}
@@ -126,9 +128,8 @@ const CampaignDetail: React.FC = () => {
           address={address as string}
           isManager={isManager}
           hasDonated={hasDonated}
-          userFirstDonationBlock={summary.firstDonationBlock}
+          userDonorId={summary.userDonorId}
           donorsCount={summary.donorsCount}
-          votedRequestIds={votedRequestIds}
         />
 
         <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-white/50">

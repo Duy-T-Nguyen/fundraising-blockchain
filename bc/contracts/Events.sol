@@ -14,17 +14,21 @@ contract Events {
         Others
     }
 
+    /// @notice Phát ra khi Manager nạp thêm tiền xăng
+    event GasRefilled(address indexed manager, uint256 amount);
+    /// @notice Phát ra khi Admin rút tiền xăng để nạp cho Bot Relayer
+    event GasWithdrawn(address indexed admin, uint256 amount);
+
     /// @notice Phát ra khi có người đóng góp
     event Donation(address indexed donor, uint256 amount);
 
     /// @notice Phát ra khi manager tạo yêu cầu chi tiêu mới
     event RequestCreated(
         uint256 indexed id,
-        string description,
+        string metadataCID,
         uint256 value,
         address indexed recipient,
         address verifier,
-        string evidenceHash,
         address[] selectedValidators,
         uint256 lastValidatorSelection
     );
@@ -41,11 +45,14 @@ contract Events {
         uint256 milestoneIndex,
         uint256 amount,
         address indexed recipient,
-        string evidenceHash
+        string metadataCID
     );
 
     /// @notice Phát ra khi thu nhập của Supplier được cập nhật
-    event SupplierEarningsUpdated(address indexed supplier, uint256 totalEarned);
+    event SupplierEarningsUpdated(
+        address indexed supplier,
+        uint256 totalEarned
+    );
 
     /// @notice Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
@@ -55,9 +62,7 @@ contract Events {
     event CampaignStarted(
         address indexed campaignAddress,
         address indexed manager,
-        string campaignName,
-        string description,
-        string imageHash,
+        string metadataCID,
         Category indexed category,
         uint256 minContribution
     );
@@ -66,9 +71,7 @@ contract Events {
     event CampaignRequestSubmitted(
         uint256 indexed requestId,
         address indexed manager,
-        string name,
-        string description,
-        string imageHash,
+        string metadataCID,
         Category category,
         uint256 minContribution
     );
@@ -89,10 +92,53 @@ contract Events {
     event AdminTransferred(address indexed oldAdmin, address indexed newAdmin);
 
     /// @notice Báo cho Verifier biết họ được giao nhiệm vụ kiểm tra
-    event AssignedAsVerifier(address indexed verifier, uint256 indexed requestId);
+    event AssignedAsVerifier(
+        address indexed verifier,
+        uint256 indexed requestId
+    );
 
     /// @notice Báo cho Supplier biết họ có đơn hàng cần giao
-    event AssignedAsSupplier(address indexed supplier, uint256 indexed requestId);
+    event AssignedAsSupplier(
+        address indexed supplier,
+        uint256 indexed requestId
+    );
 
+    /// @notice Phát ra khi Supplier mới được thêm vào danh sách
+    event SupplierAdded(
+        address indexed supplier,
+        string name,
+        string metadataCID
+    );
+    /// @notice Phát ra khi Supplier bị xóa khỏi danh sách
+    event SupplierRemoved(address indexed supplier);
+    /// @notice Phát ra khi thông tin Supplier được cập nhật
+    event SupplierInfoUpdated(
+        address indexed supplier,
+        string name,
+        string metadataCID
+    );
+    /// @notice Phát ra khi một Campaign được ủy quyền/hủy ủy quyền tương tác với Registry
+    event AuthorizedCampaignUpdated(address indexed campaign, bool status);
+    /// @notice Phát ra khi một yêu cầu chi tiêu bị hủy
+    event RequestCancelled(uint256 indexed requestId);
 
+    /// @notice Phát ra khi Supplier nộp minh chứng On-chain
+    event ProofSubmitted(uint256 indexed requestId, string proofCID);
+
+    /// @notice Phát ra khi Verifier xác nhận yêu cầu On-chain
+    event RequestVerified(uint256 indexed requestId, address indexed verifier);
+
+    /// @notice Phát ra khi Verifier từ chối yêu cầu On-chain
+    event RequestRejected(
+        uint256 indexed requestId,
+        address indexed verifier,
+        string reasonCID
+    );
+
+    /// @notice Phát ra khi một milestone được xác thực
+    event MilestoneVerified(
+        uint256 indexed requestId,
+        uint256 milestoneIndex,
+        address indexed verifier
+    );
 }

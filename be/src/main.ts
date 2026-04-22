@@ -5,6 +5,7 @@ import { RedisIoAdapter } from './blockchain/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
 
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();

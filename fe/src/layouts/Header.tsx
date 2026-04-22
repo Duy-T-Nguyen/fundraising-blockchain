@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../hooks/useWallet';
+import { useNotification } from '../context/NotificationContext';
 import metamaskLogo from '../assets/metamask.png';
 
 const navLinks = [
@@ -14,6 +15,12 @@ const Header = () => {
   const [activeLink, setActiveLink] = useState('Home');
   const [copied, setCopied] = useState(false);
   const { address, isConnected, isConnecting, error, connect, disconnect } = useWallet();
+  const toast = useNotification();
+
+  // Surface wallet errors as toasts instead of inline text
+  useEffect(() => {
+    if (error) toast.error(error);
+  }, [error]);
 
   const handleCopy = () => {
     if (address) {
@@ -81,13 +88,6 @@ const Header = () => {
             >
               {isConnecting ? 'Connecting...' : 'Connect Wallet'}
             </button>
-          )}
-
-          {/* Error toast */}
-          {error && (
-            <span className="text-xs text-red-300 max-w-[220px] text-right leading-tight">
-              ⚠ {error}
-            </span>
           )}
         </div>
       </nav>

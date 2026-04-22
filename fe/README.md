@@ -32,8 +32,9 @@ yarn dev
 Frontend tương tác với 2 thành phần khác:
 - **Backend (be/)**: Gọi API `POST /evidence/upload` để lấy mã CID cho hình ảnh/hóa đơn.
 - **Blockchain (bc/)**: Sử dụng thư viện `ethers.js` để gọi các hàm của Smart Contract đã deploy tại:
-  - Factory: `0x9FCc4133983903EdADB61D592450079c2185d750`
-  - Registry: `0xA3531Cfaa721604a4cf85D93402f5985fa7e1CC3`
+  - Factory: `0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028`
+  - Registry: `0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5`
+  - Backend API: `http://localhost:1609` (Cấu hình qua `VITE_API_BASE_URL`)
 
 ## 📂 Cấu trúc thư mục
 
@@ -43,4 +44,4 @@ Frontend tương tác với 2 thành phần khác:
 - `src/pages/`: Các trang chức năng (Home, Create Campaign, Campaign Detail).
 
 ---
-*Cập nhật lần cuối: 17/04/2026 bởi Antigravity AI Assistant.*
+*Cập nhật lần cuối: 22/04/2026 bởi Antigravity AI Assistant.*

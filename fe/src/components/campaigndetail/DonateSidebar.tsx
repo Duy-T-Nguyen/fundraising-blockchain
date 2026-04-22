@@ -3,6 +3,7 @@ import { parseEther } from 'viem';
 import { getWalletClient, publicClient } from '../../blockchain/client';
 import { ABIS } from '../../blockchain/constants';
 import { useWallet } from '../../hooks/useWallet';
+import { useNotification } from '../../context/NotificationContext';
 
 interface DonateSidebarProps {
   campaignAddress: string | undefined;
@@ -22,6 +23,7 @@ const DonateSidebar: React.FC<DonateSidebarProps> = ({
   const [amount, setAmount] = useState('');
   const [isPending, setIsPending] = useState(false);
   const { isConnected, connect } = useWallet();
+  const toast = useNotification();
 
   const handleDonate = async () => {
     if (!isConnected) {
@@ -47,16 +49,16 @@ const DonateSidebar: React.FC<DonateSidebarProps> = ({
       });
 
       const hash = await walletClient.writeContract(request);
-      
+
       // Wait for transaction to be processed
       await publicClient.waitForTransactionReceipt({ hash });
-      
+
       setAmount('');
-      alert('Donation successful! Thank you.');
+      toast.success('Donation successful! Thank you.');
       if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error('Donation error:', err);
-      alert(`Donation failed: ${err.shortMessage || err.message}`);
+      toast.error(`Donation failed: ${err.shortMessage || err.message}`);
     } finally {
       setIsPending(false);
     }
@@ -106,15 +108,14 @@ const DonateSidebar: React.FC<DonateSidebarProps> = ({
             <button
               key={amt}
               onClick={() => setAmount(amt)}
-              className={`py-2 border border-gray-200 rounded-lg text-sm font-semibold transition-all hover:border-emerald-400 hover:bg-emerald-50/50 ${
-                amount === amt ? 'bg-emerald-50 border-emerald-400 text-emerald-600' : 'text-gray-600'
-              }`}
+              className={`py-2 border border-gray-200 rounded-lg text-sm font-semibold transition-all hover:border-emerald-400 hover:bg-emerald-50/50 ${amount === amt ? 'bg-emerald-50 border-emerald-400 text-emerald-600' : 'text-gray-600'
+                }`}
             >
               {amt}
             </button>
           ))}
         </div>
-        
+
         <input
           type="number"
           placeholder="Other Amount (ETH)"
@@ -126,11 +127,10 @@ const DonateSidebar: React.FC<DonateSidebarProps> = ({
         <button
           onClick={handleDonate}
           disabled={isPending || !amount}
-          className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 ${
-            isPending || !amount 
-              ? 'bg-gray-300 shadow-none cursor-not-allowed' 
+          className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 ${isPending || !amount
+              ? 'bg-gray-300 shadow-none cursor-not-allowed'
               : 'bg-emerald-400 hover:bg-emerald-500 shadow-emerald-400/30'
-          }`}
+            }`}
         >
           {isPending ? (
             <span className="flex items-center justify-center gap-2">

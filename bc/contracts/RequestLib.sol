@@ -8,46 +8,57 @@ pragma solidity ^0.8.28;
  */
 library RequestLib {
     struct Milestone {
-        uint256 value;          // Số tiền của giai đoạn này
-        string description;     // Mô tả công việc
-        bool released;          // Đã giải ngân hay chưa
-        string evidenceHash;    // IPFS Hash minh chứng hoàn thành
+        uint256 value; // Số tiền của giai đoạn này
+        string metadataCID; // CID chứa mô tả kế hoạch
+        string proofCID; // Minh chứng sau khi thực hiện (Supplier nộp)
+        bool released; // Đã giải ngân hay chưa
+        bool isVerified; // Đã được Verifier duyệt hay chưa
     }
 
-    enum RequestType { SINGLE, MULTI }
+    enum RequestType {
+        SINGLE,
+        MULTI
+    }
+    enum Status {
+        OPEN,
+        COMPLETED,
+        CANCELLED
+    }
+    enum VerificationStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
 
     struct Request {
-        string description;
-        uint256 value;          // Tổng tiền (nếu là SINGLE) hoặc mốc hiện tại (nếu là MULTI)
-        address payable recipient;
-        bool complete;
+        // --- Full Slots ---
+        string metadataCID; // CID chứa Name, Description, v.v.
+        string proofCID; // CID chứa minh chứng thực tế (Supplier nộp)
+        string rejectionReasonCID; // Lý do từ chối (Verifier nộp)
+        uint256 value;
         uint256 totalApprovalWeight;
-        string evidenceHash;    // IPFS Hash minh chứng
-        mapping(address => bool) approvals;
-        mapping(address => uint256) votedAmount; // Số tiền Donor đã dùng để biểu quyết cho request này
-        
-        // Cấu trúc cho Multi-stage
-        RequestType requestType;
-        Milestone[] milestones;
-        uint256 currentMilestone;
-        address verifier;       // Địa chỉ Oracle/Validator xác thực
-
-        // Snapshot bảo mật
-        uint256 snapshotTotalFunds; // Tổng quỹ tại thời điểm tạo
-        uint256 snapshotDonorCount; // Số lượng donor tại thời điểm tạo
-
-        // Cấu trúc cho Validator path (Small Request)
+        uint256 snapshotTotalFunds;
+        uint256 snapshotDonorCount;
         uint256 validatorApprovalCount;
-        mapping(address => bool) validatorApprovals;
-        mapping(address => bool) failedValidators; // NEW: Những người đã từng được chọn nhưng không làm việc
-        address[] selectedValidators;
         uint256 lastValidatorSelection;
+        uint256 currentMilestone;
+        uint256 createdAt;
+        // --- Packed Slot (Shared 32 bytes) ---
+        address payable recipient; // 20 bytes
+        RequestType requestType; // 1 byte
+        Status status; // 1 byte
+        VerificationStatus verifyStatus; // 1 byte
+        // 9 bytes left in this slot
+
+        // --- Next Slot ---
+        address verifier; // 20 bytes
+        // 12 bytes left in this slot
+
+        // --- Arrays (Pointer slots) ---
+        address[] selectedValidators;
+        Milestone[] milestones;
     }
 
-    function resetApprovals(Request storage r) internal {
-        for (uint256 i = 0; i < r.selectedValidators.length; i++) {
-            r.validatorApprovals[r.selectedValidators[i]] = false;
-        }
-        r.validatorApprovalCount = 0;
-    }
+    // Ghi chú: Các mapping (approvals, votedAmount, validatorApprovals, failedValidators)
+    // đã được đưa ra ngoài Campaign contract để giảm kích thước struct.
 }

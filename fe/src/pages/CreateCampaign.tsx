@@ -2,13 +2,14 @@ import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   X, ImagePlus, Loader2,
-  AlertCircle, ChevronDown, ArrowLeft, Zap,
+  ChevronDown, ArrowLeft, Zap,
   ShieldCheck, Eye, Users, Wallet, ArrowRight,
 } from 'lucide-react';
 import { parseEther } from 'viem';
 import { getWalletClient } from '../blockchain/client';
 import { ABIS, CONTRACT_ADDRESSES } from '../blockchain/constants';
 import { useWallet } from '../hooks/useWallet';
+import { useNotification } from '../context/NotificationContext';
 
 const CATEGORIES = [
   { label: 'Education', value: 0 },
@@ -39,6 +40,7 @@ type TxStatus = 'idle' | 'submitting' | 'success' | 'error';
 const CreateCampaign = () => {
   const navigate = useNavigate();
   const { isConnected, connect, address } = useWallet();
+  const toast = useNotification();
 
   // Form state
   const [image, setImage] = useState<string | null>(null);
@@ -51,7 +53,6 @@ const CreateCampaign = () => {
 
   // Tx state
   const [txStatus, setTxStatus] = useState<TxStatus>('idle');
-  const [txError, setTxError] = useState('');
   const [txHash, setTxHash] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +84,6 @@ const CreateCampaign = () => {
     if (!title.trim() || !description.trim() || !selectedFile) return;
 
     setTxStatus('submitting');
-    setTxError('');
 
     try {
       const walletClient = getWalletClient();
@@ -112,18 +112,41 @@ const CreateCampaign = () => {
         throw new Error(errData.message || 'Failed to upload image to IPFS');
       }
 
-      const { cid } = await uploadRes.json();
-      const ipfsHash = `ipfs://${cid}`;
+      const { cid: imageCid } = await uploadRes.json();
+      const imageUrl = `ipfs://${imageCid}`;
 
-      // 3. Submit to Blockchain
+      // 3. Upload Metadata JSON to Backend (IPFS)
+      const metadata = {
+        name: title.trim(),
+        description: description.trim(),
+        image: imageUrl,
+        category: CATEGORIES.find(c => c.value === category)?.label || 'Others',
+      };
+
+      const metaRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metadata,
+          address,
+          signature,
+        }),
+      });
+
+      if (!metaRes.ok) {
+        const errData = await metaRes.json();
+        throw new Error(errData.message || 'Failed to upload metadata to IPFS');
+      }
+
+      const { cid: metadataCid } = await metaRes.json();
+
+      // 4. Submit to Blockchain
       const hash = await walletClient.writeContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
         functionName: 'submitCampaignRequest',
         args: [
-          title.trim(),
-          description.trim(),
-          ipfsHash, 
+          metadataCid,
           category,
           parseEther('0.001') // Minimum contribution
         ],
@@ -135,8 +158,9 @@ const CreateCampaign = () => {
       setTxStatus('success');
     } catch (err: unknown) {
       console.error('Submit error:', err);
-      const msg = err instanceof Error ? err.message : 'Transaction failed.';
-      setTxError(msg.length > 120 ? msg.slice(0, 120) + '…' : msg);
+      const raw = err instanceof Error ? err.message : 'Transaction failed.';
+      const msg = raw.length > 120 ? raw.slice(0, 120) + '…' : raw;
+      toast.error(msg);
       setTxStatus('error');
     }
   };
@@ -152,7 +176,7 @@ const CreateCampaign = () => {
           <p className="text-white text-[18px] leading-relaxed opacity-90 font-medium">
             Your campaign request has been sent for approval. <br /> The anti-spam fee was successfully processed on the blockchain.
           </p>
-          
+
           {txHash && (
             <a href={`https://sepolia.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer"
               className="inline-flex items-center gap-3 px-6 py-3 bg-white/20 border border-white/30 text-white rounded-2xl text-[15px] font-bold hover:bg-white/30 transition-all no-underline backdrop-blur-md">
@@ -161,7 +185,7 @@ const CreateCampaign = () => {
           )}
 
           <div className="flex gap-4 mt-8">
-            <button onClick={() => navigate('/campaigns')} 
+            <button onClick={() => navigate('/campaigns')}
               className="px-8 py-4 bg-blue-500 hover:bg-blue-400 text-white font-black rounded-2xl transition shadow-xl shadow-blue-500/20">
               Browse Campaigns
             </button>
@@ -363,13 +387,7 @@ const CreateCampaign = () => {
                     </p>
                   </div>
 
-                  {/* Error */}
-                  {txStatus === 'error' && (
-                    <div className="flex items-start gap-3 p-4 bg-red-50 rounded-2xl border border-red-100">
-                      <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-                      <p className="text-red-700 text-sm font-medium">{txError || 'Transaction failed. Please try again.'}</p>
-                    </div>
-                  )}
+
 
                   {/* Submit */}
                   {!isConnected ? (

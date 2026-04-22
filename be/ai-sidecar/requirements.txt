@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+d3rlpy
+torch
+numpy
+pydantic

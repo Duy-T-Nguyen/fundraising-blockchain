@@ -1,48 +1,28 @@
-# Stage 1: Build the application
-FROM node:22-alpine AS builder
+# Giai đoạn 1: Build
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files và cài đặt dependencies
 COPY package*.json ./
+RUN npm install
 
-# Install all dependencies (including devDependencies)
-RUN npm ci
-
-# Copy the rest of the application code
+# Copy toàn bộ code và build
 COPY . .
-
-# Build the NestJS application
 RUN npm run build
 
-# Stage 2: Production environment
-FROM node:22-alpine AS runner
+# Giai đoạn 2: Runtime
+FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Set environment variable to production
-ENV NODE_ENV=production
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy the compiled code from the builder stage
+# Chỉ copy những thứ cần thiết từ builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
-# Create a non-root user for security
-RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
-RUN chown -R nodejs:nodejs /app
-
-# Switch to the non-root user
-USER nodejs
-
-# Expose the application port (default NestJS port is 3000)
+# Expose port cho Backend
 EXPOSE 1609
 
-# Start the application
-CMD ["node", "dist/main"]
+# Chạy ứng dụng ở chế độ production
+CMD ["npm", "run", "start:prod"]
