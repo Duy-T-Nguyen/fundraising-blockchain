@@ -30,27 +30,27 @@
 
 ---
 
-## 🚀 Thông tin Triển khai (Cập nhật 21/04/2026)
+## 🚀 Thông tin Triển khai (Cập nhật 22/04/2026)
 
 Hệ thống đã được triển khai và xác minh mã nguồn trên **Sepolia Testnet**:
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x554484d7542785dFE3637F57BBc14A4FC7ae11F2` |
-| **CampaignFactory** | `0x2c1ABdB0D8076e868A0342B926357E9EbB8F4bE1` |
-| **SupplierRegistry** | `0x73D372ba8716c41c9076811C9D4BD692fc6DAfEE` |
+| **Forwarder** | `0x2a64df874a162534674D09E0d01c4e4f3cbC5819` |
+| **CampaignFactory** | `0xA0F736Da6e3DA5DB2805f11f34df4CC11edDF182` |
+| **SupplierRegistry** | `0x864b6Bb917222e511fA7EcaA2df8188dbbA1996C` |
 
 ---
 
-## ⚡ Tối Ưu Hóa & Tính Năng Mới (V5.0)
+## ⚡ Tối Ưu Hóa & Tính Năng Mới (V6.0)
 
 Bản cập nhật này tập trung vào **tối ưu hóa chi phí Gas** và **nâng cao tính minh bạch** trong quy trình quản lý yêu cầu chi tiêu.
 
 ### 1. Tối Ưu Hóa Gas (Gas Optimization)
 
+- **IPFS JSON Metadata (V6.0)**: Băm toàn bộ nội dung Tên, Mô tả, Hình ảnh thành 1 JSON đẩy lên IPFS. Smart Contract chỉ lưu một chuỗi `metadataCID` duy nhất thay vì nhiều trường `bytes32`. Điều này giảm triệt để giới hạn ký tự và tiết kiệm phí Gas tối đa!
 - **Storage Extraction**: Di chuyển các mapping lớn (`approvals`, `votedAmount`) ra khỏi struct `Request` để tránh việc mở rộng struct trong storage, giúp giảm đáng kể gas khi tạo request mới.
 - **Struct Packing**: Sắp xếp lại các trường dữ liệu trong `RequestLib` để đóng gói (pack) nhiều biến vào cùng một slot 32-byte (ví dụ: `recipient`, `type`, `status`), giúp giảm số lượng lệnh `SSTORE`.
-- **Bytes32 over String**: Sử dụng `bytes32` thay cho `string` cho các trường dữ liệu cố định hoặc mã định danh (như `name`, `description`, `imageHash`) để tiết kiệm gas khi truyền và lưu trữ dữ liệu.
 - **Unchecked Blocks**: Sử dụng `unchecked` cho các phép toán tăng/giảm biến đếm (`totalDonors`, `approvalCount`) khi đảm bảo không xảy ra tràn số.
 
 ### 2. Tính Năng Mới (New Features)
@@ -459,10 +459,10 @@ pragma solidity ^0.8.28;
 
 library RequestLib {
     struct Request {
-        string description;              // Mô tả mục đích chi tiêu ("Mua máy tính", "Thuê server"...)
+        string metadataCID;              // Chứa đường dẫn IPFS tới JSON (description, evidence, value)
         uint256 value;                   // Số tiền yêu cầu (wei)
         address payable recipient;       // Địa chỉ nhận tiền
-        bool complete;                   // Đã giải ngân chưa? (true = đã xong)
+        Status status;                   // Trạng thái (OPEN, COMPLETED, CANCELLED)
         uint256 totalApprovalWeight;     // Tổng số lượng ETH đã vote đồng ý (Wei)
         mapping(address => bool) approvals; // Ai đã vote? (tránh vote 2 lần)
     }
@@ -473,10 +473,10 @@ library RequestLib {
 
 | Trường | Kiểu | Ý nghĩa |
 |---|---|---|
-| `description` | `string` | Mô tả chi tiêu dùng tiền quỹ để làm gì |
+| `metadataCID` | `string` | Đường dẫn IPFS chứa nội dung chi tiết (JSON) của yêu cầu |
 | `value` | `uint256` | Số tiền yêu cầu giải ngân (đơn vị Wei) |
 | `recipient` | `address payable` | Địa chỉ ví nhận tiền. `payable` = có thể nhận ETH |
-| `complete` | `bool` | `false` = đang chờ, `true` = đã giải ngân |
+| `status` | `Status` | `OPEN` = đang chờ, `COMPLETED` = đã giải ngân, `CANCELLED` = đã hủy |
 | `totalApprovalWeight` | `uint256` | Tổng số lượng ETH của những người đã vote đồng ý |
 | `approvals` | `mapping` | Bản đồ: `địa chỉ → đã vote chưa` (tránh double-vote) |
 
@@ -626,9 +626,7 @@ RequestLib.Request[] public requests;            // Mảng tất cả yêu cầu
 bool public active;                              // Chiến dịch có đang hoạt động không?
 uint256 public lockedFunds;                      // [Bảo Mật] Số tiền đang bị khóa bởi các Request chưa giải ngân
 
-string public campaignName;                      // Tên chiến dịch
-string public description;                       // Mô tả chi tiết
-string public imageHash;                         // Mã IPFS CID của ảnh đại diện
+string public metadataCID;                       // IPFS CID chứa thông tin (Tên, Mô tả, Hình ảnh)
 uint256 public snapshotDonorCount;              // Số lượng donor tại thời điểm tạo request
 mapping(uint256 => address) public donorAtId;   // Indexing donor phục vụ bốc thăm ngẫu nhiên
 SupplierRegistry public supplierRegistry;        // Registry của Suppliers
@@ -636,29 +634,18 @@ SupplierRegistry public supplierRegistry;        // Registry của Suppliers
 
 **Constructor**:
 ```solidity
-constructor(
-    string memory _name,
-    string memory _description,
-    string memory _imageHash,
-    Category _category,
-    uint256 _minimum,
-    address _manager,
-    address _supplierRegistry,
-    address trustedForwarder
-) {
-    if (_minimum == 0) revert InsufficientFunds();
-    if (_manager == address(0) || _supplierRegistry == address(0))
-        revert InvalidAddress();
-    
-    campaignName = _name;
-    description = _description;
-    imageHash = _imageHash;
-    category = _category;
-    manager = _manager;
-    minimumContribution = _minimum;
-    supplierRegistry = SupplierRegistry(_supplierRegistry);
-    active = true;
-}
+    function initialize(
+        string calldata metadataCID_,
+        uint8 category_,
+        uint256 minContribution_,
+        address manager_,
+        address registry_,
+        address forwarder_
+    ) external initializer {
+        // Khởi tạo các giá trị...
+        metadataCID = metadataCID_;
+        // ...
+    }
 ```
 
 **Bảng tóm tắt TẤT CẢ các hàm**:
@@ -708,11 +695,10 @@ function donate() external payable onlyActive {
 
 ```solidity
 function createRequest(
-    string calldata desc,       // Mô tả
+    string calldata metadataCID_, // IPFS JSON chứa nội dung yêu cầu và hóa đơn
     uint256 value,              // Số tiền
     address payable recipient,  // Người nhận (Supplier)
-    address verifier,           // Người xác minh (Chuẩn WFP)
-    string calldata evidenceHash // CID từ IPFS (hóa đơn, chứng từ)
+    address verifier            // Người xác minh (Chuẩn WFP)
 ) external onlyManager onlyActive {
     if (value == 0) revert InsufficientFunds();
     if (recipient == address(0)) revert InvalidAddress();
@@ -720,17 +706,15 @@ function createRequest(
     if (verifier == manager) revert ManagerNotAllowedAsVerifier();
     if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
     if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
-    if (bytes(desc).length == 0) revert EmptyDescription();
-    if (bytes(evidenceHash).length == 0) revert EmptyDescription();
+    if (bytes(metadataCID_).length == 0) revert EmptyDescription();
 
     // Tạo Request mới và thêm vào mảng
     RequestLib.Request storage r = requests.push();
-    r.description = desc;
+    r.metadataCID = metadataCID_;
     r.value = value;
     r.recipient = recipient;
-    r.complete = false;
+    r.status = RequestLib.Status.OPEN;
     r.totalApprovalWeight = 0;
-    r.evidenceHash = evidenceHash;
     r.requestType = RequestLib.RequestType.SINGLE;
     r.verifier = verifier; // Lưu lại verifier
 
@@ -742,7 +726,7 @@ function createRequest(
     // Logic chọn ngẫu nhiên Validator nếu số tiền nhỏ (bỏ qua chi tiết)
     // ...
 
-    emit RequestCreated(requests.length - 1, desc, value, recipient, selectedValidators);
+    emit RequestCreated(requests.length - 1, metadataCID_, value, recipient, selectedValidators);
 }
 ```
 
@@ -777,7 +761,7 @@ function approveRequest(uint256 index) external onlyActive {
 function finalizeRequest(
     uint256 index,
     bytes calldata signature,       // Chữ ký số của Verifier
-    string calldata finalEvidenceHash // Bằng chứng giao hàng cuối cùng
+    string calldata finalMetadataCID // JSON IPFS cuối cùng
 ) external onlyManager nonReentrant {
     if (index >= requests.length) revert InvalidRequestIndex();
 
@@ -797,7 +781,7 @@ function finalizeRequest(
 
     if (signer != r.verifier) revert InvalidSignature(); // Chỉ Verifier mới được ký duyệt chi!
 
-    r.complete = true;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
+    r.status = RequestLib.Status.COMPLETED;  // Đánh dấu hoàn thành TRƯỚC khi chuyển tiền
     
     // Ghi nhận thu nhập cho Supplier
     supplierRegistry.recordPayment(r.recipient, r.value);

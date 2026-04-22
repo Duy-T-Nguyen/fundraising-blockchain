@@ -71,11 +71,12 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 
 | Hợp đồng | Địa chỉ (Contract Address) |
 |---|---|
-| **Forwarder** | `0x554484d7542785dFE3637F57BBc14A4FC7ae11F2` |
-| **CampaignFactory** | `0x2c1ABdB0D8076e868A0342B926357E9EbB8F4bE1` |
-| **SupplierRegistry** | `0x73D372ba8716c41c9076811C9D4BD692fc6DAfEE` |
+| **Forwarder** | `0x2a64df874a162534674D09E0d01c4e4f3cbC5819` |
+| **CampaignFactory** | `0xA0F736Da6e3DA5DB2805f11f34df4CC11edDF182` |
+| **SupplierRegistry** | `0x864b6Bb917222e511fA7EcaA2df8188dbbA1996C` |
 
-**Các tính năng mới nhất (Cập nhật v5.0 - 21/04/2026):**
+**Các tính năng mới nhất (Cập nhật v6.0 - 22/04/2026):**
+- **IPFS JSON Metadata Refactoring**: Loại bỏ lưu trữ on-chain trực tiếp thông qua `bytes32` bị giới hạn ký tự. Toàn bộ thông tin Chiến dịch và Yêu cầu chi tiêu (Tên, Mô tả, Hình ảnh, Bằng chứng) giờ đây được băm thành một JSON đẩy lên IPFS thông qua hệ thống NestJS Backend. Smart Contract chỉ lưu duy nhất mã băm CID dạng string, tối ưu hóa đáng kể phí Gas cho toàn bộ hệ thống!
 - **Request Lifecycle (Advanced State Management)**: Chuyển đổi cơ chế quản lý Request từ cờ boolean sang hệ thống **Status Enum** (`OPEN`, `COMPLETED`, `CANCELLED`). Cho phép Manager hủy bỏ các yêu cầu không còn cần thiết để giải phóng nguồn vốn ngay lập tức.
 - **Strict Voting Deadline**: Thiết lập thời hạn biểu quyết nghiêm ngặt (7 ngày). Các yêu cầu không đạt đủ phiếu bầu trong thời gian này sẽ tự động hết hạn, đảm bảo tính luân chuyển của dòng vốn và tránh tình trạng treo ngân sách vô thời hạn.
 - **Gas-Optimized Storage Pattern**: Tái cấu trúc bộ nhớ lưu trữ (Storage) bằng cách tách các mapping biểu quyết ra khỏi struct `Request` và sử dụng cơ chế **Struct Packing**. Giảm thiểu chi phí Gas cho các thao tác tạo và duyệt yêu cầu chi tiêu.
@@ -84,4 +85,4 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 - **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và chữ ký nghiệm thu từ Verifier độc lập.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 21/04/2026.*
+*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 22/04/2026.*

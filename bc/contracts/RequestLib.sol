@@ -8,19 +8,24 @@ pragma solidity ^0.8.28;
  */
 library RequestLib {
     struct Milestone {
-        uint256 value;          // Số tiền của giai đoạn này
-        bytes32 description;    // Hash mô tả công việc (tối ưu gas)
-        bytes32 evidenceHash;   // IPFS Hash minh chứng hoàn thành (dưới dạng bytes32)
-        bool released;          // Đã giải ngân hay chưa
+        uint256 value; // Số tiền của giai đoạn này
+        string metadataCID; // CID chứa mô tả và minh chứng (nếu có)
+        bool released; // Đã giải ngân hay chưa
     }
 
-    enum RequestType { SINGLE, MULTI }
-    enum Status { OPEN, COMPLETED, CANCELLED }
+    enum RequestType {
+        SINGLE,
+        MULTI
+    }
+    enum Status {
+        OPEN,
+        COMPLETED,
+        CANCELLED
+    }
 
     struct Request {
-        // --- Full Slots (32 bytes each) ---
-        bytes32 description;
-        bytes32 evidenceHash;
+        // --- Full Slots ---
+        string metadataCID; // CID chứa Name, Description, Evidence, v.v.
         uint256 value;
         uint256 totalApprovalWeight;
         uint256 snapshotTotalFunds;
@@ -29,22 +34,21 @@ library RequestLib {
         uint256 lastValidatorSelection;
         uint256 currentMilestone;
         uint256 createdAt;
-        
         // --- Packed Slot (Shared 32 bytes) ---
-        address payable recipient;  // 20 bytes
-        RequestType requestType;    // 1 byte
-        Status status;              // 1 byte
+        address payable recipient; // 20 bytes
+        RequestType requestType; // 1 byte
+        Status status; // 1 byte
         // 10 bytes left in this slot
 
         // --- Next Slot ---
-        address verifier;           // 20 bytes
+        address verifier; // 20 bytes
         // 12 bytes left in this slot
-        
+
         // --- Arrays (Pointer slots) ---
         address[] selectedValidators;
         Milestone[] milestones;
     }
 
-    // Ghi chú: Các mapping (approvals, votedAmount, validatorApprovals, failedValidators) 
+    // Ghi chú: Các mapping (approvals, votedAmount, validatorApprovals, failedValidators)
     // đã được đưa ra ngoài Campaign contract để giảm kích thước struct.
 }

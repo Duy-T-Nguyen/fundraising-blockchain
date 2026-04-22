@@ -26,14 +26,12 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     mapping(address => uint256) public contributions;
     mapping(address => uint256) public donorId;
     mapping(uint256 => address) public donorAtId;
-    
+
     RequestLib.Request[] public requests;
     bool public active;
     uint256 public lockedFunds;
 
-    bytes32 public campaignName;
-    bytes32 public description;
-    bytes32 public imageHash;
+    string public metadataCID;
     Category public category;
 
     SupplierRegistry public supplierRegistry;
@@ -42,7 +40,8 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
 
     // --- Global Mappings (Tách ra khỏi struct để tối ưu gas) ---
     mapping(uint256 => mapping(address => uint256)) public requestVotedAmount;
-    mapping(uint256 => mapping(address => bool)) public requestValidatorApprovals;
+    mapping(uint256 => mapping(address => bool))
+        public requestValidatorApprovals;
     mapping(uint256 => mapping(address => bool)) public requestFailedValidators;
 
     uint256 public constant VALIDATOR_THRESHOLD_BPS = 50;
@@ -58,9 +57,7 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     }
 
     function initialize(
-        bytes32 _name,
-        bytes32 _description,
-        bytes32 _imageHash,
+        string memory _metadataCID,
         Category _category,
         uint256 _minimum,
         address _manager,
@@ -69,12 +66,11 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         address _factory
     ) public initializer {
         if (_minimum == 0) revert InsufficientFunds();
-        if (_manager == address(0) || _supplierRegistry == address(0)) revert InvalidAddress();
-        if (_name == bytes32(0)) revert EmptyName();
+        if (_manager == address(0) || _supplierRegistry == address(0))
+            revert InvalidAddress();
+        if (bytes(_metadataCID).length == 0) revert EmptyName();
 
-        campaignName = _name;
-        description = _description;
-        imageHash = _imageHash;
+        metadataCID = _metadataCID;
         category = _category;
         manager = _manager;
         minimumContribution = _minimum;
@@ -141,7 +137,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         if (msg.value < minimumContribution) revert InsufficientFunds();
 
         if (contributions[sender] == 0) {
-            unchecked { totalDonors++; }
+            unchecked {
+                totalDonors++;
+            }
             donorId[sender] = totalDonors;
             donorAtId[totalDonors] = sender;
         }
@@ -153,35 +151,38 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     }
 
     function createRequest(
-        bytes32 desc,
+        string calldata metadataCID_,
         uint256 value,
         address payable recipient,
-        address verifier,
-        bytes32 evidenceHash
+        address verifier
     ) external onlyManager onlyActive {
-        _validateRequest(value, recipient, verifier, desc);
-        if (evidenceHash == bytes32(0)) revert EmptyEvidenceHash();
-        if (value > address(this).balance - lockedFunds) revert InsufficientAvailableFunds();
-        
+        _validateRequest(value, recipient, verifier, metadataCID_);
+        if (value > address(this).balance - lockedFunds)
+            revert InsufficientAvailableFunds();
+
         uint256 requestIndex = requests.length;
         RequestLib.Request storage r = requests.push();
-        r.description = desc;
+        r.metadataCID = metadataCID_;
         r.value = value;
         r.recipient = recipient;
         r.status = RequestLib.Status.OPEN;
         r.totalApprovalWeight = 0;
-        r.evidenceHash = evidenceHash;
         r.requestType = RequestLib.RequestType.SINGLE;
         r.verifier = verifier;
         r.createdAt = block.timestamp;
-        
+
         lockedFunds += value;
         r.snapshotTotalFunds = totalFundsRaised;
         r.snapshotDonorCount = totalDonors;
 
-        uint256 threshold = (r.snapshotTotalFunds * VALIDATOR_THRESHOLD_BPS) / 10000;
+        uint256 threshold = (r.snapshotTotalFunds * VALIDATOR_THRESHOLD_BPS) /
+            10000;
 
-        if (value <= threshold && r.snapshotTotalFunds > 0 && r.snapshotDonorCount >= 3) {
+        if (
+            value <= threshold &&
+            r.snapshotTotalFunds > 0 &&
+            r.snapshotDonorCount >= 3
+        ) {
             r.selectedValidators = _getRandomValidators(
                 requestIndex + block.timestamp,
                 r.snapshotDonorCount,
@@ -192,42 +193,39 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
 
         emit RequestCreated(
             requestIndex,
-            desc,
+            metadataCID_,
             value,
             recipient,
             verifier,
-            evidenceHash,
             r.selectedValidators,
             r.lastValidatorSelection
         );
     }
 
     function createMultiStageRequest(
-        bytes32 desc,
+        string calldata metadataCID_,
         address payable recipient,
         address verifier,
         uint256[] calldata milestoneValues,
-        bytes32[] calldata milestoneDescriptions,
-        bytes32 initialEvidenceHash
+        string[] calldata milestoneMetadataCIDs
     ) external onlyManager onlyActive {
-        if (initialEvidenceHash == bytes32(0)) revert EmptyEvidenceHash();
         uint256 totalBudget;
         for (uint i = 0; i < milestoneValues.length; i++) {
             totalBudget += milestoneValues[i];
         }
 
-        _validateRequest(totalBudget, recipient, verifier, desc);
-        if (totalBudget > address(this).balance - lockedFunds) revert InsufficientAvailableFunds();
-        
+        _validateRequest(totalBudget, recipient, verifier, metadataCID_);
+        if (totalBudget > address(this).balance - lockedFunds)
+            revert InsufficientAvailableFunds();
+
         uint256 requestIndex = requests.length;
         RequestLib.Request storage r = requests.push();
-        r.description = desc;
+        r.metadataCID = metadataCID_;
         r.recipient = recipient;
         r.totalApprovalWeight = 0;
         r.requestType = RequestLib.RequestType.MULTI;
         r.verifier = verifier;
         r.currentMilestone = 0;
-        r.evidenceHash = initialEvidenceHash;
         r.value = totalBudget;
         r.createdAt = block.timestamp;
         lockedFunds += totalBudget;
@@ -239,20 +237,18 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
             r.milestones.push(
                 RequestLib.Milestone({
                     value: milestoneValues[i],
-                    description: milestoneDescriptions[i],
-                    released: false,
-                    evidenceHash: bytes32(0)
+                    metadataCID: milestoneMetadataCIDs[i],
+                    released: false
                 })
             );
         }
 
         emit RequestCreated(
             requestIndex,
-            desc,
+            metadataCID_,
             totalBudget,
             recipient,
             verifier,
-            initialEvidenceHash,
             r.selectedValidators,
             r.lastValidatorSelection
         );
@@ -265,15 +261,17 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
 
         if (contributions[sender] == 0) revert NotDonor();
         if (sender == manager) revert ManagerCannotVote();
-        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
-        if (block.timestamp > r.createdAt + VOTING_PERIOD) revert RequestExpired();
-        
-        if (donorId[sender] == 0 || donorId[sender] > r.snapshotDonorCount) 
+        if (r.status != RequestLib.Status.OPEN)
+            revert RequestAlreadyProcessed();
+        if (block.timestamp > r.createdAt + VOTING_PERIOD)
+            revert RequestExpired();
+
+        if (donorId[sender] == 0 || donorId[sender] > r.snapshotDonorCount)
             revert JoinedAfterRequest();
 
         uint256 currentContribution = contributions[sender];
         uint256 alreadyVoted = requestVotedAmount[index][sender];
-        
+
         if (currentContribution <= alreadyVoted) revert AlreadyVoted();
 
         uint256 delta = currentContribution - alreadyVoted;
@@ -302,7 +300,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         if (!isSelected) revert NotAuthorizedValidator();
 
         requestValidatorApprovals[index][sender] = true;
-        unchecked { r.validatorApprovalCount++; }
+        unchecked {
+            r.validatorApprovalCount++;
+        }
 
         emit Voted(sender, index);
     }
@@ -310,13 +310,15 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     function finalizeRequest(
         uint256 index,
         bytes calldata signature,
-        bytes32 finalEvidenceHash
+        string calldata finalMetadataCID
     ) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (r.requestType != RequestLib.RequestType.SINGLE) revert InvalidRequestIndex();
-        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+        if (r.requestType != RequestLib.RequestType.SINGLE)
+            revert InvalidRequestIndex();
+        if (r.status != RequestLib.Status.OPEN)
+            revert RequestAlreadyProcessed();
 
         bool canFinalize;
         if (r.selectedValidators.length > 0) {
@@ -327,12 +329,16 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         }
         if (!canFinalize) revert NotEnoughApprovals();
 
-        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, address(this), index, "FINAL"));
-        address signer = MessageHashUtils.toEthSignedMessageHash(messageHash).recover(signature);
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(block.chainid, address(this), index, "FINAL")
+        );
+        address signer = MessageHashUtils
+            .toEthSignedMessageHash(messageHash)
+            .recover(signature);
         if (signer != r.verifier) revert InvalidSignature();
 
         r.status = RequestLib.Status.COMPLETED;
-        r.evidenceHash = finalEvidenceHash;
+        r.metadataCID = finalMetadataCID;
         lockedFunds -= r.value;
 
         (bool success, ) = r.recipient.call{value: r.value}("");
@@ -345,25 +351,34 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     function executeMilestone(
         uint256 index,
         bytes calldata signature,
-        bytes32 evidenceHash
+        string calldata metadataCID_
     ) external onlyManager nonReentrant {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (r.requestType != RequestLib.RequestType.MULTI) revert InvalidRequestIndex();
-        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
-        if (r.totalApprovalWeight <= r.snapshotTotalFunds / 2) revert NotEnoughApprovals();
+        if (r.requestType != RequestLib.RequestType.MULTI)
+            revert InvalidRequestIndex();
+        if (r.status != RequestLib.Status.OPEN)
+            revert RequestAlreadyProcessed();
+        if (r.totalApprovalWeight <= r.snapshotTotalFunds / 2)
+            revert NotEnoughApprovals();
 
         uint256 current = r.currentMilestone;
         RequestLib.Milestone storage m = r.milestones[current];
 
-        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, address(this), index, current));
-        address signer = MessageHashUtils.toEthSignedMessageHash(messageHash).recover(signature);
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(block.chainid, address(this), index, current)
+        );
+        address signer = MessageHashUtils
+            .toEthSignedMessageHash(messageHash)
+            .recover(signature);
         if (signer != r.verifier) revert InvalidSignature();
 
         m.released = true;
-        m.evidenceHash = evidenceHash;
-        unchecked { r.currentMilestone++; }
+        m.metadataCID = metadataCID_;
+        unchecked {
+            r.currentMilestone++;
+        }
         lockedFunds -= m.value;
 
         if (r.currentMilestone == r.milestones.length) {
@@ -374,7 +389,13 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         if (!success) revert TransferFailed();
 
         supplierRegistry.recordPayment(r.recipient, m.value);
-        emit MilestoneReleased(index, current, m.value, r.recipient, evidenceHash);
+        emit MilestoneReleased(
+            index,
+            current,
+            m.value,
+            r.recipient,
+            metadataCID_
+        );
     }
 
     function deactivateCampaign() external onlyManager {
@@ -386,30 +407,56 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
     // =====================
     // VIEW FUNCTIONS
     // =====================
-    function getSummary() external view returns (
-        uint256 balance, uint256 minContribution, uint256 numRequests,
-        uint256 donors, address managerAddr, bytes32 imgHash, bool isActive
-    ) {
-        return (address(this).balance, minimumContribution, requests.length, totalDonors, manager, imageHash, active);
+    function getSummary()
+        external
+        view
+        returns (
+            uint256 balance,
+            uint256 minContribution,
+            uint256 numRequests,
+            uint256 donors,
+            address managerAddr,
+            string memory metaCID,
+            bool isActive
+        )
+    {
+        return (
+            address(this).balance,
+            minimumContribution,
+            requests.length,
+            totalDonors,
+            manager,
+            metadataCID,
+            active
+        );
     }
 
     function getRequestsCount() external view returns (uint256) {
         return requests.length;
     }
 
-    function getSelectedValidators(uint256 index) external view returns (address[] memory) {
+    function getSelectedValidators(
+        uint256 index
+    ) external view returns (address[] memory) {
         if (index >= requests.length) revert InvalidRequestIndex();
         return requests[index].selectedValidators;
     }
 
-    function _validateRequest(uint256 value, address recipient, address verifier, bytes32 desc) private view {
+    function _validateRequest(
+        uint256 value,
+        address recipient,
+        address verifier,
+        string calldata metaCID
+    ) private view {
         if (value == 0) revert InsufficientFunds();
-        if (recipient == address(0) || verifier == address(0)) revert InvalidAddress();
+        if (recipient == address(0) || verifier == address(0))
+            revert InvalidAddress();
         if (recipient == manager) revert ManagerNotAllowedAsRecipient();
         if (verifier == manager) revert ManagerNotAllowedAsVerifier();
         if (verifier == recipient) revert RecipientNotAllowedAsVerifier();
-        if (!supplierRegistry.isSupplier(recipient)) revert RecipientNotWhitelisted();
-        if (desc == bytes32(0)) revert EmptyDescription();
+        if (!supplierRegistry.isSupplier(recipient))
+            revert RecipientNotWhitelisted();
+        if (bytes(metaCID).length == 0) revert EmptyDescription();
     }
 
     function availableFunds() external view returns (uint256) {
@@ -420,9 +467,11 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
+        if (r.status != RequestLib.Status.OPEN)
+            revert RequestAlreadyProcessed();
         if (r.selectedValidators.length == 0) revert MilestoneNotApproved();
-        if (block.timestamp < r.lastValidatorSelection + RESELECTION_TIMEOUT) revert ActionTooSoon();
+        if (block.timestamp < r.lastValidatorSelection + RESELECTION_TIMEOUT)
+            revert ActionTooSoon();
 
         for (uint i = 0; i < r.selectedValidators.length; i++) {
             requestFailedValidators[index][r.selectedValidators[i]] = true;
@@ -430,31 +479,79 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         }
         r.validatorApprovalCount = 0;
 
-        r.selectedValidators = _getRandomValidators(index + block.timestamp, r.snapshotDonorCount, index);
+        r.selectedValidators = _getRandomValidators(
+            index + block.timestamp,
+            r.snapshotDonorCount,
+            index
+        );
         r.lastValidatorSelection = block.timestamp;
 
-        emit RequestCreated(index, r.description, r.value, r.recipient, r.verifier, r.evidenceHash, r.selectedValidators, r.lastValidatorSelection);
+        emit RequestCreated(
+            index,
+            r.metadataCID,
+            r.value,
+            r.recipient,
+            r.verifier,
+            r.selectedValidators,
+            r.lastValidatorSelection
+        );
     }
 
     // =====================
     // INTERNAL HELPERS
     // =====================
-    function _getRandomValidators(uint256 seed, uint256 maxId, uint256 requestIndex) internal view returns (address[] memory) {
+    function _getRandomValidators(
+        uint256 seed,
+        uint256 maxId,
+        uint256 requestIndex
+    ) internal view returns (address[] memory) {
         address[] memory result = new address[](3);
-        uint256 baseIdx = (uint256(keccak256(abi.encodePacked(block.prevrandao, block.timestamp, seed))) % maxId) + 1;
+        uint256 baseIdx = (uint256(
+            keccak256(abi.encodePacked(block.prevrandao, block.timestamp, seed))
+        ) % maxId) + 1;
 
-        result[0] = _getValidValidator(baseIdx, maxId, requestIndex, address(0), address(0));
-        result[1] = _getValidValidator((baseIdx % maxId) + 1, maxId, requestIndex, result[0], address(0));
-        result[2] = _getValidValidator(((baseIdx + 1) % maxId) + 1, maxId, requestIndex, result[0], result[1]);
-        
+        result[0] = _getValidValidator(
+            baseIdx,
+            maxId,
+            requestIndex,
+            address(0),
+            address(0)
+        );
+        result[1] = _getValidValidator(
+            (baseIdx % maxId) + 1,
+            maxId,
+            requestIndex,
+            result[0],
+            address(0)
+        );
+        result[2] = _getValidValidator(
+            ((baseIdx + 1) % maxId) + 1,
+            maxId,
+            requestIndex,
+            result[0],
+            result[1]
+        );
+
         return result;
     }
 
-    function _getValidValidator(uint256 startIdx, uint256 maxId, uint256 requestIndex, address other1, address other2) private view returns (address) {
+    function _getValidValidator(
+        uint256 startIdx,
+        uint256 maxId,
+        uint256 requestIndex,
+        address other1,
+        address other2
+    ) private view returns (address) {
         uint256 currentIdx = startIdx;
-        for(uint256 i = 0; i < 5; i++) {
+        for (uint256 i = 0; i < 5; i++) {
             address candidate = donorAtId[currentIdx];
-            if (candidate != address(0) && candidate != manager && candidate != other1 && candidate != other2 && !requestFailedValidators[requestIndex][candidate]) {
+            if (
+                candidate != address(0) &&
+                candidate != manager &&
+                candidate != other1 &&
+                candidate != other2 &&
+                !requestFailedValidators[requestIndex][candidate]
+            ) {
                 return candidate;
             }
             currentIdx = (currentIdx % maxId) + 1;
@@ -466,8 +563,9 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         if (index >= requests.length) revert InvalidRequestIndex();
         RequestLib.Request storage r = requests[index];
 
-        if (r.status != RequestLib.Status.OPEN) revert RequestAlreadyProcessed();
-        
+        if (r.status != RequestLib.Status.OPEN)
+            revert RequestAlreadyProcessed();
+
         // Chỉ được hủy nếu chưa có bất kỳ khoản tiền nào được giải ngân
         if (r.currentMilestone > 0) revert RequestAlreadyReleased();
 
@@ -477,17 +575,19 @@ contract Campaign is Events, AccessControl, ReentrancyGuard, Initializable {
         emit RequestCancelled(index);
     }
 
-
     function claimRefund() external nonReentrant {
         if (active) revert CampaignStillActive();
         uint256 contributed = contributions[_msgSender()];
         if (contributed == 0) revert NoContributionFound();
 
-        uint256 refundAmount = (contributed * address(this).balance) / totalFundsRaised;
+        uint256 refundAmount = (contributed * address(this).balance) /
+            totalFundsRaised;
         contributions[_msgSender()] = 0;
 
         if (refundAmount > 0) {
-            (bool success, ) = payable(_msgSender()).call{value: refundAmount}("");
+            (bool success, ) = payable(_msgSender()).call{value: refundAmount}(
+                ""
+            );
             if (!success) revert TransferFailed();
         }
         emit RefundClaimed(_msgSender(), refundAmount);

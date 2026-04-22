@@ -6,9 +6,7 @@ import { run } from "hardhat";
 async function verifyCampaign(
   campaignAddress: string,
   args: {
-    name: string;
-    description: string;
-    imageHash: string;
+    metadataCID: string;
     category: number;
     minimum: string;
     manager: string;
@@ -24,9 +22,7 @@ async function verifyCampaign(
     await run("verify:verify", {
       address: campaignAddress,
       constructorArguments: [
-        args.name,
-        args.description,
-        args.imageHash,
+        args.metadataCID,
         args.category,
         args.minimum,
         args.manager,
@@ -47,9 +43,7 @@ async function verifyCampaign(
 async function main() {
   const {
     VERIFY_CAMPAIGN_ADDR,
-    VERIFY_NAME,
-    VERIFY_DESC,
-    VERIFY_IMAGE_HASH,
+    VERIFY_METADATA_CID,
     VERIFY_CAT,
     VERIFY_MIN,
     VERIFY_MANAGER,
@@ -63,9 +57,7 @@ async function main() {
   }
 
   await verifyCampaign(VERIFY_CAMPAIGN_ADDR, {
-    name: VERIFY_NAME!,
-    description: VERIFY_DESC!,
-    imageHash: VERIFY_IMAGE_HASH!,
+    metadataCID: VERIFY_METADATA_CID!,
     category: parseInt(VERIFY_CAT!),
     minimum: VERIFY_MIN!,
     manager: VERIFY_MANAGER!,

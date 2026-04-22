@@ -13,7 +13,7 @@ contract Events {
         Environment,
         Others
     }
-    
+
     /// @notice Phát ra khi Manager nạp thêm tiền xăng
     event GasRefilled(address indexed manager, uint256 amount);
     /// @notice Phát ra khi Admin rút tiền xăng để nạp cho Bot Relayer
@@ -25,11 +25,10 @@ contract Events {
     /// @notice Phát ra khi manager tạo yêu cầu chi tiêu mới
     event RequestCreated(
         uint256 indexed id,
-        bytes32 description,
+        string metadataCID,
         uint256 value,
         address indexed recipient,
         address verifier,
-        bytes32 evidenceHash,
         address[] selectedValidators,
         uint256 lastValidatorSelection
     );
@@ -46,11 +45,14 @@ contract Events {
         uint256 milestoneIndex,
         uint256 amount,
         address indexed recipient,
-        bytes32 evidenceHash
+        string metadataCID
     );
 
     /// @notice Phát ra khi thu nhập của Supplier được cập nhật
-    event SupplierEarningsUpdated(address indexed supplier, uint256 totalEarned);
+    event SupplierEarningsUpdated(
+        address indexed supplier,
+        uint256 totalEarned
+    );
 
     /// @notice Phát ra khi chiến dịch bị tạm dừng
     event CampaignDeactivated();
@@ -60,9 +62,7 @@ contract Events {
     event CampaignStarted(
         address indexed campaignAddress,
         address indexed manager,
-        bytes32 campaignName,
-        bytes32 description,
-        bytes32 imageHash,
+        string metadataCID,
         Category indexed category,
         uint256 minContribution
     );
@@ -71,9 +71,7 @@ contract Events {
     event CampaignRequestSubmitted(
         uint256 indexed requestId,
         address indexed manager,
-        bytes32 name,
-        bytes32 description,
-        bytes32 imageHash,
+        string metadataCID,
         Category category,
         uint256 minContribution
     );
@@ -94,17 +92,31 @@ contract Events {
     event AdminTransferred(address indexed oldAdmin, address indexed newAdmin);
 
     /// @notice Báo cho Verifier biết họ được giao nhiệm vụ kiểm tra
-    event AssignedAsVerifier(address indexed verifier, uint256 indexed requestId);
+    event AssignedAsVerifier(
+        address indexed verifier,
+        uint256 indexed requestId
+    );
 
     /// @notice Báo cho Supplier biết họ có đơn hàng cần giao
-    event AssignedAsSupplier(address indexed supplier, uint256 indexed requestId);
+    event AssignedAsSupplier(
+        address indexed supplier,
+        uint256 indexed requestId
+    );
 
     /// @notice Phát ra khi Supplier mới được thêm vào danh sách
-    event SupplierAdded(address indexed supplier, bytes32 name, bytes32 metadataHash);
+    event SupplierAdded(
+        address indexed supplier,
+        bytes32 name,
+        bytes32 metadataHash
+    );
     /// @notice Phát ra khi Supplier bị xóa khỏi danh sách
     event SupplierRemoved(address indexed supplier);
     /// @notice Phát ra khi thông tin Supplier được cập nhật
-    event SupplierInfoUpdated(address indexed supplier, bytes32 name, bytes32 metadataHash);
+    event SupplierInfoUpdated(
+        address indexed supplier,
+        bytes32 name,
+        bytes32 metadataHash
+    );
     /// @notice Phát ra khi một Campaign được ủy quyền/hủy ủy quyền tương tác với Registry
     event AuthorizedCampaignUpdated(address indexed campaign, bool status);
     /// @notice Phát ra khi một yêu cầu chi tiêu bị hủy

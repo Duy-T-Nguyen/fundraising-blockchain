@@ -39,26 +39,28 @@ contract CampaignFactory is Events, ERC2771Context {
 
     /// @notice Thống kê toàn cục
     uint256 public totalGlobalDonated; // Tổng tiền (Wei)
-    
+
     /// @notice Kiểm tra địa chỉ có phải là Campaign hợp lệ do Factory tạo ra không
     mapping(address => bool) public isChildCampaign;
-    
+
     /// @notice Danh sách các Campaign mà một user đã donate
     mapping(address => address[]) public userDonatedCampaigns;
-    
+
     /// @notice Tránh lưu trùng lặp Campaign vào mảng của user để tiết kiệm Gas
     mapping(address => mapping(address => bool)) private hasDonatedTo;
 
     // =====================
     // Approval Workflow
     // =====================
-    enum RequestStatus { PENDING, APPROVED, REJECTED }
+    enum RequestStatus {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
 
     struct CampaignRequest {
         address manager;
-        bytes32 name;
-        bytes32 description;
-        bytes32 imageHash;
+        string metadataCID;
         Category category;
         uint256 minimumContribution;
         RequestStatus status;
@@ -67,7 +69,7 @@ contract CampaignFactory is Events, ERC2771Context {
 
     /// @notice Mapping ID yêu cầu -> Thông tin yêu cầu
     mapping(uint256 => CampaignRequest) public campaignRequests;
-    
+
     /// @notice Tổng số yêu cầu đã gửi
     uint256 public requestCount;
 
@@ -87,15 +89,16 @@ contract CampaignFactory is Events, ERC2771Context {
      * @notice Khởi tạo Factory với SupplierRegistry và Campaign mẫu.
      */
     constructor(
-        address _supplierRegistry, 
-        address _admin, 
+        address _supplierRegistry,
+        address _admin,
         address _trustedForwarder
     ) ERC2771Context(_trustedForwarder) {
-        if (_admin == address(0) || _supplierRegistry == address(0)) revert InvalidAddress();
-        
+        if (_admin == address(0) || _supplierRegistry == address(0))
+            revert InvalidAddress();
+
         // Deploy bản mẫu Campaign (Implementation)
         campaignImplementation = address(new Campaign());
-        
+
         supplierRegistry = SupplierRegistry(_supplierRegistry);
         admin = _admin;
         campaignTrustedForwarder = _trustedForwarder;
@@ -126,22 +129,18 @@ contract CampaignFactory is Events, ERC2771Context {
      * @notice Gửi yêu cầu tạo chiến dịch mới.
      */
     function submitCampaignRequest(
-        bytes32 name, 
-        bytes32 description, 
-        bytes32 imageHash, 
-        Category category, 
+        string calldata metadataCID,
+        Category category,
         uint256 minimum
     ) external payable {
         if (msg.value < antiSpamFee) revert IncorrectFee();
-        if (name == bytes32(0)) revert EmptyName();
+        if (bytes(metadataCID).length == 0) revert EmptyName();
         if (minimum == 0) revert InsufficientFunds();
 
         uint256 requestId = requestCount++;
         campaignRequests[requestId] = CampaignRequest({
             manager: _msgSender(),
-            name: name,
-            description: description,
-            imageHash: imageHash,
+            metadataCID: metadataCID,
             category: category,
             minimumContribution: minimum,
             status: RequestStatus.PENDING,
@@ -150,7 +149,13 @@ contract CampaignFactory is Events, ERC2771Context {
 
         requestIdsByManager[_msgSender()].push(requestId);
 
-        emit CampaignRequestSubmitted(requestId, _msgSender(), name, description, imageHash, category, minimum);
+        emit CampaignRequestSubmitted(
+            requestId,
+            _msgSender(),
+            metadataCID,
+            category,
+            minimum
+        );
     }
 
     /**
@@ -160,18 +165,17 @@ contract CampaignFactory is Events, ERC2771Context {
     function approveCampaignRequest(uint256 requestId) external onlyAdmin {
         if (requestId >= requestCount) revert InvalidRequestIndex();
         CampaignRequest storage req = campaignRequests[requestId];
-        if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
+        if (req.status != RequestStatus.PENDING)
+            revert RequestAlreadyProcessed();
 
         req.status = RequestStatus.APPROVED;
-        
+
         // Tạo Proxy mới từ bản mẫu (Tiết kiệm gas cực lớn)
         address campaignAddr = Clones.clone(campaignImplementation);
-        
+
         // Khởi tạo Proxy
         Campaign(campaignAddr).initialize(
-            req.name,
-            req.description,
-            req.imageHash,
+            req.metadataCID,
             req.category,
             req.minimumContribution,
             req.manager,
@@ -182,7 +186,7 @@ contract CampaignFactory is Events, ERC2771Context {
 
         // Ủy quyền Campaign mới tại SupplierRegistry (Push Authorization)
         supplierRegistry.setAuthorizedCampaign(campaignAddr, true);
-        
+
         req.deployedAddress = campaignAddr;
 
         // Lưu trữ vào index
@@ -192,7 +196,13 @@ contract CampaignFactory is Events, ERC2771Context {
         isChildCampaign[campaignAddr] = true;
 
         emit CampaignRequestApproved(requestId, campaignAddr);
-        emit CampaignStarted(campaignAddr, req.manager, req.name, req.description, req.imageHash, req.category, req.minimumContribution);
+        emit CampaignStarted(
+            campaignAddr,
+            req.manager,
+            req.metadataCID,
+            req.category,
+            req.minimumContribution
+        );
     }
 
     /**
@@ -202,7 +212,8 @@ contract CampaignFactory is Events, ERC2771Context {
     function rejectCampaignRequest(uint256 requestId) external onlyAdmin {
         if (requestId >= requestCount) revert InvalidRequestIndex();
         CampaignRequest storage req = campaignRequests[requestId];
-        if (req.status != RequestStatus.PENDING) revert RequestAlreadyProcessed();
+        if (req.status != RequestStatus.PENDING)
+            revert RequestAlreadyProcessed();
 
         req.status = RequestStatus.REJECTED;
 
@@ -231,7 +242,11 @@ contract CampaignFactory is Events, ERC2771Context {
     // =====================
 
     /// @notice Các kiểu truy vấn hỗ trợ
-    enum QueryType { ALL, BY_MANAGER, BY_CATEGORY }
+    enum QueryType {
+        ALL,
+        BY_MANAGER,
+        BY_CATEGORY
+    }
 
     /**
      * @notice Truy vấn chiến dịch nâng cao với nhiều tiêu chí lọc và phân trang.
@@ -250,7 +265,7 @@ contract CampaignFactory is Events, ERC2771Context {
         uint256 limit
     ) external view returns (address[] memory campaigns) {
         address[] storage source;
-        
+
         if (queryType == QueryType.ALL) {
             source = deployedCampaigns;
         } else if (queryType == QueryType.BY_MANAGER) {
@@ -283,7 +298,9 @@ contract CampaignFactory is Events, ERC2771Context {
     /**
      * @notice Lấy tổng số chiến dịch trong một danh mục cụ thể.
      */
-    function getCategoryCount(Category _category) external view returns (uint256) {
+    function getCategoryCount(
+        Category _category
+    ) external view returns (uint256) {
         return categoryToCampaigns[_category].length;
     }
 
@@ -305,7 +322,7 @@ contract CampaignFactory is Events, ERC2771Context {
      */
     function recordDonation(address donor, uint256 amount) external {
         if (!isChildCampaign[msg.sender]) revert NotAuthorized();
-        
+
         // Chỉ lưu địa chỉ campaign vào danh sách của user nếu là lần đầu donate cho campaign này
         if (!hasDonatedTo[donor][msg.sender]) {
             userDonatedCampaigns[donor].push(msg.sender);
@@ -328,11 +345,15 @@ contract CampaignFactory is Events, ERC2771Context {
         address user,
         uint256 offset,
         uint256 limit
-    ) external view returns (
-        address[] memory campaigns,
-        uint256[] memory amounts,
-        uint256 total
-    ) {
+    )
+        external
+        view
+        returns (
+            address[] memory campaigns,
+            uint256[] memory amounts,
+            uint256 total
+        )
+    {
         address[] storage list = userDonatedCampaigns[user];
         total = list.length;
 
@@ -363,14 +384,12 @@ contract CampaignFactory is Events, ERC2771Context {
      * @return campaignsCount Tổng số chiến dịch.
      * @return globalDonated Tổng số tiền đã gây quỹ.
      */
-    function getGlobalStats() external view returns (
-        uint256 campaignsCount,
-        uint256 globalDonated
-    ) {
-        return (
-            deployedCampaigns.length,
-            totalGlobalDonated
-        );
+    function getGlobalStats()
+        external
+        view
+        returns (uint256 campaignsCount, uint256 globalDonated)
+    {
+        return (deployedCampaigns.length, totalGlobalDonated);
     }
 
     /**
@@ -378,10 +397,10 @@ contract CampaignFactory is Events, ERC2771Context {
      * @param offset Vị trí bắt đầu
      * @param limit Số lượng tối đa
      */
-    function getCampaignRequests(uint256 offset, uint256 limit) external view returns (
-        CampaignRequest[] memory requests,
-        uint256 total
-    ) {
+    function getCampaignRequests(
+        uint256 offset,
+        uint256 limit
+    ) external view returns (CampaignRequest[] memory requests, uint256 total) {
         total = requestCount;
         if (offset >= total || limit == 0) {
             return (new CampaignRequest[](0), total);
@@ -394,7 +413,7 @@ contract CampaignFactory is Events, ERC2771Context {
         for (uint256 i = 0; i < size; i++) {
             requests[i] = campaignRequests[offset + i];
         }
-        
+
         return (requests, total);
     }
 
@@ -404,14 +423,22 @@ contract CampaignFactory is Events, ERC2771Context {
      * @param offset Vị trí bắt đầu
      * @param limit Số lượng tối đa
      */
-    function getManagerRequests(address _manager, uint256 offset, uint256 limit) external view returns (
-        CampaignRequest[] memory requests,
-        uint256[] memory requestIds,
-        uint256 total
-    ) {
+    function getManagerRequests(
+        address _manager,
+        uint256 offset,
+        uint256 limit
+    )
+        external
+        view
+        returns (
+            CampaignRequest[] memory requests,
+            uint256[] memory requestIds,
+            uint256 total
+        )
+    {
         uint256[] storage managerReqIds = requestIdsByManager[_manager];
         total = managerReqIds.length;
-        
+
         if (offset >= total || limit == 0) {
             return (new CampaignRequest[](0), new uint256[](0), total);
         }
@@ -421,13 +448,13 @@ contract CampaignFactory is Events, ERC2771Context {
 
         requests = new CampaignRequest[](size);
         requestIds = new uint256[](size);
-        
+
         for (uint256 i = 0; i < size; i++) {
             uint256 reqId = managerReqIds[offset + i];
             requestIds[i] = reqId;
             requests[i] = campaignRequests[reqId];
         }
-        
+
         return (requests, requestIds, total);
     }
 }
