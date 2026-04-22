@@ -37,10 +37,10 @@ const CampaignsSection = () => {
         <Reveal direction="left">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-14">
             <div>
-              <h2 className="text-[40px] font-black text-gray-900 tracking-tight leading-none mb-3">
+              <h2 className="text-[40px] font-black text-white tracking-tight leading-none mb-3">
                 Featured Campaigns
               </h2>
-              <p className="text-gray-500 text-lg">
+              <p className="text-gray-400 text-lg">
                 Verified impact projects, deployed and governed on-chain.
               </p>
             </div>
