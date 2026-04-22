@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { publicClient } from '../blockchain/client';
 import { ABIS } from '../blockchain/constants';
 import { formatEther } from 'viem';
@@ -14,21 +14,26 @@ export type CampaignRequest = {
   evidenceHash: string;
   requestType: number;
   createdBlock: bigint;
+  snapshotTotalFunds: bigint;
+  snapshotDonorCount: bigint;
   voterCount: number; // Added to track number of people
 }
 
 export function useRequests(address: string | undefined, userAddress?: string) {
   const [requests, setRequests] = useState<CampaignRequest[]>([]);
   const [votedRequestIds, setVotedRequestIds] = useState<Set<number>>(new Set());
+  const [pendingRequestIds, setPendingRequestIds] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const fetchIdRef = useRef(0);
 
   const fetchRequests = useCallback(async () => {
     if (!address) return;
+    const currentFetchId = ++fetchIdRef.current;
     setIsLoading(true);
 
     try {
-      // 1. Fetch logs
-      const [creationLogs, allVotingLogs] = await Promise.all([
+      // 1. Fetch logs and pending intents
+      const [creationLogs, allVotingLogs, pendingIntentsRes] = await Promise.all([
         publicClient.getLogs({
           address: address as `0x${string}`,
           event: {
@@ -58,7 +63,9 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             ],
           },
           fromBlock: BigInt(Math.max(0, Number(await publicClient.getBlockNumber()) - 40000)),
-        })
+        }),
+        // Fetch pending intents from backend queue if user is logged in
+        userAddress ? fetch(`${import.meta.env.VITE_API_BASE_URL}/relayer/intents/${userAddress}`) : Promise.resolve(null)
       ]);
 
       // Map request ID to block number
@@ -86,7 +93,20 @@ export function useRequests(address: string | undefined, userAddress?: string) {
         }
       });
       
-      setVotedRequestIds(userVotes);
+      // Check pending intents
+      const pendingVotes = new Set<number>();
+      if (pendingIntentsRes && pendingIntentsRes.ok) {
+        try {
+          const pendingArray = await pendingIntentsRes.json();
+          if (Array.isArray(pendingArray)) {
+            pendingArray.forEach(id => pendingVotes.add(id));
+          }
+        } catch (e) {
+          console.error('Error parsing pending intents:', e);
+        }
+      }
+
+      // Removed setVotedRequestIds(userVotes) from here to ensure it only updates if not stale
 
       // 2. Get total number of requests
       const summary = await publicClient.readContract({
@@ -110,8 +130,7 @@ export function useRequests(address: string | undefined, userAddress?: string) {
           const metaCID = req[0];
           const metadata = await fetchIPFSJSON(metaCID);
 
-          // In the new struct, Status is at a different index
-          // Let's assume the mapping is correct based on the new struct
+          // req[3] = snapshotTotalFunds, req[4] = snapshotDonorCount
           return {
             id: i,
             description: metadata?.description || 'No description',
@@ -121,12 +140,21 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             approvalWeights: req[2].toString(),
             evidenceHash: metadata?.evidence || '',
             requestType: Number(req[10]),
-            createdBlock: blockMap.get(i) || 0n,
+            createdBlock: blockMap.get(i) || BigInt(0),
+            snapshotTotalFunds: req[3] || BigInt(0),
+            snapshotDonorCount: req[4] || BigInt(0),
             voterCount: voterCountMap.get(i) || 0,
           };
         })
       );
 
+      if (currentFetchId !== fetchIdRef.current) {
+        console.log(`[useRequests] Ignoring stale response for fetch ID ${currentFetchId} (Latest is ${fetchIdRef.current})`);
+        return;
+      }
+
+      setVotedRequestIds(userVotes);
+      setPendingRequestIds(pendingVotes);
       setRequests(requestsData.reverse());
     } catch (err) {
       console.error('Error fetching requests:', err);
@@ -139,5 +167,5 @@ export function useRequests(address: string | undefined, userAddress?: string) {
     fetchRequests();
   }, [fetchRequests]);
 
-  return { requests, votedRequestIds, isLoading, refresh: fetchRequests };
+  return { requests, votedRequestIds, pendingRequestIds, isLoading, refresh: fetchRequests };
 }

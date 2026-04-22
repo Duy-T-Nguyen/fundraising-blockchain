@@ -134,4 +134,9 @@ export class GasMonitorService implements OnModuleInit {
 
     return rawState;
   }
+
+  async getLatestBaseFee(): Promise<number> {
+    const latest = await this.gasHistoryModel.findOne().sort({ timestamp: -1 });
+    return latest ? latest.baseFee : 0;
+  }
 }

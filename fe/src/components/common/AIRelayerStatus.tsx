@@ -39,8 +39,8 @@ const AIRelayerStatus: React.FC = () => {
     
     // In production, we usually proxy through Nginx at /api
     // In dev, we connect directly to port 3001
-    const socketUrl = isProd ? origin : `http://${window.location.hostname}:3001`;
-    // Backend is now configured to always listen on /api/socket.io
+    // Cấu hình cổng kết nối thâth sự cho môi trường Docker (1609)
+    const socketUrl = isProd ? origin : `http://${window.location.hostname}:1609`;
     const socketPath = '/api/socket.io';
     
     console.log('--- AI RELAYER CONNECTING TO:', socketUrl, 'PATH:', socketPath);
@@ -48,11 +48,11 @@ const AIRelayerStatus: React.FC = () => {
     const socket = io(socketUrl, {
       path: socketPath,
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000
+      reconnectionAttempts: 20,
+      reconnectionDelay: 1000
     });
 
-    const apiUrl = isProd ? `${origin}/api` : `http://${window.location.hostname}:3001`;
+    const apiUrl = isProd ? `${origin}/api` : `http://${window.location.hostname}:1609`;
 
     const fetchStats = async () => {
       try {
@@ -83,26 +83,26 @@ const AIRelayerStatus: React.FC = () => {
     fetchStats();
     fetchHistory();
 
-    socket.on('connect', () => console.log('--- AI RELAYER SOCKET CONNECTED'));
+    socket.on('connect', () => console.log('--- AI RELAYER SOCKET CONNECTED!'));
     socket.on('connect_error', (err) => console.error('--- AI RELAYER SOCKET ERROR:', err));
 
     socket.on('relayer-stats', (newStats: RelayerStats) => {
-      console.log('--- AI RELAYER UPDATE RECEIVED:', newStats.lastDecision);
+      console.log('--- AI RELAYER PULSE RECEIVED ---');
       setStats(newStats);
       setLoading(false);
       
-      // OPTIMIZATION: Instead of full fetch, we can manually prepend the new record 
-      // if it represents a new decision cycle (timestamp change)
       setHistory(prev => {
         const newEntry = {
+          _id: Date.now().toString(),
           createdAt: new Date().toISOString(),
           decision: newStats.lastDecision,
           actionRatio: newStats.lastActionRatio,
           gasPrice: newStats.lastState ? newStats.lastState[0] : 0,
         };
-        // Avoid duplicate entries if the timestamp hasn't moved much
+        
+        // Chỉ thêm nếu có thay đổi thâth sự hoặc sau 10s
         if (prev.length > 0 && prev[0].decision === newEntry.decision && 
-            Math.abs(new Date(prev[0].createdAt).getTime() - new Date(newEntry.createdAt).getTime()) < 5000) {
+            (Date.now() - new Date(prev[0].createdAt).getTime()) < 10000) {
           return prev;
         }
         return [newEntry, ...prev.slice(0, 49)];
@@ -211,7 +211,7 @@ const AIRelayerStatus: React.FC = () => {
             <div className="h-56 w-full bg-slate-900 rounded-[2rem] p-6 relative overflow-hidden shadow-2xl border border-slate-800">
               <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
               {history.length > 1 ? (
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
@@ -243,7 +243,7 @@ const AIRelayerStatus: React.FC = () => {
                     }).join(' ')}
                     fill="none"
                     stroke="#3b82f6"
-                    strokeWidth="2.5"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
@@ -258,11 +258,12 @@ const AIRelayerStatus: React.FC = () => {
                     return (
                       <g key={i} className="group/point">
                         <circle 
-                          cx={`${x}%`} 
-                          cy={`${y}`} 
-                          r={h.decision === 'EXECUTE' ? '5' : '3'} 
+                          cx={x} 
+                          cy={y} 
+                          r={h.decision === 'EXECUTE' ? '1.5' : '1'} 
                           fill={h.decision === 'EXECUTE' ? '#3b82f6' : '#10b981'}
                           className="transition-all duration-300"
+                          vectorEffect="non-scaling-stroke"
                         />
                         <title>{`Gas: ${(h.gasPrice/1e9).toFixed(2)} Gwei | Decided: ${h.decision} @ ${new Date(h.createdAt).toLocaleTimeString()}`}</title>
                       </g>
@@ -281,53 +282,98 @@ const AIRelayerStatus: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* AI Reasoning & State Vector */}
             <div className="lg:col-span-2 space-y-6">
-              <div>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">AI Decision Reasoner</h4>
-                <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className={`px-4 py-2 rounded-2xl font-black text-xs uppercase tracking-widest ${stats?.lastDecision === 'WAIT' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
-                      {stats?.lastDecision || 'INIT'}
-                    </div>
-                    <p className="text-sm font-black text-slate-700 italic">
-                      " {stats?.lastDecision === 'WAIT' ? 'Current gas momentum suggests better entry in upcoming blocks. Holding.' : `Optimal window detected. Executing batch with ${(stats?.lastActionRatio || 0) * 100}% pressure.`} "
-                    </p>
+              <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden group/reasoner">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full animate-pulse ${stats?.lastDecision === 'WAIT' ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">AI State Vector Reasoning</h4>
                   </div>
+                  <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${stats?.lastDecision === 'WAIT' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                    {stats?.lastDecision || 'INIT'}
+                  </div>
+                </div>
 
-                  <div className="flex items-end gap-2 h-24 mt-4 px-2">
-                    {stats?.lastState && stats.lastState.length > 0 ? (
-                      stats.lastState.map((v, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative h-full justify-end">
-                          {/* The Bar */}
+                {/* AI Quote Block */}
+                <div className="mb-8 p-5 bg-slate-50 rounded-3xl border border-slate-100/50">
+                  <p className="text-sm font-black text-slate-700 italic leading-relaxed">
+                    " {stats?.lastDecision === 'WAIT' ? 'Current gas momentum suggests better entry in upcoming blocks. Holding.' : `Optimal window detected. Executing batch with ${(stats?.lastActionRatio || 0) * 100}% pressure.`} "
+                  </p>
+                </div>
+
+                <div className="relative h-40 mt-10">
+                  {/* SVG Line Chart for State Vector */}
+                  <svg className="w-full h-full overflow-visible">
+                    <defs>
+                      <linearGradient id="stateGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3b82f6" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                    </defs>
+                    
+                    {/* Grid Lines */}
+                    {[0, 25, 50, 75, 100].map(p => (
+                      <line key={p} x1="0" y1={`${p}%`} x2="100%" y2={`${p}%`} stroke="#f1f5f9" strokeWidth="1" />
+                    ))}
+                    
+                    {stats?.lastState && stats.lastState.length > 0 && (
+                      <path
+                        d={stats.lastState.map((v, i) => {
+                          const x = (i / 10) * 100;
+                          const y = 100 - Math.max(10, Math.min(90, Math.abs(v) / 20));
+                          return `${i === 0 ? 'M' : 'L'} ${x}% ${y}%`;
+                        }).join(' ')}
+                        fill="none"
+                        stroke="url(#stateGradient)"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="transition-all duration-1000"
+                        filter="url(#glow)"
+                      />
+                    )}
+                  </svg>
+
+                  {/* Interactive Points & Tooltips */}
+                  <div className="absolute inset-0 flex items-end justify-between px-0">
+                    {stats?.lastState?.map((v, i) => {
+                      const y = Math.max(10, Math.min(90, Math.abs(v) / 20));
+                      return (
+                        <div 
+                          key={i} 
+                          className="group/point relative h-full flex flex-col justify-end items-center"
+                          style={{ width: '9%' }}
+                        >
+                          {/* The Point Dot */}
                           <div 
-                            className={`w-full rounded-t-lg transition-all duration-500 bg-gradient-to-t from-blue-600/20 to-blue-500 group-hover:to-blue-400 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]`}
-                            style={{ height: `${Math.max(20, Math.min(100, Math.abs(v) / 20))}px` }}
+                            className="absolute w-4 h-4 bg-white border-4 border-blue-500 rounded-full z-20 transition-all duration-300 group-hover/point:scale-150 group-hover/point:bg-blue-600 group-hover/point:border-white shadow-xl cursor-crosshair"
+                            style={{ bottom: `${y}%`, transform: 'translateY(50%)' }}
                           ></div>
-                          
-                          {/* Label */}
-                          <span className="text-[8px] font-black text-slate-400 group-hover:text-blue-600 transition-colors uppercase">S{i}</span>
-                          
-                          {/* Explainer Tooltip - Now centered and cleaner */}
-                          <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-48 p-3 bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-[100] translate-y-2 group-hover:translate-y-0 border border-white/10 ring-1 ring-white/5">
+
+                          {/* Label at bottom */}
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover/point:text-blue-600 transition-colors mt-4">S{i}</span>
+
+                          {/* Tooltip - Strict visibility with higher z-index */}
+                          <div className="absolute bottom-full mb-8 left-1/2 -translate-x-1/2 w-56 p-4 bg-slate-900/95 backdrop-blur-2xl rounded-[1.5rem] shadow-2xl invisible group-hover/point:visible opacity-0 group-hover/point:opacity-100 transition-all duration-300 z-[300] translate-y-4 group-hover/point:translate-y-0 border border-white/10 ring-1 ring-white/10">
                             <div className="relative z-10">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider leading-none">{FEATURE_LABELS[i].name}</p>
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(96,165,250,0.5)]"></div>
+                                <p className="text-[11px] font-black text-white uppercase tracking-widest leading-none">{FEATURE_LABELS[i].name}</p>
                               </div>
-                              <p className="text-[10px] text-white/90 leading-relaxed font-bold mb-3">{FEATURE_LABELS[i].desc}</p>
-                              <div className="pt-2 border-t border-white/10 flex justify-between items-center">
-                                <span className="text-[8px] text-slate-500 uppercase font-black">Current Value</span>
-                                <span className="text-[10px] text-emerald-400 font-mono font-black">{(v/1e6).toFixed(2)}</span>
+                              <p className="text-[11px] text-slate-300 leading-relaxed font-bold mb-4">{FEATURE_LABELS[i].desc}</p>
+                              <div className="pt-3 border-t border-white/10 flex justify-between items-center">
+                                <span className="text-[9px] text-slate-500 uppercase font-black tracking-[0.2em]">Intensity</span>
+                                <span className="text-xs text-emerald-400 font-mono font-black">{(v/1e6).toFixed(3)}</span>
                               </div>
                             </div>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-slate-900/95"></div>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[10px] border-transparent border-t-slate-900/95"></div>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="w-full h-full border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-white/50">
-                         <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest animate-pulse">Synchronizing AI State...</p>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -354,10 +400,15 @@ const AIRelayerStatus: React.FC = () => {
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Agent Efficiency</p>
                       <p className="text-sm font-black text-slate-900">Optimal Execution</p>
                     </div>
-                    <span className="text-lg font-black text-indigo-600">85%</span>
+                    <span className="text-lg font-black text-indigo-600">
+                      {stats?.lastState ? Math.max(0, Math.min(100, ((stats.lastState[10] - stats.lastState[0]) / stats.lastState[10]) * 100)).toFixed(0) : '85'}%
+                    </span>
                   </div>
                   <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5">
-                    <div className="w-[85%] h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.3)]"></div>
+                    <div 
+                      className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.3)] transition-all duration-1000"
+                      style={{ width: `${stats?.lastState ? Math.max(5, Math.min(100, ((stats.lastState[10] - stats.lastState[0]) / stats.lastState[10]) * 100)) : 85}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -366,39 +417,65 @@ const AIRelayerStatus: React.FC = () => {
           
           {/* History Table Log */}
           <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm">
-            <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
                <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center text-white">
-                   <Activity size={16} />
+                 <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
+                   <Activity size={20} />
                  </div>
-                 <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Decision Activity Stream</h5>
+                 <div>
+                   <h5 className="text-xs font-black text-slate-900 uppercase tracking-widest">Decision Activity Stream</h5>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Real-time RL agent event logs</p>
+                 </div>
                </div>
-               <p className="text-[9px] font-black text-slate-400 uppercase bg-white px-3 py-1 rounded-full border border-slate-100">{history.length} Cycles In History</p>
+               <p className="text-[9px] font-black text-slate-400 uppercase bg-white px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">{history.length} Cycles In Cache</p>
             </div>
-            <div className="max-h-64 overflow-y-auto custom-scrollbar">
+            <div className="max-h-[400px] overflow-y-auto overflow-x-hidden custom-scrollbar">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50/30 sticky top-0 backdrop-blur-sm">
+                <thead className="bg-white/80 sticky top-0 backdrop-blur-md z-10">
                   <tr>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Time (PST)</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">AI Action</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Load Intensity</th>
-                    <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Network Fee</th>
+                    <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50">Time Cycle</th>
+                    <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50">AI Action</th>
+                    <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50">Execution Pressure</th>
+                    <th className="px-8 py-5 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50">Network Fee</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {history.map((log, i) => (
-                    <tr key={i} className="border-t border-slate-50 hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-4 text-[10px] font-black text-slate-500 font-mono">{new Date(log.createdAt).toLocaleTimeString()}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase inline-flex items-center gap-1.5 ${log.decision === 'WAIT' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${log.decision === 'WAIT' ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
-                          {log.decision}
-                        </span>
+                <tbody className="divide-y divide-slate-50">
+                  {history.length > 0 ? history.map((log, i) => {
+                    const date = log.createdAt ? new Date(log.createdAt) : new Date();
+                    const timeStr = isNaN(date.getTime()) ? 'Syncing...' : date.toLocaleTimeString();
+                    
+                    return (
+                      <tr key={log._id || i} className="hover:bg-slate-50/80 transition-all group">
+                        <td className="px-8 py-5 text-[11px] font-black text-slate-500 font-mono tracking-tighter">{timeStr}</td>
+                        <td className="px-8 py-5">
+                          <div className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase inline-flex items-center gap-2 border transition-all ${log.decision === 'WAIT' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100 shadow-sm shadow-blue-500/10'}`}>
+                            <div className={`w-2 h-2 rounded-full animate-pulse ${log.decision === 'WAIT' ? 'bg-emerald-500' : 'bg-blue-500'}`}></div>
+                            {log.decision}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                           <div className="flex items-center gap-3">
+                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full max-w-[60px] overflow-hidden">
+                                <div className="h-full bg-slate-300 rounded-full" style={{ width: `${(log.actionRatio * 100) || 0}%` }}></div>
+                              </div>
+                              <span className="text-[11px] font-black text-slate-700">{(log.actionRatio * 100).toFixed(0)}%</span>
+                           </div>
+                        </td>
+                        <td className="px-8 py-5">
+                          <span className="text-[11px] font-black text-slate-900">{(log.gasPrice / 1e9).toFixed(2)} <span className="text-[9px] text-slate-400">Gwei</span></span>
+                        </td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr>
+                      <td colSpan={4} className="px-8 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                           <div className="w-10 h-10 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Awaiting AI Optimization Pulse...</p>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-[11px] font-black text-slate-700">{(log.actionRatio * 100).toFixed(0)}%</td>
-                      <td className="px-6 py-4 text-[11px] font-black text-slate-700">{(log.gasPrice / 1e9).toFixed(2)} Gwei</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

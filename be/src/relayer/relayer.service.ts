@@ -159,7 +159,7 @@ export class RelayerService implements OnModuleInit {
 
       // 2. Lấy 11 thôgn số trạng thái từ thị trường và hàng đợi
       // s_time_left = Thời gian còn lại cho đến deadline (Giảm xuống 5 phút để AI quyết đoán hơn trong demo)
-      const MAX_WAIT_HOURS = 0.0833; // 5 minutes 
+      const MAX_WAIT_HOURS = 23.99; // 5 minutes 
       const ageHours = stats.oldestJobAge / 3600;
       const timeLeftHours = Math.max(0, MAX_WAIT_HOURS - ageHours);
       
@@ -185,13 +185,22 @@ export class RelayerService implements OnModuleInit {
         const dynamicBatchSize = Math.max(1, Math.floor(ratio * stats.queueSize));
         this.logger.log(`AI Decision: [EXECUTE] (Ratio: ${ratio * 100}%). Sending ${dynamicBatchSize} transactions...`);
         
-        // Tính toán tiết kiệm giả lập (Mock savings calculation)
-        // Tiết kiệm được = (Gas tham chiếu - Gas hiện tại) * 21000 * số lượng
-        const gasDiff = state[10] - state[0]; // s_gas_ref - s_gas_t0
-        if (gasDiff > 0) {
-          const savings = (gasDiff * 21000 * dynamicBatchSize) / 1e18; // Chuyển sang ETH
-          this.cumulativeSavings += savings;
-        }
+        // 4.1 Tính toán tiết kiệm THỰC TẾ (Real Batching Savings)
+        // Tiết kiệm = [Phí khởi tạo tiết kiệm được + Chênh lệch giá gas tối ưu]
+        const currentGasPrice = state[0];
+        const gasRef = state[10];
+        const batchSize = dynamicBatchSize;
+        
+        // Phí khởi tạo tiết kiệm (L2 benefit): (n-1) * 21000
+        const batchingBenefit = (batchSize - 1) * 21000 * currentGasPrice;
+        
+        // Chênh lệch giá (AI benefit): n * (gasRef - currentGas) * 21000
+        const priceBenefit = batchSize * Math.max(0, gasRef - currentGasPrice) * 21000;
+        
+        const totalSavingsWei = batchingBenefit + priceBenefit;
+        const totalSavingsEth = Number(totalSavingsWei) / 1e18;
+        
+        this.cumulativeSavings += totalSavingsEth;
 
         await this.processBatch(dynamicBatchSize);
       }
@@ -227,11 +236,13 @@ export class RelayerService implements OnModuleInit {
         throw new Error('Chữ ký không hợp lệ: Người ký không khớp với trường "from"');
       }
 
-      // 2. Đưa vào hàng đợi BullMQ
+      // 2. Đưa vào hàng đợi BullMQ kèm theo giá Gas lúc gửi để tính toán tiết kiệm sau này
+      const currentGasPrice = await this.gasMonitor.getLatestBaseFee();
       const job = await this.gasQueue.add('execute-intent', {
         forwardRequest,
         signature,
         timestamp: Date.now(),
+        submissionGasPrice: currentGasPrice,
       });
 
       this.logger.log(`[Queue] Intent added to BullMQ. Job ID: ${job.id} | From: ${recoveredAddress}`);
@@ -282,15 +293,31 @@ export class RelayerService implements OnModuleInit {
         throw new Error('Forwarder contract chưa được khởi tạo. Kiểm tra .env');
       }
 
+      const currentGasPrice = await this.gasMonitor.getLatestBaseFee();
+      let totalBatchSavingsEth = 0;
+
+      // 1. Tính toán tiết kiệm từ chênh lệch giá cho từng Intent
+      for (const job of jobs) {
+        const submissionGasPrice = job.data.submissionGasPrice || currentGasPrice;
+        const gasDiff = Number(submissionGasPrice) - Number(currentGasPrice);
+        
+        // Nếu AI đợi được giá rẻ hơn, cộng tiền tiết kiệm (giả định mỗi giao dịch dùng 150k gas cho Campaign)
+        if (gasDiff > 0) {
+          totalBatchSavingsEth += (gasDiff * 150000) / 1e18;
+        }
+      }
+
+      // 2. Cộng thêm lợi ích từ Batching (tiết kiệm 21000 gas cho mỗi giao dịch từ thứ 2 trở đi)
+      if (jobs.length > 1) {
+        const batchingSavingsEth = ((jobs.length - 1) * 21000 * Number(currentGasPrice)) / 1e18;
+        totalBatchSavingsEth += batchingSavingsEth;
+      }
+
       const tx = await this.forwarderContract.executeBatch(requests, signatures);
       const receipt = await tx.wait();
 
-      // Sau khi thành công, xóa các job đã xử lý khỏi hàng đợi
-      for (const job of jobs) {
-        await job.remove();
-      }
-
-      this.logger.log(`Batch execution successful. Hash: ${tx.hash}`);
+      this.cumulativeSavings += totalBatchSavingsEth;
+      this.logger.log(`Batch successful. Real Savings from this batch: ${totalBatchSavingsEth.toFixed(8)} ETH`);
 
       // Track batch metrics in DB
       await this.statsModel.updateOne(
@@ -340,6 +367,27 @@ export class RelayerService implements OnModuleInit {
       .sort({ createdAt: -1 })
       .limit(limit)
       .exec();
+  }
+
+  async getPendingIntents(address: string): Promise<number[]> {
+    const jobs = await this.gasQueue.getJobs(['waiting', 'delayed']);
+    const pendingRequestIds: number[] = [];
+
+    for (const job of jobs) {
+      const req = job.data?.forwardRequest;
+      if (req && req.from && req.from.toLowerCase() === address.toLowerCase()) {
+        const data = req.data as string;
+        // Check if it's approveRequest(uint256 index) -> Selector: 0xd7d1bbdb
+        if (data && data.startsWith('0xd7d1bbdb')) {
+           const idHex = data.substring(10); // Remove 0xd7d1bbdb (10 chars: 0x + 8 chars)
+           const requestId = parseInt(idHex, 16);
+           if (!isNaN(requestId)) {
+             pendingRequestIds.push(requestId);
+           }
+        }
+      }
+    }
+    return pendingRequestIds;
   }
 
   private verifyEIP712(forwardRequest: any, signature: string): string {

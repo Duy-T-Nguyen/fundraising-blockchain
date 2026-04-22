@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpException, HttpStatus, Logger, Param } from '@nestjs/common';
 import { RelayerService } from './relayer.service';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { SubmitIntentDto } from './dto/submit-intent.dto';
@@ -46,5 +46,12 @@ export class RelayerController {
   @ApiOperation({ summary: 'Lấy lịch sử quyết định của AI' })
   async getHistory() {
     return await this.relayerService.getHistory();
+  }
+
+  @Get('intents/:address')
+  @ApiOperation({ summary: 'Lấy danh sách các Request ID đang chờ AI xử lý của một ví' })
+  @ApiResponse({ status: 200, description: 'Mảng các Request ID đang pending' })
+  async getPendingIntents(@Param('address') address: string) {
+    return await this.relayerService.getPendingIntents(address);
   }
 }

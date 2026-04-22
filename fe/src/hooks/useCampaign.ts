@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { formatEther } from 'viem';
 import { publicClient } from '../blockchain/client';
 import { ABIS } from '../blockchain/constants';
@@ -15,6 +15,7 @@ export interface CampaignSummary {
   manager: string;
   active: boolean;
   userContribution: bigint;
+  userDonorId: bigint;
   firstDonationBlock: bigint | null;
   availableFunds: string;
   lockedFunds: string;
@@ -24,15 +25,20 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
   const [summary, setSummary] = useState<CampaignSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fetchIdRef = useRef(0);
 
   const fetchSummary = useCallback(async () => {
     if (!address) return;
     
+    const currentFetchId = ++fetchIdRef.current;
+    
     setIsLoading(true);
     setError(null);
     try {
-      // 1. Fetch BASIC summary info and user contribution
-      const [summaryData, userContribution] = await Promise.all([
+      console.log(`[useCampaign] Querying data for Campaign: ${address} | User: ${userAddress}`);
+
+      // 1. Fetch BASIC summary info, user contribution, and donorId
+      const [summaryData, userContribution, userDonorId] = await Promise.all([
         publicClient.readContract({
           address: address as `0x${string}`,
           abi: ABIS.CAMPAIGN as any,
@@ -43,8 +49,20 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
           abi: ABIS.CAMPAIGN as any,
           functionName: 'contributions',
           args: [userAddress as `0x${string}`],
-        } as any) : Promise.resolve(0n),
-      ]) as [any, bigint];
+        } as any) : Promise.resolve(BigInt(0)),
+        userAddress ? publicClient.readContract({
+          address: address as `0x${string}`,
+          abi: ABIS.CAMPAIGN as any,
+          functionName: 'donorId',
+          args: [userAddress as `0x${string}`],
+        } as any) : Promise.resolve(BigInt(0)),
+      ]) as [any, bigint, bigint];
+
+      console.log(`[useCampaign] RAW RESULTS:`, {
+        summaryData,
+        userContribution: userContribution?.toString(),
+        userDonorId: userDonorId?.toString()
+      });
 
       if (!summaryData) throw new Error('No summary data found');
 
@@ -52,8 +70,8 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
       const metadata = await fetchIPFSJSON(metaCID);
 
       // 2. Fetch new financial metrics (Safe for legacy contracts)
-      let availableFunds = 0n;
-      let lockedFunds = 0n;
+      let availableFunds = BigInt(0);
+      let lockedFunds = BigInt(0);
       
       try {
         [availableFunds, lockedFunds] = await Promise.all([
@@ -76,6 +94,12 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
       let firstDonationBlock: bigint | null = null;
       // Skip log fetching if not needed or too slow
 
+      // Check if this fetch is still the latest one before updating state
+      if (currentFetchId !== fetchIdRef.current) {
+        console.log(`[useCampaign] Ignoring stale response for fetch ID ${currentFetchId} (Latest is ${fetchIdRef.current})`);
+        return;
+      }
+
       setSummary({
         title: metadata?.name || 'Unnamed Campaign',
         description: metadata?.description || '',
@@ -86,10 +110,11 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
         donorsCount: Number(summaryData.donors || summaryData[3]),
         manager: summaryData.managerAddr || summaryData[4],
         active: summaryData.isActive !== undefined ? summaryData.isActive : summaryData[6],
-        userContribution: userContribution || 0n,
+        userContribution: userContribution || BigInt(0),
+        userDonorId: userDonorId || BigInt(0),
         firstDonationBlock: firstDonationBlock,
-        availableFunds: formatEther(availableFunds || 0n),
-        lockedFunds: formatEther(lockedFunds || 0n),
+        availableFunds: formatEther(availableFunds || BigInt(0)),
+        lockedFunds: formatEther(lockedFunds || BigInt(0)),
       });
     } catch (err) {
       console.error('Error fetching campaign summary:', err);
@@ -97,7 +122,7 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, [address]);
+  }, [address, userAddress]);
 
   useEffect(() => {
     fetchSummary();
