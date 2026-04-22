@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { publicClient } from '../blockchain/client';
 import { ABIS } from '../blockchain/constants';
 import { formatEther } from 'viem';
+import { fetchIPFSJSON } from '../utils/ipfs';
 
 export type CampaignRequest = {
   id: number;
@@ -35,11 +36,12 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             name: 'RequestCreated',
             inputs: [
               { type: 'uint256', name: 'id', indexed: true },
-              { type: 'string', name: 'description', indexed: false },
+              { type: 'string', name: 'metadataCID', indexed: false },
               { type: 'uint256', name: 'value', indexed: false },
               { type: 'address', name: 'recipient', indexed: false },
               { type: 'address', name: 'verifier', indexed: false },
-              { type: 'string', name: 'evidenceHash', indexed: false }
+              { type: 'address[]', name: 'selectedValidators', indexed: false },
+              { type: 'uint256', name: 'lastValidatorSelection', indexed: false }
             ],
           },
           fromBlock: BigInt(Math.max(0, Number(await publicClient.getBlockNumber()) - 40000)), 
@@ -105,15 +107,20 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             args: [BigInt(i)],
           } as any) as any[];
 
+          const metaCID = req[0];
+          const metadata = await fetchIPFSJSON(metaCID);
+
+          // In the new struct, Status is at a different index
+          // Let's assume the mapping is correct based on the new struct
           return {
             id: i,
-            description: req[0],
+            description: metadata?.description || 'No description',
             value: formatEther(req[1]),
-            recipient: req[2],
-            complete: req[3],
-            approvalWeights: req[4].toString(),
-            evidenceHash: req[5],
-            requestType: req[6],
+            recipient: req[9],
+            complete: Number(req[11]) === 1,
+            approvalWeights: req[2].toString(),
+            evidenceHash: metadata?.evidence || '',
+            requestType: Number(req[10]),
             createdBlock: blockMap.get(i) || 0n,
             voterCount: voterCountMap.get(i) || 0,
           };

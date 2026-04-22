@@ -10,6 +10,7 @@ import RequestsList from '../components/manager/RequestsList';
 import { useWallet } from '../hooks/useWallet';
 import { LayoutDashboard, Plus } from 'lucide-react';
 import ManagerFinancialCard from '../components/manager/ManagerFinancialCard';
+import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 const CampaignDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -24,7 +25,7 @@ const CampaignDetail: React.FC = () => {
   const [refreshKey, setRefreshKey] = React.useState(0);
 
   const isManager = !!(userAddress && summary && userAddress.toLowerCase() === summary.manager.toLowerCase());
-  const hasDonated = !!(summary && summary.userContribution > 0n);
+  const hasDonated = !!(summary && summary.userContribution > BigInt(0));
 
   const handleDonationSuccess = () => {
     refresh();
@@ -98,6 +99,9 @@ const CampaignDetail: React.FC = () => {
             lockedFunds={summary.lockedFunds}
           />
         )}
+
+        {/* AI Status Section */}
+        <AIRelayerStatus />
 
         <CampaignHero
           address={address}

@@ -9,24 +9,25 @@ import { SignatureModal } from '../components/verifier/SignatureModal';
 import type { VerifierTask } from '../types/verifier';
 import { publicClient, getWalletClient } from '../blockchain/client';
 import { ABIS } from '../blockchain/constants';
+import { useNotification } from '../context/NotificationContext';
 
 const VerifierDashboard = () => {
   const { address } = useWallet();
   const { tasks, isLoading, stats, refresh } = useVerifierTasks(address as `0x${string}` | undefined);
+  const toast = useNotification();
   const [activeTab, setActiveTab] = useState<'expert' | 'community'>('expert');
   const [selectedTask, setSelectedTask] = useState<VerifierTask | null>(null);
-  const [lastSignature, setLastSignature] = useState<{ id: string, sig: string } | null>(null);
 
-  const filteredTasks = tasks.filter(t => 
+  const filteredTasks = tasks.filter(t =>
     activeTab === 'expert' ? t.type === 'EXPERT_SIGNATURE' : t.type === 'COMMUNITY_VOTE'
   );
 
   const handleSignSuccess = (signature: string) => {
     if (selectedTask) {
-      setLastSignature({ id: selectedTask.id, sig: signature });
       setSelectedTask(null);
-      // In a real app, we would POST this to a backend for the Manager to retrieve
-      console.log(`Success! Signature for task ${selectedTask.id}: ${signature}`);
+      toast.success('Certificate generated! Signature ready.');
+      navigator.clipboard.writeText(signature).catch(() => { });
+      console.log(`Signature for task ${selectedTask.id}: ${signature}`);
     }
   };
 
@@ -44,10 +45,11 @@ const VerifierDashboard = () => {
       });
 
       await walletClient.writeContract(request);
+      toast.success('Vote submitted successfully!');
       refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Approval failed:', error);
-      alert('Approval failed. See console for details.');
+      toast.error(error?.shortMessage || error?.message || 'Approval failed.');
     }
   };
 
@@ -85,23 +87,21 @@ const VerifierDashboard = () => {
               <div className="flex bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
                 <button
                   onClick={() => setActiveTab('expert')}
-                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                    activeTab === 'expert' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'
-                  }`}
+                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'expert' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'
+                    }`}
                 >
                   Expert Tasks ({stats.pendingExpert})
                 </button>
                 <button
                   onClick={() => setActiveTab('community')}
-                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
-                    activeTab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:text-slate-600'
-                  }`}
+                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:text-slate-600'
+                    }`}
                 >
                   Community Voting ({stats.pendingCommunity})
                 </button>
               </div>
-              
-              <button 
+
+              <button
                 onClick={() => refresh()}
                 className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all hover:shadow-md"
                 title="Refresh tasks"
@@ -123,42 +123,21 @@ const VerifierDashboard = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {lastSignature && (
-                  <div className="bg-emerald-600 text-white p-6 rounded-3xl shadow-xl animate-in slide-in-from-top-4 mb-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <CheckCircle size={24} />
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-75">Certificate Generated</p>
-                          <p className="text-xs font-mono break-all line-clamp-1">{lastSignature.sig}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(lastSignature.sig);
-                          alert('Signature copied to clipboard!');
-                        }}
-                        className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-[10px] font-black uppercase transition-all"
-                      >
-                        Copy Signature
-                      </button>
-                    </div>
-                  </div>
-                )}
+
 
                 {filteredTasks.map(task => (
                   activeTab === 'expert' ? (
-                    <ExpertTaskCard 
-                      key={task.id} 
-                      task={task} 
-                      onSign={setSelectedTask} 
-                      onOpenIPFS={openIPFS} 
+                    <ExpertTaskCard
+                      key={task.id}
+                      task={task}
+                      onSign={setSelectedTask}
+                      onOpenIPFS={openIPFS}
                     />
                   ) : (
-                    <CommunityTaskCard 
-                      key={task.id} 
-                      task={task} 
-                      onApprove={handleCommunityApprove} 
+                    <CommunityTaskCard
+                      key={task.id}
+                      task={task}
+                      onApprove={handleCommunityApprove}
                     />
                   )
                 ))}
@@ -168,7 +147,7 @@ const VerifierDashboard = () => {
         )}
       </div>
 
-      <SignatureModal 
+      <SignatureModal
         task={selectedTask}
         onClose={() => setSelectedTask(null)}
         onSuccess={handleSignSuccess}

@@ -4,6 +4,7 @@ import { useUserActivity } from '../hooks/useUserActivity';
 import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { slugify } from '../utils/slugify';
+import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
@@ -55,6 +56,11 @@ const CreatorDashboard: React.FC = () => {
             <PlusCircle size={20} />
             Launch New Project
           </Link>
+        </div>
+
+        {/* AI Status Section */}
+        <div className="mb-12">
+          <AIRelayerStatus />
         </div>
 
         {/* Stats Grid */}

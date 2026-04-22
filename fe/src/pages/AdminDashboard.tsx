@@ -5,6 +5,7 @@ import {
   Activity, BarChart3, Droplets, Plus, Settings
 } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
+import { useNotification } from '../context/NotificationContext';
 
 // Modular Components
 import OverviewTab from '../components/admin/tabs/OverviewTab';
@@ -22,6 +23,7 @@ const AdminDashboard = () => {
     updateSpamFee, withdrawFactoryFees, withdrawCampaignGas
   } = useAdmin();
 
+  const toast = useNotification();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -62,7 +64,7 @@ const AdminDashboard = () => {
             This sector is restricted to the platform administrator. Connect the master wallet to proceed.
           </p>
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-[10px] font-mono text-slate-400 break-all mb-8 uppercase tracking-wider">
-             {(window.ethereum as any)?.selectedAddress || 'No Wallet Detected'}
+            {(window.ethereum as any)?.selectedAddress || 'No Wallet Detected'}
           </div>
           <button onClick={() => window.location.href = '/'} className="w-full py-4 bg-slate-900 hover:bg-black text-white font-black rounded-3xl transition-all shadow-xl active:scale-95">
             Return to Safety
@@ -77,8 +79,9 @@ const AdminDashboard = () => {
       setProcessingId(id);
       await action();
       await refresh();
+      toast.success('Action completed successfully.');
     } catch (err: any) {
-      alert(err.message || 'Transaction failed');
+      toast.error(err.message || 'Transaction failed');
     } finally {
       setProcessingId(null);
     }
@@ -101,7 +104,7 @@ const AdminDashboard = () => {
             <button onClick={refresh} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition-all group active:scale-95">
               <Activity size={22} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
             </button>
-            
+
             <div className="px-8 py-5 bg-white border border-slate-200 rounded-[32px] flex items-center gap-6 shadow-xl shadow-slate-200/40">
               <div className="text-right">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Global Treasury</p>
