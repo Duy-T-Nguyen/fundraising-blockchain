@@ -108,8 +108,13 @@ export class RelayerService implements OnModuleInit {
         timestamp: Date.now(),
       });
 
-      this.logger.log(`Intent submitted successfully. Job ID: ${job.id}`);
-      return { success: true, jobId: job.id };
+      this.logger.log(`[Queue] Intent added to BullMQ. Job ID: ${job.id} | From: ${recoveredAddress}`);
+      return { 
+        success: true, 
+        jobId: job.id,
+        recoveredAddress,
+        status: 'queued'
+      };
     } catch (error) {
       this.logger.error(`Failed to submit intent: ${error.message}`);
       throw error;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useRequests } from '../../hooks/useRequests';
-import { publicClient } from '../../blockchain/client';
 import { ABIS } from '../../blockchain/constants';
 import { 
   CheckCircle2, 
@@ -8,10 +7,13 @@ import {
   Users, 
   AlertCircle,
   ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { encodeFunctionData, formatEther } from 'viem';
+
+import { useRelayer } from '../../hooks/useRelayer';
 
 interface RequestsListProps {
   address: string;
@@ -26,9 +28,10 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   const { address: userAddress } = useWallet();
   const { requests, isLoading, refresh } = useRequests(address, userAddress || undefined);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const { executeGasless, isRelaying } = useRelayer();
 
   const handleApprove = async (index: number) => {
-    if (!window.ethereum || !userAddress) return;
+    if (!userAddress) return;
     setProcessingId(index);
     try {
       const data = encodeFunctionData({
@@ -37,12 +40,8 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
         args: [BigInt(index)],
       });
 
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{ from: userAddress, to: address, data }],
-      });
-
-      await publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` });
+      console.log(`Voting for request ${index} via AI Relayer...`);
+      await executeGasless(address, data);
       refresh();
     } catch (err) {
       console.error('Approval failed:', err);
@@ -52,7 +51,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   };
 
   const handleFinalize = async (index: number) => {
-    if (!window.ethereum || !userAddress) return;
+    if (!userAddress) return;
     setProcessingId(index);
     try {
       const data = encodeFunctionData({
@@ -61,12 +60,8 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
         args: [BigInt(index)],
       });
 
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{ from: userAddress, to: address, data }],
-      });
-
-      await publicClient.waitForTransactionReceipt({ hash: txHash as `0x${string}` });
+      console.log(`Finalizing request ${index} via AI Relayer...`);
+      await executeGasless(address, data);
       refresh();
     } catch (err) {
       console.error('Finalization failed:', err);
@@ -156,30 +151,41 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       const requestBlock = req.createdBlock;
 
                       // Case 1: Both have block info (within 40k last blocks)
-                      if (donorBlock !== null && requestBlock !== 0n) {
+                      if (donorBlock !== null && requestBlock !== BigInt(0)) {
                         return donorBlock <= requestBlock;
                       }
                       
                       // Case 2: Request is new (has block), but donor is very old (block is null/not found)
-                      if (requestBlock !== 0n && donorBlock === null) {
+                      if (requestBlock !== BigInt(0) && donorBlock === null) {
                         return true; 
                       }
 
                       // Case 3: Request is very old (0n), but donor is new (has block)
-                      if (requestBlock === 0n && donorBlock !== null) {
+                      if (requestBlock === BigInt(0) && donorBlock !== null) {
                         return false; // Donor came after an old request
                       }
 
                       // Case 4: Both are very old (legacy), default to allow
                       return true;
                     })() && (
-                      <button
-                        onClick={() => handleApprove(req.id)}
-                        disabled={processingId === req.id}
-                        className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50"
-                      >
-                        {processingId === req.id ? 'Processing...' : 'Approve'}
-                      </button>
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => handleApprove(req.id)}
+                          disabled={processingId === req.id || isRelaying}
+                          className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {(processingId === req.id || isRelaying) ? (
+                            <><span className="animate-spin">🌀</span> {isRelaying ? 'AI Optimizing...' : 'Processing...'}</>
+                          ) : (
+                            'Approve'
+                          )}
+                        </button>
+                        {!isRelaying && (
+                          <span className="text-[8px] text-blue-500 font-bold uppercase tracking-tighter flex items-center gap-1">
+                            <Zap size={8} /> Gasless AI Optimized
+                          </span>
+                        )}
+                      </div>
                     )}
 
                     {/* Manager Button */}
@@ -187,15 +193,24 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       <div className="flex flex-col items-center gap-2">
                         <button
                           onClick={() => handleFinalize(req.id)}
-                          disabled={!canFinalize || processingId === req.id}
-                          className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${
+                          disabled={!canFinalize || processingId === req.id || isRelaying}
+                          className={`px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-lg flex items-center gap-2 ${
                             canFinalize 
                               ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20' 
                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                         >
-                          {processingId === req.id ? 'Loading...' : 'Finalize & Pay'}
+                          {(processingId === req.id || isRelaying) ? (
+                            <><span className="animate-spin">🌀</span> {isRelaying ? 'AI Finalizing...' : 'Loading...'}</>
+                          ) : (
+                            'Finalize & Pay'
+                          )}
                         </button>
+                        {canFinalize && !isRelaying && (
+                          <span className="text-[8px] text-emerald-500 font-bold uppercase tracking-tighter flex items-center gap-1">
+                            <Zap size={8} /> Gasless AI Optimized
+                          </span>
+                        )}
                         {!canFinalize && (
                           <div className="flex items-center gap-1 text-[9px] text-amber-500 font-bold uppercase tracking-wider">
                             <AlertCircle size={10} />

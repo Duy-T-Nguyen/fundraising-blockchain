@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { RelayerService } from './relayer.service';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { SubmitIntentDto } from './dto/submit-intent.dto';
@@ -6,6 +6,7 @@ import { SubmitIntentDto } from './dto/submit-intent.dto';
 @ApiTags('Relayer (Gas Optimization)')
 @Controller('relayer')
 export class RelayerController {
+  private readonly logger = new Logger(RelayerController.name);
   constructor(private readonly relayerService: RelayerService) {}
 
   @Post('intent')
@@ -17,9 +18,13 @@ export class RelayerController {
   @ApiResponse({ status: 201, description: 'Đã tiếp nhận yêu cầu và đưa vào hàng đợi.' })
   @ApiResponse({ status: 400, description: 'Dữ liệu gửi lên không hợp lệ hoặc chữ ký sai.' })
   async submitIntent(@Body() submitIntentDto: SubmitIntentDto) {
+    this.logger.log(`>>> Received Intent: ${JSON.stringify(submitIntentDto)}`);
     try {
-      return await this.relayerService.submitIntent(submitIntentDto);
+      const result = await this.relayerService.submitIntent(submitIntentDto);
+      this.logger.log(`<<< Intent processed: ${JSON.stringify(result)}`);
+      return result;
     } catch (error) {
+      this.logger.error(`!!! Intent Error: ${error.message}`);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }

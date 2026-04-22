@@ -16,9 +16,7 @@ export class VerificationService {
     campaignAddr: string,
     poolAddr: string,
     args: {
-      name: string;
-      description: string;
-      imageHash: string;
+      metadataCID: string;
       category: number;
       minimum: string;
       manager: string;
@@ -35,9 +33,7 @@ export class VerificationService {
       ...process.env,
       VERIFY_CAMPAIGN_ADDR: campaignAddr,
       VERIFY_POOL_ADDR: poolAddr,
-      VERIFY_NAME: args.name,
-      VERIFY_DESC: args.description,
-      VERIFY_IMAGE_HASH: args.imageHash,
+      VERIFY_METADATA_CID: args.metadataCID,
       VERIFY_CAT: args.category.toString(),
       VERIFY_MIN: args.minimum,
       VERIFY_MANAGER: args.manager,

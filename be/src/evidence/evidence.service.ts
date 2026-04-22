@@ -55,4 +55,41 @@ export class EvidenceService {
       throw error;
     }
   }
+
+  async uploadJSONToIPFS(data: any): Promise<{ cid: string; url: string }> {
+    try {
+      this.logger.log(`Uploading JSON to IPFS...`);
+
+      const result = await this.pinata.pinJSONToIPFS(data, {
+        pinataMetadata: {
+          name: `metadata-${Date.now()}.json`,
+        },
+      });
+
+      const cid = result.IpfsHash;
+      const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
+
+      this.logger.log(`JSON Success! CID: ${cid}`);
+
+      return { cid, url };
+    } catch (error) {
+      this.logger.error('Failed to upload JSON to IPFS', error.stack);
+      throw error;
+    }
+  }
+
+  async getMetadata(cid: string): Promise<any> {
+    try {
+      this.logger.log(`Fetching metadata for CID: ${cid}`);
+      const response = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch from IPFS: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      this.logger.error(`Error fetching metadata for CID ${cid}:`, error.stack);
+      // Return empty object to prevent frontend crash
+      return {};
+    }
+  }
 }
