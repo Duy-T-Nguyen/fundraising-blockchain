@@ -59,24 +59,10 @@ const ManagerFinancialCard: React.FC<ManagerFinancialCardProps> = ({
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center px-1">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Allocation Profile</span>
-          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">
-            {lockedPercentage.toFixed(1)}% Committed
-          </span>
-        </div>
-        <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1">
-          <div 
-            className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-1000"
-            style={{ width: `${Math.min(100, lockedPercentage)}%` }}
-          />
-        </div>
-        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold justify-center pt-2 italic">
-          <AlertCircle size={12} />
-          Total Campaign Balance: {totalBalance} ETH
-        </div>
+      {/* Total Balance Info */}
+      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold justify-center pt-2 italic">
+        <AlertCircle size={12} />
+        Total Campaign Balance: {totalBalance} ETH
       </div>
     </div>
   );

@@ -2,23 +2,61 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronDown, Loader2, AlertCircle, ArrowRight, LayoutGrid, Zap, ShieldCheck } from 'lucide-react';
 import CampaignCard from '../components/home/CampaignCard';
-import { useCampaignFactory } from '../hooks/useCampaignFactory';
+import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 
-const CATEGORIES = ['All Categories', 'Education', 'Health', 'Environment', 'Community'];
+const CATEGORIES = ['All Categories', 'Education', 'Medical', 'Disaster', 'Environment', 'Others'];
 const STATUSES = ['Status: Active', 'Status: All', 'Status: Inactive'];
 const SORTS = ['Most Funded', 'Most Donors', 'Newest'];
 
 const Campaigns = () => {
-  const { campaignAddresses, isLoading, error, refresh } = useCampaignFactory();
+  const { campaigns, isLoading, error, refresh } = useCampaignsWithSummaries();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [status, setStatus] = useState(STATUSES[0]);
   const [sort, setSort] = useState(SORTS[0]);
   const [visibleCount, setVisibleCount] = useState(6);
 
-  const displayedAddresses = useMemo(() => {
-    return campaignAddresses.slice(0, visibleCount);
-  }, [campaignAddresses, visibleCount]);
+  const filteredCampaigns = useMemo(() => {
+    let result = [...campaigns];
+
+    // Filter by Search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(c => 
+        c.title.toLowerCase().includes(q) || 
+        c.description.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by Category
+    if (category !== 'All Categories') {
+      const catIndex = CATEGORIES.indexOf(category) - 1; // -1 because index 0 is 'All Categories'
+      result = result.filter(c => c.category === catIndex);
+    }
+
+    // Filter by Status
+    if (status !== 'Status: All') {
+      const isActive = status === 'Status: Active';
+      result = result.filter(c => c.active === isActive);
+    }
+
+    // Sorting
+    if (sort === 'Most Funded') {
+      result.sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance));
+    } else if (sort === 'Most Donors') {
+      result.sort((a, b) => b.donorsCount - a.donorsCount);
+    } else if (sort === 'Newest') {
+      // Index is already roughly chronological, so we just keep it or reverse it
+      // Let's assume we want newest on top, which is reversing the factory order
+      result.reverse();
+    }
+
+    return result;
+  }, [campaigns, search, category, status, sort]);
+
+  const displayedCampaigns = useMemo(() => {
+    return filteredCampaigns.slice(0, visibleCount);
+  }, [filteredCampaigns, visibleCount]);
 
   return (
     <main
@@ -110,7 +148,7 @@ const Campaigns = () => {
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search campaigns..."
+                  placeholder="Search campaigns by name or description..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl text-sm font-medium text-gray-700 border border-gray-200 outline-none focus:border-blue-400 transition-colors shadow-sm"
@@ -118,19 +156,19 @@ const Campaigns = () => {
               </div>
               <div className="relative">
                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="appearance-none pl-4 pr-9 py-2.5 bg-white rounded-xl text-sm font-semibold text-gray-700 border border-gray-200 outline-none focus:border-blue-400 cursor-pointer shadow-sm">
-                  {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
               <div className="relative">
                 <select value={status} onChange={(e) => setStatus(e.target.value)} className="appearance-none pl-4 pr-9 py-2.5 bg-white rounded-xl text-sm font-semibold text-gray-700 border border-gray-200 outline-none focus:border-blue-400 cursor-pointer shadow-sm">
-                  {STATUSES.map((s) => <option key={s}>{s}</option>)}
+                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
               <div className="relative">
                 <select value={sort} onChange={(e) => setSort(e.target.value)} className="appearance-none pl-4 pr-9 py-2.5 bg-white rounded-xl text-sm font-semibold text-gray-700 border border-gray-200 outline-none focus:border-blue-400 cursor-pointer shadow-sm">
-                  {SORTS.map((s) => <option key={s}>Sort by: {s}</option>)}
+                  {SORTS.map((s) => <option key={s} value={s}>Sort by: {s}</option>)}
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -151,17 +189,17 @@ const Campaigns = () => {
                   Retry
                 </button>
               </div>
-            ) : campaignAddresses.length === 0 ? (
+            ) : filteredCampaigns.length === 0 ? (
               <div className="flex flex-col items-center text-center py-28 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 gap-4">
                 <LayoutGrid size={44} className="text-blue-300" />
-                <p className="text-gray-700 text-xl font-bold">No campaigns found yet.</p>
-                <p className="text-gray-400 text-sm">Check back soon for new impact opportunities.</p>
+                <p className="text-gray-700 text-xl font-bold">No campaigns found.</p>
+                <p className="text-gray-400 text-sm">Try adjusting your filters or search query.</p>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-gray-500 text-sm font-semibold">
-                    Showing <span className="text-gray-900 font-black">{Math.min(visibleCount, campaignAddresses.length)}</span> of <span className="text-gray-900 font-black">{campaignAddresses.length}</span> campaigns
+                    Showing <span className="text-gray-900 font-black">{displayedCampaigns.length}</span> of <span className="text-gray-900 font-black">{filteredCampaigns.length}</span> results
                   </span>
                   <span className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 text-green-700 text-[11px] font-black rounded-full uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -169,11 +207,11 @@ const Campaigns = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-                  {displayedAddresses.map((addr) => (
-                    <CampaignCard key={addr} address={addr} />
+                  {displayedCampaigns.map((c) => (
+                    <CampaignCard key={c.address} address={c.address} />
                   ))}
                 </div>
-                {visibleCount < campaignAddresses.length && (
+                {visibleCount < filteredCampaigns.length && (
                   <div className="mt-14 text-center">
                     <button onClick={() => setVisibleCount((prev) => prev + 6)} className="inline-flex items-center gap-2 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition-all duration-300 hover:-translate-y-0.5">
                       View More

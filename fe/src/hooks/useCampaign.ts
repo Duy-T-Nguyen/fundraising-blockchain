@@ -13,6 +13,7 @@ export interface CampaignSummary {
   donorsCount: number;
   manager: string;
   active: boolean;
+  category: number;
   userContribution: bigint;
   firstDonationBlock: bigint | null;
   availableFunds: string;
@@ -31,7 +32,7 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
     setError(null);
     try {
       // 1. Fetch BASIC summary info that shouldn't fail
-      const [summaryData, title, description, userContribution] = await Promise.all([
+      const [summaryData, title, description, category, userContribution] = await Promise.all([
         publicClient.readContract({
           address: address as `0x${string}`,
           abi: ABIS.CAMPAIGN as any,
@@ -47,13 +48,18 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
           abi: ABIS.CAMPAIGN as any,
           functionName: 'description',
         } as any),
+        publicClient.readContract({
+          address: address as `0x${string}`,
+          abi: ABIS.CAMPAIGN as any,
+          functionName: 'category',
+        } as any),
         userAddress ? publicClient.readContract({
           address: address as `0x${string}`,
           abi: ABIS.CAMPAIGN as any,
           functionName: 'contributions',
           args: [userAddress as `0x${string}`],
         } as any) : Promise.resolve(0n),
-      ]) as [any, string, string, bigint];
+      ]) as [any, string, string, number, bigint];
 
       // 2. Fetch new financial metrics (Safe for legacy contracts)
       let availableFunds = 0n;
@@ -117,6 +123,7 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
           donorsCount: Number(data.donors || data[3]),
           manager: data.managerAddr || data[4],
           active: data.isActive !== undefined ? data.isActive : data[6],
+          category: Number(category),
           userContribution: userContribution || 0n,
           firstDonationBlock: firstDonationBlock,
           availableFunds: formatEther(availableFunds || 0n),
