@@ -41,4 +41,10 @@ export class RelayerController {
   async executeBatch(@Body() body: { batchSize?: number }) {
     return await this.relayerService.processBatch(body.batchSize);
   }
+
+  @Get('history')
+  @ApiOperation({ summary: 'Lấy lịch sử quyết định của AI' })
+  async getHistory() {
+    return await this.relayerService.getHistory();
+  }
 }

@@ -3,7 +3,7 @@ import { publicClient, getWalletClient } from '../../blockchain/client';
 import { ABIS } from '../../blockchain/constants';
 import { encodeFunctionData, parseEther, formatEther } from 'viem';
 import { useEffect } from 'react';
-import { X, Send, ImagePlus, Loader2, ChevronDown } from 'lucide-react';
+import { X, Send, ImagePlus, Loader2, ChevronDown, CheckCircle2, Zap, ShieldCheck } from 'lucide-react';
 import { useSuppliers } from '../../hooks/useSuppliers';
 import { useRelayer } from '../../hooks/useRelayer';
 import { useNotification } from '../../context/NotificationContext';
@@ -25,6 +25,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [isGasless, setIsGasless] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
   const [campaignBalance, setCampaignBalance] = useState<string>('0');
@@ -67,7 +68,6 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
     setIsLoading(true);
     setStatus('pending');
-    setErrorMessage('');
 
     try {
       const walletClient = getWalletClient();
@@ -128,16 +128,30 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
       const { cid: metadataCid } = await metaRes.json();
 
-      // 4. Encode function data
-      const callData = encodeFunctionData({
-        abi: ABIS.CAMPAIGN,
-        functionName: 'createRequest',
-        args: [metadataCid, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`],
-      });
+      if (isGasless) {
+        // Method A: AI Relayer (Gasless!)
+        const callData = encodeFunctionData({
+          abi: ABIS.CAMPAIGN,
+          functionName: 'createRequest',
+          args: [metadataCid, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`],
+        });
 
-      // 4. Send via Relayer (Gasless!)
-      console.log('Sending via AI Relayer...');
-      await executeGasless(address, callData);
+        console.log('Sending via AI Relayer...');
+        await executeGasless(address, callData);
+      } else {
+        // Method B: Direct Transaction (User pays gas)
+        console.log('Sending direct transaction...');
+        const { request } = await publicClient.simulateContract({
+          account: userAccount as `0x${string}`,
+          address: address as `0x${string}`,
+          abi: ABIS.CAMPAIGN,
+          functionName: 'createRequest',
+          args: [metadataCid, parseEther(value), recipient as `0x${string}`, verifier as `0x${string}`],
+        });
+
+        const hash = await walletClient.writeContract(request);
+        await publicClient.waitForTransactionReceipt({ hash });
+      }
 
       setStatus('success');
       toast.success('Request created successfully!');
@@ -277,10 +291,36 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
 
 
+          {/* Gas Mode Toggle */}
+          <div className="pt-2 border-t border-gray-50">
+            <div 
+              onClick={() => setIsGasless(!isGasless)}
+              className="group/toggle flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-[1.5rem] cursor-pointer transition-all border border-transparent hover:border-gray-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isGasless ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
+                  {isGasless ? <Zap size={20} fill="currentColor" /> : <ShieldCheck size={20} />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Transaction Mode</p>
+                  <p className="text-sm font-black text-gray-900">{isGasless ? 'AI-Powered (Gasless)' : 'Direct (Self-paid Gas)'}</p>
+                </div>
+              </div>
+              <div className={`w-12 h-6 rounded-full relative transition-all duration-300 ${isGasless ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300 ${isGasless ? 'right-1' : 'left-1'}`} />
+              </div>
+            </div>
+            <p className="text-[9px] font-bold text-gray-400 mt-2 px-2 leading-relaxed">
+              {isGasless 
+                ? "AI will batch this transaction and pay for your Gas when fees are optimal." 
+                : "Transaction will be sent immediately. You will need to pay Gas via your wallet."}
+            </p>
+          </div>
+
           <button
             type="submit"
             disabled={isLoading || isRelaying || status === 'success' || !selectedFile}
-            className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 hover:bg-black transition-all hover:shadow-xl hover:shadow-black/10 disabled:opacity-50"
+            className={`w-full py-5 ${isGasless ? 'bg-gray-900' : 'bg-blue-600'} text-white rounded-2xl font-black uppercase tracking-widest flex flex-col items-center justify-center gap-1 hover:brightness-110 transition-all hover:shadow-xl disabled:opacity-50`}
           >
             <div className="flex items-center gap-3">
               {(isLoading || isRelaying) ? (
@@ -288,12 +328,14 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
               ) : (
                 <>
                   <Send size={18} />
-                  Submit Request
+                  {isGasless ? 'Submit Gasless' : 'Submit Direct'}
                 </>
               )}
             </div>
             {(!isLoading && !isRelaying && status !== 'success') && (
-              <span className="text-[9px] text-blue-400 font-bold tracking-tight">AI-POWERED GASLESS TRANSACTION</span>
+              <span className="text-[9px] text-blue-400 font-bold tracking-tight">
+                {isGasless ? 'AI-POWERED GASLESS TRANSACTION' : 'USER-PAID DIRECT TRANSACTION'}
+              </span>
             )}
           </button>
         </form>
