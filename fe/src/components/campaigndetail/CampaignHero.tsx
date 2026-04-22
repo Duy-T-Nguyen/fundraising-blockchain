@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Users, Send, 
   Link as LinkIcon,
-  Heart, Zap, Globe,
+  Heart, Zap, Globe, ShieldCheck,
 } from 'lucide-react';
 import { parseEther } from 'viem';
 
@@ -29,6 +29,7 @@ interface CampaignHeroProps {
   minimumContribution: string;
   donorsCount: number;
   active: boolean;
+  isManager?: boolean;
   onSuccess?: () => void;
 }
 
@@ -40,6 +41,7 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
   minimumContribution,
   donorsCount,
   active,
+  isManager,
   onSuccess,
 }) => {
   const [donateAmount, setDonateAmount] = useState('');
@@ -190,39 +192,53 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
             </div>
 
             <div className="space-y-6">
-              <div className="flex flex-col gap-2 pt-6 border-t border-gray-100">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <input 
-                      type="number"
-                      placeholder="Amount (ETH)"
-                      value={donateAmount}
-                      onChange={(e) => setDonateAmount(e.target.value)}
-                      className={`w-full h-14 pl-12 pr-4 bg-gray-50 border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-blue-500/10 focus:border-blue-500'} rounded-2xl text-lg font-bold focus:outline-none transition-all`}
-                    />
-                    <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-500' : 'text-gray-400'}`} size={20} />
+              {!isManager ? (
+                <div className="flex flex-col gap-2 pt-6 border-t border-gray-100">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 relative">
+                      <input 
+                        type="number"
+                        placeholder="Amount (ETH)"
+                        value={donateAmount}
+                        onChange={(e) => setDonateAmount(e.target.value)}
+                        className={`w-full h-14 pl-12 pr-4 bg-gray-50 border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-blue-500/10 focus:border-blue-500'} rounded-2xl text-lg font-bold focus:outline-none transition-all`}
+                      />
+                      <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-500' : 'text-gray-400'}`} size={20} />
+                    </div>
+                    <button 
+                      onClick={handleDonate}
+                      disabled={isPending || !donateAmount || isAmountTooLow}
+                      className={`px-10 h-14 ${isAmountTooLow ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20'} disabled:bg-gray-200 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group`}
+                    >
+                      {isPending ? 'Processing...' : (
+                        isAmountTooLow ? (
+                          'Amount too low'
+                        ) : (
+                          <>
+                            <Heart size={20} className="group-hover:scale-125 transition-transform" />
+                            Donate Now
+                          </>
+                        )
+                      )}
+                    </button>
                   </div>
-                  <button 
-                    onClick={handleDonate}
-                    disabled={isPending || !donateAmount || isAmountTooLow}
-                    className={`px-10 h-14 ${isAmountTooLow ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20'} disabled:bg-gray-200 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group`}
-                  >
-                    {isPending ? 'Processing...' : (
-                      isAmountTooLow ? (
-                        'Amount too low'
-                      ) : (
-                        <>
-                          <Heart size={20} className="group-hover:scale-125 transition-transform" />
-                          Donate Now
-                        </>
-                      )
-                    )}
-                  </button>
+                  <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}>
+                    {isAmountTooLow ? '⚠️ Below requirements' : `Min contribution: ${minimumContribution} ETH`}
+                  </p>
                 </div>
-                <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}>
-                  {isAmountTooLow ? '⚠️ Below requirements' : `Min contribution: ${minimumContribution} ETH`}
-                </p>
-              </div>
+              ) : (
+                <div className="pt-6 border-t border-gray-100">
+                  <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex flex-col gap-3">
+                    <div className="flex items-center gap-3 text-blue-600">
+                      <ShieldCheck size={24} strokeWidth={3} />
+                      <span className="text-sm font-black uppercase tracking-widest">Management Mode</span>
+                    </div>
+                    <p className="text-blue-800/70 text-sm font-medium leading-relaxed">
+                      You are the manager of this campaign. For security and transparency, <strong>self-donations are restricted</strong> by the protocol. Please use the dashboard below to manage your funds.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between pt-2 border-t border-gray-50">
                 <div className="flex items-center gap-4">

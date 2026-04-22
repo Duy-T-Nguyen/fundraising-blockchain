@@ -11,7 +11,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { encodeFunctionData } from 'viem';
+import { encodeFunctionData, formatEther } from 'viem';
 
 interface RequestsListProps {
   address: string;
@@ -19,11 +19,12 @@ interface RequestsListProps {
   hasDonated: boolean;
   userFirstDonationBlock: bigint | null;
   donorsCount: string | number;
+  votedRequestIds: Set<number>;
 }
 
-const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDonated, userFirstDonationBlock, donorsCount }) => {
-  const { requests, isLoading, refresh } = useRequests(address);
+const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDonated, userFirstDonationBlock, donorsCount, votedRequestIds }) => {
   const { address: userAddress } = useWallet();
+  const { requests, isLoading, refresh } = useRequests(address, userAddress || undefined);
   const [processingId, setProcessingId] = useState<number | null>(null);
 
   const handleApprove = async (index: number) => {
@@ -125,7 +126,10 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       </div>
                       <div className="flex items-center gap-2 text-slate-600 font-bold">
                         <Users size={16} className="text-blue-500" />
-                        <span>{req.approvalWeights} Approvals</span>
+                        <span className="flex items-center gap-1.5">
+                          {req.voterCount} {req.voterCount === 1 ? 'Approval' : 'Approvals'}
+                          <span className="text-[10px] font-normal text-gray-400">({formatEther(BigInt(req.approvalWeights))} ETH)</span>
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-lg">
                         <ArrowUpRight size={14} />
@@ -135,8 +139,40 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                   </div>
 
                   <div className="flex items-center gap-4">
-                    {/* Donor Button: Only visible if donated BEFORE the request was created */}
-                    {!isManager && !isComplete && hasDonated && userFirstDonationBlock !== null && userFirstDonationBlock < req.createdBlock && (
+                    {/* Already Approved State */}
+                    {!isManager && votedRequestIds.has(req.id) && (
+                      <div className="flex items-center gap-2 text-blue-600 bg-blue-50 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-blue-100">
+                        <CheckCircle2 size={16} />
+                        Approved
+                      </div>
+                    )}
+
+                    {/* Donor Button: Strictly enforce time-based eligibility */}
+                    {(() => {
+                      // Don't show button if already voted, or if manager/complete
+                      if (isManager || isComplete || !hasDonated || votedRequestIds.has(req.id)) return false;
+                      
+                      const donorBlock = userFirstDonationBlock;
+                      const requestBlock = req.createdBlock;
+
+                      // Case 1: Both have block info (within 40k last blocks)
+                      if (donorBlock !== null && requestBlock !== 0n) {
+                        return donorBlock <= requestBlock;
+                      }
+                      
+                      // Case 2: Request is new (has block), but donor is very old (block is null/not found)
+                      if (requestBlock !== 0n && donorBlock === null) {
+                        return true; 
+                      }
+
+                      // Case 3: Request is very old (0n), but donor is new (has block)
+                      if (requestBlock === 0n && donorBlock !== null) {
+                        return false; // Donor came after an old request
+                      }
+
+                      // Case 4: Both are very old (legacy), default to allow
+                      return true;
+                    })() && (
                       <button
                         onClick={() => handleApprove(req.id)}
                         disabled={processingId === req.id}

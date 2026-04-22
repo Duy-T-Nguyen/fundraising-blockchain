@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { PlusCircle, Wallet, Vote, CheckCircle } from 'lucide-react';
 
 const steps = [

@@ -11,6 +11,13 @@ export function useCampaignResolver(slug: string | undefined) {
   useEffect(() => {
     if (!slug) return;
 
+    // Check if slug is already a valid Ethereum address
+    if (/^0x[a-fA-F0-9]{40}$/.test(slug)) {
+      setAddress(slug);
+      setIsLoading(false);
+      return;
+    }
+
     const resolveSlug = async () => {
       setIsLoading(true);
       setError(null);

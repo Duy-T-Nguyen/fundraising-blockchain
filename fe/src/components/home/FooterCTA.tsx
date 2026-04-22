@@ -4,14 +4,14 @@ const FooterCTA = () => {
   return (
     <section className="py-24 px-6 md:px-12 relative overflow-hidden">
       {/* Background with specific gradient matching user's app style but focused on the bottom */}
-      <div 
+      <div
         className="absolute inset-0 z-0"
         style={{
           background: 'linear-gradient(135deg, #1e3464 0%, #4a6fa5 100%)',
           opacity: 0.95
         }}
       />
-      
+
       {/* Decorative patterns */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none z-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-400 rounded-full blur-[120px]" />

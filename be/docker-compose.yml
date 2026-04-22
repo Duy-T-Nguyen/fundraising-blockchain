@@ -67,4 +67,4 @@ volumes:
 
 networks:
   fundraising-network:
-    external: true
+    driver: bridge

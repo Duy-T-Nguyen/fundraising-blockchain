@@ -4,14 +4,18 @@ pragma solidity ^0.8.28;
 import "./Campaign.sol";
 import "./SupplierRegistry.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * @title CampaignFactory
  * @author Fundraising Blockchain Team
  * @notice Contract trung tâm để khởi tạo và quản lý các chiến dịch gây quỹ.
- * @dev Áp dụng quy trình: Gửi yêu cầu -> Admin duyệt -> Deploy.
+ * @dev Áp dụng quy trình: Gửi yêu cầu -> Admin duyệt -> Deploy Proxy.
  */
 contract CampaignFactory is Events, ERC2771Context {
+    /// @notice Địa chỉ bản mẫu Campaign để clone
+    address public immutable campaignImplementation;
+
     /// @notice Địa chỉ Platform Admin (người deploy hoặc quản trị hệ thống)
     address public admin;
 
@@ -52,9 +56,9 @@ contract CampaignFactory is Events, ERC2771Context {
 
     struct CampaignRequest {
         address manager;
-        string name;
-        string description;
-        string imageHash;
+        bytes32 name;
+        bytes32 description;
+        bytes32 imageHash;
         Category category;
         uint256 minimumContribution;
         RequestStatus status;
@@ -80,13 +84,18 @@ contract CampaignFactory is Events, ERC2771Context {
     address public immutable campaignTrustedForwarder;
 
     /**
-     * @notice Khởi tạo Factory với SupplierRegistry đã deploy sẵn.
-     * @param _supplierRegistry Địa chỉ của SupplierRegistry contract.
-     * @param _admin Địa chỉ quản trị viên.
-     * @param _trustedForwarder Địa chỉ của relayer (Meta-Transaction).
+     * @notice Khởi tạo Factory với SupplierRegistry và Campaign mẫu.
      */
-    constructor(address _supplierRegistry, address _admin, address _trustedForwarder) ERC2771Context(_trustedForwarder) {
+    constructor(
+        address _supplierRegistry, 
+        address _admin, 
+        address _trustedForwarder
+    ) ERC2771Context(_trustedForwarder) {
         if (_admin == address(0) || _supplierRegistry == address(0)) revert InvalidAddress();
+        
+        // Deploy bản mẫu Campaign (Implementation)
+        campaignImplementation = address(new Campaign());
+        
         supplierRegistry = SupplierRegistry(_supplierRegistry);
         admin = _admin;
         campaignTrustedForwarder = _trustedForwarder;
@@ -115,15 +124,16 @@ contract CampaignFactory is Events, ERC2771Context {
 
     /**
      * @notice Gửi yêu cầu tạo chiến dịch mới.
-     * @param name Tên chiến dịch.
-     * @param category Danh mục chiến dịch.
-     * @param minimum Số tiền tối thiểu (wei).
      */
-    function submitCampaignRequest(string calldata name, string calldata description, string calldata imageHash, Category category, uint256 minimum) external payable {
+    function submitCampaignRequest(
+        bytes32 name, 
+        bytes32 description, 
+        bytes32 imageHash, 
+        Category category, 
+        uint256 minimum
+    ) external payable {
         if (msg.value < antiSpamFee) revert IncorrectFee();
-        if (bytes(name).length == 0) revert EmptyName();
-        if (bytes(description).length == 0) revert EmptyDescription();
-        if (bytes(imageHash).length == 0) revert EmptyEvidenceHash();
+        if (name == bytes32(0)) revert EmptyName();
         if (minimum == 0) revert InsufficientFunds();
 
         uint256 requestId = requestCount++;
@@ -144,7 +154,7 @@ contract CampaignFactory is Events, ERC2771Context {
     }
 
     /**
-     * @notice Admin duyệt yêu cầu và chính thức deploy Campaign.
+     * @notice Admin duyệt yêu cầu và chính thức deploy Campaign Proxy.
      * @param requestId ID của yêu cầu cần duyệt.
      */
     function approveCampaignRequest(uint256 requestId) external onlyAdmin {
@@ -154,8 +164,11 @@ contract CampaignFactory is Events, ERC2771Context {
 
         req.status = RequestStatus.APPROVED;
         
-        // Deploy Campaign trực tiếp (không cần ValidatorPool global)
-        Campaign newCampaign = new Campaign(
+        // Tạo Proxy mới từ bản mẫu (Tiết kiệm gas cực lớn)
+        address campaignAddr = Clones.clone(campaignImplementation);
+        
+        // Khởi tạo Proxy
+        Campaign(campaignAddr).initialize(
             req.name,
             req.description,
             req.imageHash,
@@ -163,10 +176,13 @@ contract CampaignFactory is Events, ERC2771Context {
             req.minimumContribution,
             req.manager,
             address(supplierRegistry),
-            campaignTrustedForwarder
+            campaignTrustedForwarder,
+            address(this)
         );
+
+        // Ủy quyền Campaign mới tại SupplierRegistry (Push Authorization)
+        supplierRegistry.setAuthorizedCampaign(campaignAddr, true);
         
-        address campaignAddr = address(newCampaign);
         req.deployedAddress = campaignAddr;
 
         // Lưu trữ vào index

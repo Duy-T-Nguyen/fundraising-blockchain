@@ -3,6 +3,7 @@ import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
 import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { slugify } from '../utils/slugify';
 
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
@@ -47,7 +48,7 @@ const CreatorDashboard: React.FC = () => {
             </div>
           </div>
 
-          <Link 
+          <Link
             to="/campaigns/create"
             className="flex items-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all duration-300 hover:-translate-y-1"
           >
@@ -110,7 +111,7 @@ const CreatorDashboard: React.FC = () => {
                     <h3 className="text-xl font-black text-slate-900">No campaigns found</h3>
                     <p className="text-slate-500 text-sm mt-2">You haven't created any campaigns with this wallet yet.</p>
                   </div>
-                  <Link 
+                  <Link
                     to="/campaigns/create"
                     className="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all"
                   >
@@ -123,18 +124,18 @@ const CreatorDashboard: React.FC = () => {
                     <div key={camp.address} className="rounded-[2.5rem] bg-white border border-slate-100 hover:border-emerald-500 transition-all duration-300 group/card shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 overflow-hidden flex flex-col no-underline">
                       {/* Image Top Section */}
                       <div className="relative h-48 overflow-hidden bg-slate-100">
-                        <img 
-                          src={getCampaignImage(camp)} 
+                        <img
+                          src={getCampaignImage(camp)}
                           alt={camp.name}
                           className="w-full h-full object-cover grayscale-[0.2] group-hover/card:scale-110 group-hover/card:grayscale-0 transition-all duration-700"
                         />
                         <div className="absolute top-6 left-6">
-                           <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${camp.active ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-slate-300'}`}>
+                          <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${camp.active ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-slate-300'}`}>
                             {camp.active ? '● Active' : '○ Inactive'}
                           </div>
                         </div>
-                        <Link 
-                          to={`/campaign/${camp.address}`}
+                        <Link
+                          to={`/campaign/${slugify(camp.name)}`}
                           className="absolute top-6 right-6 p-2 bg-white/90 backdrop-blur-md rounded-xl text-slate-900 hover:bg-blue-600 hover:text-white transition-all shadow-lg"
                         >
                           <ExternalLink size={18} />
@@ -144,16 +145,16 @@ const CreatorDashboard: React.FC = () => {
                       {/* Content Section */}
                       <div className="p-8 flex flex-col flex-1">
                         <h4 className="text-2xl font-black text-slate-900 mb-4 truncate">{camp.name}</h4>
-                        
+
                         <div className="space-y-4">
                           <div className="flex justify-between items-center py-4 border-t border-slate-50">
                             <div>
-                               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Balance</p>
-                               <p className="text-lg font-black text-emerald-600">{camp.balance} ETH</p>
+                              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Balance</p>
+                              <p className="text-lg font-black text-emerald-600">{camp.balance} ETH</p>
                             </div>
                             <div className="text-right text-transparent">Action</div>
                           </div>
-                          
+
                           <div className="flex justify-between items-center py-4 border-t border-slate-50">
                             <div>
                               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Contract Address</p>
@@ -163,8 +164,8 @@ const CreatorDashboard: React.FC = () => {
                             </div>
                           </div>
 
-                          <Link 
-                            to={`/campaign/${camp.address}`}
+                          <Link
+                            to={`/campaign/${slugify(camp.name)}`}
                             className="w-full py-4 mt-2 bg-slate-900 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-slate-900/10 group-hover/card:shadow-blue-600/20"
                           >
                             <Settings size={18} />

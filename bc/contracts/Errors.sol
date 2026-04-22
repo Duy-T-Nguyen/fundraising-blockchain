@@ -52,3 +52,10 @@ error AlreadyWhitelisted();
 error NotWhitelisted();
 error RequestAlreadyProcessed();
 error IncorrectFee();
+error ActionForbidden();
+
+// =====================
+// Request Lifecycle Errors
+// =====================
+error RequestExpired();
+error RequestAlreadyReleased();

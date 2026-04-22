@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { publicClient } from '../blockchain/client';
 import { ABIS } from '../blockchain/constants';
 

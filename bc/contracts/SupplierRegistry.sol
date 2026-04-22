@@ -22,11 +22,14 @@ contract SupplierRegistry is Events, ERC2771Context {
     /// @notice Địa chỉ CampaignFactory để xác thực Campaign hợp lệ
     address public factory;
 
+    /// @notice Mapping kiểm tra xem một campaign có được quyền thanh toán không
+    mapping(address => bool) public authorizedCampaigns;
+
     struct Supplier {
-        string name;
-        string metadataHash; // IPFS hash chứa Website, Profile, etc.
-        uint256 totalEarned; // Tổng thu nhập tích lũy (Wei)
-        bool exists;
+        uint256 totalEarned; // 32 bytes
+        bytes32 name;        // 32 bytes
+        bytes32 metadataHash; // 32 bytes
+        bool exists;         // 1 byte (packed in next slot)
     }
 
     /// @notice Mapping kiểm tra thông tin chi tiết Supplier
@@ -38,15 +41,15 @@ contract SupplierRegistry is Events, ERC2771Context {
     /// @notice Danh sách tất cả địa chỉ Supplier (để truy vấn)
     address[] public supplierList;
 
-    /// @notice Phát ra khi Supplier mới được thêm vào danh sách
-    event SupplierAdded(address indexed supplier, string name);
-
-    /// @notice Phát ra khi Supplier bị xóa khỏi danh sách
-    event SupplierRemoved(address indexed supplier);
-
     /// @dev Chỉ cho phép Admin gọi
     modifier onlyAdmin() {
         if (_msgSender() != admin) revert NotAdmin();
+        _;
+    }
+
+    /// @dev Chỉ cho phép Factory gọi
+    modifier onlyFactory() {
+        if (msg.sender != factory) revert NotAuthorized();
         _;
     }
 
@@ -56,11 +59,21 @@ contract SupplierRegistry is Events, ERC2771Context {
     }
 
     /**
-     * @notice Thiết lập địa chỉ Factory (chỉ được gọi một lần hoặc bởi Admin)
+     * @notice Thiết lập địa chỉ Factory (chỉ được gọi một lần bởi Admin)
      */
     function setFactory(address _factory) external onlyAdmin {
         if (_factory == address(0)) revert InvalidAddress();
+        if (factory != address(0)) revert ActionForbidden(); // Chỉ set 1 lần
         factory = _factory;
+    }
+
+    /**
+     * @notice Ủy quyền hoặc hủy ủy quyền cho một Campaign được phép tương tác với Registry.
+     * @dev Chỉ được gọi bởi Factory khi tạo campaign mới.
+     */
+    function setAuthorizedCampaign(address _campaign, bool _status) external onlyFactory {
+        authorizedCampaigns[_campaign] = _status;
+        emit AuthorizedCampaignUpdated(_campaign, _status);
     }
 
     /**
@@ -77,7 +90,7 @@ contract SupplierRegistry is Events, ERC2771Context {
     /**
      * @notice Thêm Nhà cung cấp vào danh sách trắng.
      */
-    function addSupplier(address _supplier, string calldata _name, string calldata _metadata) external onlyAdmin {
+    function addSupplier(address _supplier, bytes32 _name, bytes32 _metadata) external onlyAdmin {
         if (_supplier == address(0)) revert InvalidAddress();
         if (suppliers[_supplier].exists) revert AlreadyWhitelisted();
         
@@ -90,18 +103,20 @@ contract SupplierRegistry is Events, ERC2771Context {
         });
         supplierList.push(_supplier);
 
-        emit SupplierAdded(_supplier, _name);
+        emit SupplierAdded(_supplier, _name, _metadata);
     }
 
     /**
      * @notice Cập nhật thông tin cho Supplier.
      */
-    function updateSupplierInfo(address _supplier, string calldata _name, string calldata _metadata) external {
+    function updateSupplierInfo(address _supplier, bytes32 _name, bytes32 _metadata) external {
         if (_msgSender() != admin && _msgSender() != _supplier) revert NotAdmin();
         if (!suppliers[_supplier].exists) revert NotWhitelisted();
 
         suppliers[_supplier].name = _name;
         suppliers[_supplier].metadataHash = _metadata;
+        
+        emit SupplierInfoUpdated(_supplier, _name, _metadata);
     }
 
     /**
@@ -130,8 +145,8 @@ contract SupplierRegistry is Events, ERC2771Context {
      * @notice Ghi nhận thanh toán cho Supplier (gọi từ Campaign hợp lệ).
      */
     function recordPayment(address _supplier, uint256 _amount) external {
-        // Xác thực: người gọi phải là một Campaign hợp lệ được tạo từ Factory
-        if (factory == address(0) || !ICampaignFactory(factory).isChildCampaign(msg.sender)) {
+        // Kiểm tra ủy quyền tại chỗ (Local mapping) - Tiết kiệm gas so với gọi Factory
+        if (!authorizedCampaigns[msg.sender]) {
             revert NotAuthorized();
         }
         if (!suppliers[_supplier].exists) revert NotWhitelisted();
@@ -154,19 +169,19 @@ contract SupplierRegistry is Events, ERC2771Context {
      */
     function getSuppliers(uint256 offset, uint256 limit) external view returns (
         address[] memory addresses,
-        string[] memory names,
-        string[] memory metadatas,
+        bytes32[] memory names,
+        bytes32[] memory metadatas,
         uint256[] memory earnings
     ) {
         uint256 total = supplierList.length;
-        if (offset >= total || limit == 0) return (new address[](0), new string[](0), new string[](0), new uint256[](0));
+        if (offset >= total || limit == 0) return (new address[](0), new bytes32[](0), new bytes32[](0), new uint256[](0));
 
         uint256 size = limit;
         if (offset + limit > total) size = total - offset;
 
         addresses = new address[](size);
-        names = new string[](size);
-        metadatas = new string[](size);
+        names = new bytes32[](size);
+        metadatas = new bytes32[](size);
         earnings = new uint256[](size);
 
         for (uint256 i = 0; i < size; i++) {

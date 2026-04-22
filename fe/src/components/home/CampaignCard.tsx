@@ -50,7 +50,7 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
   const detailUrl = `/campaign/${slug}`;
 
   return (
-    <Link 
+    <Link
       to={detailUrl}
       className="group bg-white rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[480px]"
     >
@@ -60,16 +60,15 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
         {!imageLoaded && (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
         )}
-        
-        <img 
-          src={campaignImage} 
+
+        <img
+          src={campaignImage}
           alt={summary.title}
           onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-cover group-hover:scale-125 group-hover:brightness-110 transition-all duration-700 ease-out ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`w-full h-full object-cover group-hover:scale-125 group-hover:brightness-110 transition-all duration-700 ease-out ${imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
         />
-        
+
         {/* Gradient Overlay for bottom stats */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-90" />
 
