@@ -106,16 +106,16 @@ contract Events {
     /// @notice Phát ra khi Supplier mới được thêm vào danh sách
     event SupplierAdded(
         address indexed supplier,
-        bytes32 name,
-        bytes32 metadataHash
+        string name,
+        string metadataCID
     );
     /// @notice Phát ra khi Supplier bị xóa khỏi danh sách
     event SupplierRemoved(address indexed supplier);
     /// @notice Phát ra khi thông tin Supplier được cập nhật
     event SupplierInfoUpdated(
         address indexed supplier,
-        bytes32 name,
-        bytes32 metadataHash
+        string name,
+        string metadataCID
     );
     /// @notice Phát ra khi một Campaign được ủy quyền/hủy ủy quyền tương tác với Registry
     event AuthorizedCampaignUpdated(address indexed campaign, bool status);

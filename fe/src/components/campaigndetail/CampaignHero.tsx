@@ -201,9 +201,9 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
                         placeholder="Amount (ETH)"
                         value={donateAmount}
                         onChange={(e) => setDonateAmount(e.target.value)}
-                        className={`w-full h-14 pl-12 pr-4 bg-gray-50 border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-200 focus:ring-blue-500/10 focus:border-blue-500'} rounded-2xl text-lg font-bold focus:outline-none transition-all`}
+                        className={`w-full h-14 pl-12 pr-4 bg-white border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500'} rounded-2xl text-xl font-black text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all shadow-inner`}
                       />
-                      <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-500' : 'text-gray-400'}`} size={20} />
+                      <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-500' : 'text-slate-600'}`} size={20} />
                     </div>
                     <button 
                       onClick={handleDonate}
@@ -222,7 +222,7 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
                       )}
                     </button>
                   </div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-500 animate-pulse' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-500 animate-pulse' : 'text-slate-500'}`}>
                     {isAmountTooLow ? '⚠️ Below requirements' : `Min contribution: ${minimumContribution} ETH`}
                   </p>
                 </div>

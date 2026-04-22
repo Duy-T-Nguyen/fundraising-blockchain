@@ -3,7 +3,7 @@ import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
 import { ShieldCheck, Heart, Coins, ExternalLink, ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { slugify } from '../utils/slugify';
+
 
 const Activity: React.FC = () => {
   const { address } = useWallet();
@@ -88,7 +88,7 @@ const Activity: React.FC = () => {
                       <tr key={idx} className="hover:bg-blue-50/50 transition-colors group">
                         <td className="py-6 px-10">
                           <Link 
-                            to={`/campaign/${slugify(don.campaignName)}`}
+                            to={`/campaign/${don.campaignAddress}`}
                             className="font-extrabold text-slate-900 text-sm hover:text-blue-600 transition-all duration-300"
                           >
                             {don.campaignName}
