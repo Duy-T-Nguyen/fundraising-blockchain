@@ -6,7 +6,7 @@ import Reveal from '../components/common/Reveal';
 
 const Contact = () => {
   return (
-    <div className="bg-[#0f1115] min-h-screen">
+    <div className="bg-transparent min-h-screen">
       <Reveal direction="none">
         <ContactHero />
       </Reveal>
