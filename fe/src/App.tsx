@@ -15,10 +15,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import { NotificationProvider } from './context/NotificationContext';
 
 import Sidebar from './layouts/Sidebar';
+import ScrollToTop from './components/common/ScrollToTop';
+
 function App() {
   return (
     <NotificationProvider>
       <Router>
+        <ScrollToTop />
         <Header />
         <div className="flex bg-[#0f1115] min-h-screen font-sans text-slate-200">
           <Sidebar />

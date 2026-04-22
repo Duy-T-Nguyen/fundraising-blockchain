@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import ResourcesHero from '../components/resources/ResourcesHero';
 import HowPlatformWorks from '../components/resources/HowPlatformWorks';
 import BlockchainTransparency from '../components/resources/BlockchainTransparency';
@@ -8,11 +7,6 @@ import FooterCTA from '../components/home/FooterCTA';
 import Reveal from '../components/common/Reveal';
 
 const Resources = () => {
-  // Scroll to top when page loaded
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   return (
     <div className="bg-[#0f1115] min-h-screen">
       <Reveal direction="none">

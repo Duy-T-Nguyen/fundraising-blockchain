@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import ContactHero from '../components/contact/ContactHero';
 import ContactInfo from '../components/contact/ContactInfo';
 import ContactForm from '../components/contact/ContactForm';
@@ -6,10 +5,6 @@ import ContactSocials from '../components/contact/ContactSocials';
 import Reveal from '../components/common/Reveal';
 
 const Contact = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   return (
     <div className="bg-[#0f1115] min-h-screen">
       <Reveal direction="none">
