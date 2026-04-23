@@ -28,9 +28,9 @@ export function useSupplier(userAddress?: string) {
       }) as any[];
 
       setInfo({
-        name: data[0] || '',
-        metadataHash: data[1] || '',
-        totalEarned: formatEther(data[2] || 0n),
+        name: data[1] || '',
+        metadataHash: data[2] || '',
+        totalEarned: formatEther(data[0] || 0n),
         isRegistered: data[3] || false,
       });
     } catch (err) {
