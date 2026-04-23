@@ -8,6 +8,8 @@ export interface Donation {
   donor: string;
   amount: string;
   timestamp: string;
+  blockNumber: bigint;
+  logIndex: number;
 }
 
 export function useDonations(address: string | undefined) {
@@ -30,8 +32,8 @@ export function useDonations(address: string | undefined) {
         chunks.push({ from, to });
       }
 
-      // Fetch all chunks in parallel (last 10 chunks to avoid overloading)
-      const visibleChunks = chunks.slice(-20); // Scan last 1M blocks for performance
+      // Fetch all chunks in parallel (last 20 chunks to avoid overloading)
+      const visibleChunks = chunks.slice(-20); 
 
       const allLogs = await Promise.all(
         visibleChunks.map(chunk => 
@@ -61,16 +63,25 @@ export function useDonations(address: string | undefined) {
           }
 
           return {
-            id: `${log.transactionHash}-${index}`,
+            id: `${log.transactionHash}-${log.logIndex}`,
             donor: donor as string,
             amount: formatEther(amount),
             timestamp: date,
+            blockNumber: log.blockNumber,
+            logIndex: log.logIndex,
           };
         })
       );
 
-      // Sort by latest first (since parallel fetch might be out of order)
-      setDonations(formattedDonations.sort((a, b) => b.id.localeCompare(a.id)));
+      // Sort by blockNumber (desc) then logIndex (desc) for perfect temporal ordering
+      const sorted = formattedDonations.sort((a, b) => {
+        if (b.blockNumber !== a.blockNumber) {
+          return b.blockNumber > a.blockNumber ? 1 : -1;
+        }
+        return b.logIndex - a.logIndex;
+      });
+
+      setDonations(sorted);
     } catch (err) {
       console.error('Error fetching donations:', err);
     } finally {

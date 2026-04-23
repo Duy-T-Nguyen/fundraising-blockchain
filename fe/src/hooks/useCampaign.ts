@@ -14,6 +14,7 @@ export interface CampaignSummary {
   donorsCount: number;
   manager: string;
   active: boolean;
+  category: number;
   userContribution: bigint;
   userDonorId: bigint;
   firstDonationBlock: bigint | null;
@@ -29,9 +30,9 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
 
   const fetchSummary = useCallback(async () => {
     if (!address) return;
-    
+
     const currentFetchId = ++fetchIdRef.current;
-    
+
     setIsLoading(true);
     setError(null);
     try {
@@ -72,7 +73,7 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
       // 2. Fetch new financial metrics (Safe for legacy contracts)
       let availableFunds = BigInt(0);
       let lockedFunds = BigInt(0);
-      
+
       try {
         [availableFunds, lockedFunds] = await Promise.all([
           publicClient.readContract({

@@ -369,25 +369,39 @@ export class RelayerService implements OnModuleInit {
       .exec();
   }
 
-  async getPendingIntents(address: string): Promise<number[]> {
+  async getPendingIntents(address: string): Promise<{ pendingVotes: number[], pendingCreations: any[] }> {
     const jobs = await this.gasQueue.getJobs(['waiting', 'delayed']);
-    const pendingRequestIds: number[] = [];
+    const pendingVotes: number[] = [];
+    const pendingCreations: any[] = [];
 
     for (const job of jobs) {
       const req = job.data?.forwardRequest;
       if (req && req.from && req.from.toLowerCase() === address.toLowerCase()) {
         const data = req.data as string;
-        // Check if it's approveRequest(uint256 index) -> Selector: 0xd7d1bbdb
+        
+        // approveRequest(uint256 index) -> Selector: 0xd7d1bbdb
         if (data && data.startsWith('0xd7d1bbdb')) {
-           const idHex = data.substring(10); // Remove 0xd7d1bbdb (10 chars: 0x + 8 chars)
+           const idHex = data.substring(10);
            const requestId = parseInt(idHex, 16);
            if (!isNaN(requestId)) {
-             pendingRequestIds.push(requestId);
+             pendingVotes.push(requestId);
            }
+        }
+        
+        // createRequest(string,uint256,address,address) -> Selector: 0xec516801 (Ví dụ)
+        // Thay vì check selector chính xác, ta check xem nó có gọi tới Campaign contract và không phải vote không
+        // Hoặc đơn giản là check xem có metadataCID (string) không.
+        // Cách tốt nhất là dùng Interface để decode
+        if (data && (data.startsWith('0xec516801') || data.startsWith('0x77c2f0f1'))) {
+           pendingCreations.push({
+             jobId: job.id,
+             timestamp: job.timestamp,
+             to: req.to
+           });
         }
       }
     }
-    return pendingRequestIds;
+    return { pendingVotes, pendingCreations };
   }
 
   private verifyEIP712(forwardRequest: any, signature: string): string {

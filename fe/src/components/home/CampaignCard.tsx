@@ -50,63 +50,62 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
   return (
     <Link
       to={detailUrl}
-      className="group bg-white rounded-[2.5rem] overflow-hidden flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[480px]"
+      className="group bg-white rounded-[2rem] overflow-hidden flex flex-col shadow-2xl hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] hover:-translate-y-2 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[420px]"
     >
       {/* Image Section with Overlaid Stats */}
-      <div className="relative h-64 overflow-hidden bg-gray-200">
-        {/* Skeleton Loader */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
-        )}
+      <div className="p-4 pb-0">
+        <div className="relative h-56 overflow-hidden bg-gray-200 rounded-2xl">
+          {/* Skeleton Loader */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
+          )}
 
-        <img
-          src={campaignImage}
-          alt={summary.title}
-          onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-cover group-hover:scale-125 group-hover:brightness-110 transition-all duration-700 ease-out ${imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-        />
+          <img
+            src={campaignImage}
+            alt={summary.title}
+            onLoad={() => setImageLoaded(true)}
+            className={`w-full h-full object-cover group-hover:scale-125 group-hover:brightness-110 transition-all duration-700 ease-out ${imageLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+          />
 
-        {/* Gradient Overlay for bottom stats */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-90" />
+          {/* Gradient Overlay for bottom stats */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-90" />
 
-        <div className="absolute bottom-6 right-6 flex items-center gap-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-          <div className="flex items-center gap-2">
-            <Users size={26} strokeWidth={3} />
-            <span className="text-[20px] font-black tracking-tighter">{summary.donorsCount}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <EthIcon size={32} />
-            <span className="text-[20px] font-black tracking-tighter">{summary.balance}</span>
+          <div className="absolute bottom-5 right-5 flex items-center gap-5 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <div className="flex items-center gap-2">
+              <Users size={22} strokeWidth={3} />
+              <span className="text-[18px] font-bold tracking-tighter">{summary.donorsCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <EthIcon size={28} />
+              <span className="text-[18px] font-bold tracking-tighter">{summary.balance}</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="p-9 flex flex-col flex-1">
+      <div className="p-7 flex flex-col flex-1">
         {/* Status Label */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className={`text-[12px] font-black uppercase tracking-widest ${summary.active ? 'text-green-600' : 'text-gray-400'}`}>
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`text-[11px] font-black uppercase tracking-widest ${summary.active ? 'text-green-600' : 'text-gray-400'}`}>
             {summary.active ? 'Active' : 'Completed'}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-[26px] font-extrabold text-gray-900 mb-4 leading-[1.2] tracking-tight line-clamp-2 transition-colors">
+        <h3 className="text-[22px] font-extrabold text-gray-900 mb-3 leading-[1.2] tracking-tight line-clamp-2 transition-colors">
           {summary.title}
         </h3>
 
         {/* Description Snippet */}
-        <p className="text-[17px] leading-relaxed text-gray-500 line-clamp-3 mb-6">
+        <p className="text-[15px] leading-relaxed text-gray-500 line-clamp-3 mb-5">
           {summary.description || 'Transparency-driven decentralised fundraising powered by secure blockchain smart contracts and IPFS evidence.'}
         </p>
 
         {/* Subtle Footnote */}
-        <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-          <span className="text-[13px] font-mono text-gray-300 uppercase tracking-tighter">
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </span>
-          <ArrowRight size={20} className="text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+        <div className="mt-auto pt-5 border-t border-gray-50 flex items-center justify-end">
+          <ArrowRight size={22} className="text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
         </div>
       </div>
     </Link>
