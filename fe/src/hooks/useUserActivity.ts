@@ -21,6 +21,7 @@ export interface ManagedCampaign {
 
 export function useUserActivity(userAddress: `0x${string}` | undefined) {
   const [managedCampaigns, setManagedCampaigns] = useState<ManagedCampaign[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [userDonations, setUserDonations] = useState<UserDonation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { getCampaignName, getBlockTimestamp } = useMetadata();
@@ -40,25 +41,60 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
     isFetching.current = true;
 
     try {
-      // 1. Fetch available campaigns list (latest 50)
+      // 1. Fetch available campaigns list (latest 100)
       const allCampaignAddresses = await publicClient.readContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
         functionName: 'getCampaigns',
-        args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 50n],
+        args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 100n],
       } as any) as `0x${string}`[];
 
-      // 2. Fetch managed campaigns (Optimized with Multicall)
-      const managedAddresses = await publicClient.readContract({
+      // 3. Robust client-side filtering (ignores case sensitivity issues)
+      const managers = await publicClient.multicall({
+        contracts: allCampaignAddresses.map(addr => ({
+          address: addr,
+          abi: ABIS.CAMPAIGN,
+          functionName: 'manager'
+        })) as any,
+      });
+      
+      const managedAddresses = allCampaignAddresses.filter((addr, i) => 
+        managers[i].status === 'success' && 
+        (String(managers[i].result)).toLowerCase() === checksumAddress.toLowerCase()
+      );
+
+      // Fetch pending requests
+      const requestsData = await publicClient.readContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
-        functionName: 'getCampaigns',
-        args: [1, checksumAddress, 0, 0n, 30n],
-      } as any) as `0x${string}`[];
+        functionName: 'getCampaignRequests',
+        args: [0n, 100n],
+      } as any) as [any[], bigint];
+
+      const userPending = requestsData[0]
+        .filter(r => r.manager.toLowerCase() === checksumAddress.toLowerCase() && Number(r.status) === 0)
+        .map((r, i) => ({
+          id: i,
+          manager: r.manager,
+          metadataCID: r.metadataCID,
+          category: r.category,
+          status: 'PENDING'
+        }));
+
+      // Fetch metadata for pending requests
+      const formattedPending = await Promise.all(userPending.map(async (req) => {
+        try {
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata?cid=${req.metadataCID}`);
+          if (!res.ok) return req;
+          const metadata = await res.json();
+          return { ...req, name: metadata.name, description: metadata.description, image: metadata.image };
+        } catch { return req; }
+      }));
+
+      setPendingRequests(formattedPending);
 
       if (managedAddresses.length > 0) {
         const multicallContracts = managedAddresses.flatMap(addr => [
-          { address: addr, abi: ABIS.CAMPAIGN, functionName: 'campaignName' },
           { address: addr, abi: ABIS.CAMPAIGN, functionName: 'getSummary' }
         ]);
 
@@ -68,16 +104,18 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
 
         const managedData: ManagedCampaign[] = [];
         for (let i = 0; i < managedAddresses.length; i++) {
-          const name = results[i * 2].result as string;
-          const summary = results[i * 2 + 1].result as any[];
+          const summaryResult = results[i];
 
-          if (name && summary) {
+          if (summaryResult.status === 'success') {
+            const summary = summaryResult.result as any[];
+            // SYNC WITH HOME/CAMPAIGNS PAGE LOGIC:
+            // summary[0]: balance, summary[7]: name, summary[9]: imageHash, summary[10]: active
             managedData.push({
               address: managedAddresses[i],
-              name,
+              name: summary[7] || 'Unnamed Project',
               balance: formatEther(summary[0]),
-              active: summary[6],
-              imageHash: summary[5]
+              active: summary[10],
+              imageHash: summary[9]
             });
           }
         }
@@ -85,6 +123,12 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
       }
 
       // 3. RAPID MODE: Scan last ~1 day for instant results
+      if (allCampaignAddresses.length === 0) {
+        setIsLoading(false);
+        isFetching.current = false;
+        return;
+      }
+
       const currentBlock = await publicClient.getBlockNumber();
       const LOOKBACK = 50000n;
       const scanLimit = currentBlock - LOOKBACK;
@@ -163,5 +207,5 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
     fetchActivity();
   }, [fetchActivity]);
 
-  return { managedCampaigns, userDonations, isLoading, refresh: fetchActivity };
+  return { managedCampaigns, pendingRequests, userDonations, isLoading, refresh: fetchActivity };
 }

@@ -5,9 +5,19 @@ import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, Plu
 import { Link } from 'react-router-dom';
 import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
+import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
+
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
-  const { managedCampaigns, isLoading } = useUserActivity(address as `0x${string}`);
+  const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
+  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+
+  // Filter campaigns where user is the manager
+  const managedCampaigns = campaigns.filter(
+    c => c.manager?.toLowerCase() === address?.toLowerCase()
+  );
+
+  const isLoading = campaignsLoading || requestsLoading;
 
   // Fallback images for premium look while real IPFS images are not available
   const getPlaceholderImage = (ca: string) => {
@@ -31,6 +41,17 @@ const CreatorDashboard: React.FC = () => {
     return getPlaceholderImage(camp.address);
   };
 
+  // 1. Loading State
+  if (isLoading && managedCampaigns.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-emerald-600 rounded-full animate-spin"></div>
+        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest animate-pulse">Syncing Blockchain Data...</p>
+      </div>
+    );
+  }
+
+  // 2. Dashboard Layout
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 lg:px-12 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto">
@@ -41,25 +62,23 @@ const CreatorDashboard: React.FC = () => {
               <ArrowLeft size={20} />
             </Link>
             <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Creator Dashboard</h1>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Manager Dashboard</h1>
               <p className="text-emerald-600 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
                 <ShieldCheck size={14} strokeWidth={3} /> Campaign Management / Ownership
               </p>
             </div>
           </div>
 
-          <Link
-            to="/campaigns/create"
-            className="flex items-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all duration-300 hover:-translate-y-1"
-          >
-            <PlusCircle size={20} />
-            Launch New Project
-          </Link>
-        </div>
-
-        {/* AI Status Section */}
-        <div className="mb-12">
-          <AIRelayerStatus />
+          <div className="flex items-center gap-4">
+            <AIRelayerStatus />
+            <Link
+              to="/campaigns/create"
+              className="flex items-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-xl shadow-emerald-600/20 transition-all duration-300 hover:-translate-y-1"
+            >
+              <PlusCircle size={20} />
+              Launch Project
+            </Link>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -105,22 +124,58 @@ const CreatorDashboard: React.FC = () => {
             </div>
 
             <div className="p-8">
-              {isLoading ? (
-                <div className="py-20 text-center text-slate-400 font-bold animate-pulse uppercase tracking-widest">Querying blockchain for your projects...</div>
-              ) : managedCampaigns.length === 0 ? (
+              {/* Pending Requests Section */}
+              {pendingRequests.length > 0 && (
+                <div className="mb-12">
+                  <h3 className="text-sm font-black text-amber-600 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-ping" />
+                    Awaiting Admin Approval ({pendingRequests.length})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {pendingRequests.map((req, idx) => (
+                      <div key={idx} className="rounded-[2.5rem] bg-amber-50/50 border border-amber-100 p-8 flex items-center gap-6 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-bl-2xl">
+                          In Review
+                        </div>
+                        <div className="w-24 h-24 rounded-2xl bg-white border border-amber-100 flex-shrink-0 overflow-hidden">
+                          {req.image ? (
+                            <img src={req.image} className="w-full h-full object-cover opacity-60 grayscale" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-amber-200">
+                              <Layout size={32} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-xl font-black text-slate-800 mb-1">{req.name || 'Untitled Request'}</h4>
+                          <p className="text-sm text-slate-500 mb-3 line-clamp-1">{req.description || 'No description provided yet.'}</p>
+                          <div className="flex items-center gap-3">
+                            <span className="px-3 py-1 bg-white rounded-full text-[10px] font-bold text-amber-600 border border-amber-100 uppercase tracking-widest">
+                              Category {req.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="h-px bg-slate-100 mt-12" />
+                </div>
+              )}
+
+              {!isLoading && managedCampaigns.length === 0 && pendingRequests.length === 0 ? (
                 <div className="py-20 text-center flex flex-col items-center gap-6">
                   <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
                     <Layout size={40} />
                   </div>
                   <div>
                     <h3 className="text-xl font-black text-slate-900">No campaigns found</h3>
-                    <p className="text-slate-500 text-sm mt-2">You haven't created any campaigns with this wallet yet.</p>
+                    <p className="text-slate-500 text-sm mt-2">If you created a campaign, it might be syncing. Please wait or check your wallet.</p>
                   </div>
                   <Link
                     to="/campaigns/create"
-                    className="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all"
+                    className="px-8 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all text-center"
                   >
-                    Create Your First Campaign
+                    Create New Campaign
                   </Link>
                 </div>
               ) : (
@@ -149,7 +204,7 @@ const CreatorDashboard: React.FC = () => {
 
                       {/* Content Section */}
                       <div className="p-8 flex flex-col flex-1">
-                        <h4 className="text-2xl font-black text-slate-900 mb-4 truncate">{camp.name}</h4>
+                        <h4 className="text-2xl font-black text-slate-900 mb-4 truncate">{camp.title}</h4>
 
                         <div className="space-y-4">
                           <div className="flex justify-between items-center py-4 border-t border-slate-50">
@@ -171,7 +226,7 @@ const CreatorDashboard: React.FC = () => {
 
                           <Link
                             to={`/campaign/${camp.address}`}
-                            className="w-full py-4 mt-2 bg-slate-900 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-slate-900/10 group-hover/card:shadow-blue-600/20"
+                            className="w-full py-4 mt-2 bg-slate-900 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-xl shadow-slate-900/10 group-hover/card:shadow-blue-600/20 text-center"
                           >
                             <Settings size={18} />
                             Manage Project

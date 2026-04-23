@@ -22,6 +22,8 @@ export type Supplier = {
   name: string;
   metadataHash: string;
   totalEarned: string;
+  biography?: string;
+  image?: string;
 };
 
 export type GlobalStats = {
@@ -122,12 +124,32 @@ export const useAdmin = () => {
         args: [BigInt(0), BigInt(100)],
       } as any) as [string[], string[], string[], bigint[]];
 
-      const formattedSuppliers = suppliersData[0].map((addr, i) => ({
+      const rawSuppliers = suppliersData[0].map((addr, i) => ({
         address: addr,
         name: suppliersData[1][i],
         metadataHash: suppliersData[2][i],
         totalEarned: formatEther(suppliersData[3][i]),
       }));
+
+      // 3.1 Fetch IPFS Metadata for each supplier
+      const formattedSuppliers = await Promise.all(rawSuppliers.map(async (s) => {
+        try {
+          if (!s.metadataHash || s.metadataHash === 'ipfs://default') return s;
+          const cleanHash = s.metadataHash.replace('ipfs://', '');
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata?cid=${cleanHash}`);
+          if (!res.ok) return s;
+          const metadata = await res.json();
+          return {
+            ...s,
+            biography: metadata.description || metadata.biography,
+            image: metadata.image,
+          };
+        } catch (err) {
+          console.error(`Failed to fetch supplier metadata for ${s.metadataHash}:`, err);
+          return s;
+        }
+      }));
+
       setSuppliers(formattedSuppliers);
 
       // 4. Advanced Stats (Active vs Completed & Total Donors)

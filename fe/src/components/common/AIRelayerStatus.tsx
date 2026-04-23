@@ -302,9 +302,9 @@ const AIRelayerStatus: React.FC = () => {
 
                 <div className="relative h-40 mt-10">
                   {/* SVG Line Chart for State Vector */}
-                  <svg className="w-full h-full overflow-visible">
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="stateGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <linearGradient id="stateGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#3b82f6" />
                         <stop offset="100%" stopColor="#8b5cf6" />
                       </linearGradient>
@@ -316,15 +316,15 @@ const AIRelayerStatus: React.FC = () => {
                     
                     {/* Grid Lines */}
                     {[0, 25, 50, 75, 100].map(p => (
-                      <line key={p} x1="0" y1={`${p}%`} x2="100%" y2={`${p}%`} stroke="#f1f5f9" strokeWidth="1" />
+                      <line key={p} x1="0" y1={p} x2="100" y2={p} stroke="#f1f5f9" strokeWidth="1" />
                     ))}
                     
                     {stats?.lastState && stats.lastState.length > 0 && (
                       <path
                         d={stats.lastState.map((v, i) => {
-                          const x = (i / 10) * 100;
+                          const x = (i / (stats.lastState.length - 1)) * 100;
                           const y = 100 - Math.max(10, Math.min(90, Math.abs(v) / 20));
-                          return `${i === 0 ? 'M' : 'L'} ${x}% ${y}%`;
+                          return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                         }).join(' ')}
                         fill="none"
                         stroke="url(#stateGradient)"
@@ -333,6 +333,7 @@ const AIRelayerStatus: React.FC = () => {
                         strokeLinejoin="round"
                         className="transition-all duration-1000"
                         filter="url(#glow)"
+                        vectorEffect="non-scaling-stroke"
                       />
                     )}
                   </svg>

@@ -24,7 +24,7 @@ const ManagerFinancialCard: React.FC<ManagerFinancialCardProps> = ({
             <ShieldCheck className="text-emerald-500" size={18} />
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Financial Integrity State</h3>
           </div>
-          <p className="text-2xl font-black text-slate-900">Budget Reservation System</p>
+          <p className="text-lg font-bold text-slate-900">Budget Reservation System</p>
         </div>
 
         <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-2">
@@ -42,7 +42,7 @@ const ManagerFinancialCard: React.FC<ManagerFinancialCardProps> = ({
             </div>
             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em]">Spendable</span>
           </div>
-          <div className="text-3xl font-black text-slate-900 mb-1">{availableFunds} ETH</div>
+          <div className="text-2xl font-bold text-slate-900 mb-1">{availableFunds} ETH</div>
           <p className="text-xs text-slate-400 font-medium lowercase">available for new requests</p>
         </div>
 
@@ -54,7 +54,7 @@ const ManagerFinancialCard: React.FC<ManagerFinancialCardProps> = ({
             </div>
             <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Reserved</span>
           </div>
-          <div className="text-3xl font-black text-slate-900 mb-1">{lockedFunds} ETH</div>
+          <div className="text-2xl font-bold text-slate-900 mb-1">{lockedFunds} ETH</div>
           <p className="text-xs text-slate-400 font-medium lowercase">locked for pending requests/milestones</p>
         </div>
       </div>

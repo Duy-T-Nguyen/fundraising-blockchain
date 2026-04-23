@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { formatEther } from 'viem';
 import { publicClient } from '../blockchain/client';
 import { ABIS, CONTRACT_ADDRESSES } from '../blockchain/constants';
+import { fetchIPFSJSON } from '../utils/ipfs';
 
 export interface EnrichedCampaign {
   address: string;
@@ -41,7 +42,8 @@ export function useCampaignsWithSummaries() {
       const enrichedData = await Promise.all(
         addresses.map(async (address) => {
           try {
-            const [summaryData, title, description, category] = await Promise.all([
+            // Only fetch what's available on-chain
+            const [summaryData, category, manager] = await Promise.all([
               publicClient.readContract({
                 address,
                 abi: ABIS.CAMPAIGN as any,
@@ -50,30 +52,33 @@ export function useCampaignsWithSummaries() {
               publicClient.readContract({
                 address,
                 abi: ABIS.CAMPAIGN as any,
-                functionName: 'campaignName',
-              } as any),
-              publicClient.readContract({
-                address,
-                abi: ABIS.CAMPAIGN as any,
-                functionName: 'description',
-              } as any),
-              publicClient.readContract({
-                address,
-                abi: ABIS.CAMPAIGN as any,
                 functionName: 'category',
               } as any),
-            ]) as [any, string, string, number];
+              publicClient.readContract({
+                address,
+                abi: ABIS.CAMPAIGN as any,
+                functionName: 'manager',
+              } as any),
+            ]) as [any, number, string];
 
             const data: any = summaryData;
+            const metaCID = data.metaCID || data[5];
+            
+            // 3. Fetch metadata from IPFS
+            const metadata = await fetchIPFSJSON(metaCID);
+
+            const onChainName = data[7] || '';
+            
             return {
               address,
-              title: title || 'Unnamed Campaign',
-              description: description || '',
+              manager,
+              title: metadata?.name || onChainName || 'Active Project',
+              description: metadata?.description || '',
               category: Number(category),
               balance: formatEther(data.balance || data[0]),
               donorsCount: Number(data.donors || data[3]),
               active: data.isActive !== undefined ? data.isActive : data[6],
-              imageHash: data.imgHash || data[5] || '',
+              imageHash: metadata?.image || data.imgHash || data[5] || '',
             };
           } catch (err) {
             console.error(`Error fetching summary for ${address}:`, err);

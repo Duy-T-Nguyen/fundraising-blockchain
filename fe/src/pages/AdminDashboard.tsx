@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../hooks/useAdmin';
 import { useNotification } from '../context/NotificationContext';
+import { getWalletClient, publicClient } from '../blockchain/client';
 
 // Modular Components
 import OverviewTab from '../components/admin/tabs/OverviewTab';
@@ -30,6 +31,8 @@ const AdminDashboard = () => {
   // Supplier form state
   const [newSupplierAddr, setNewSupplierAddr] = useState('');
   const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierBio, setNewSupplierBio] = useState('');
+  const [newSupplierFile, setNewSupplierFile] = useState<File | null>(null);
 
   // Settings state
   const [newFee, setNewFee] = useState('');
@@ -77,7 +80,13 @@ const AdminDashboard = () => {
   const handleAction = async (action: () => Promise<any>, id: string) => {
     try {
       setProcessingId(id);
-      await action();
+      const hash = await action();
+
+      // If it's a transaction hash, wait for it to be mined
+      if (hash && typeof hash === 'string' && hash.startsWith('0x')) {
+        await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
+      }
+
       await refresh();
       toast.success('Action completed successfully.');
     } catch (err: any) {
@@ -90,14 +99,10 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-24 font-sans">
       {/* ── HEADER ── */}
-      <header className="px-10 py-12 bg-white border-b border-slate-200">
+      <header className="px-10 pt-24 pb-12 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">Platform Command Center</h1>
-            <p className="text-slate-400 mt-2 flex items-center gap-2 font-medium">
-              <ShieldCheck size={18} className="text-blue-600" />
-              Verified Administrator — {address?.slice(0, 8)}...{address?.slice(-6)}
-            </p>
           </div>
 
           <div className="flex items-center gap-5">
@@ -170,7 +175,57 @@ const AdminDashboard = () => {
               setNewSupplierAddr={setNewSupplierAddr}
               newSupplierName={newSupplierName}
               setNewSupplierName={setNewSupplierName}
-              onAdd={() => handleAction(() => addSupplier(newSupplierAddr, newSupplierName, "ipfs://default"), 'add-supplier')}
+              newSupplierBio={newSupplierBio}
+              setNewSupplierBio={setNewSupplierBio}
+              newSupplierFile={newSupplierFile}
+              setNewSupplierFile={setNewSupplierFile}
+              onAdd={() => handleAction(async () => {
+                if (!newSupplierFile || !address) return;
+
+                const walletClient = await getWalletClient();
+                const signature = await walletClient.signMessage({
+                  account: address as `0x${string}`,
+                  message: 'FundChain IPFS Upload',
+                });
+
+                // 1. Upload Evidence Image
+                const formData = new FormData();
+                formData.append('file', newSupplierFile);
+                formData.append('address', address);
+                formData.append('signature', signature);
+
+                const uploadRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/upload`, {
+                  method: 'POST',
+                  body: formData,
+                });
+                const { cid: imgCid } = await uploadRes.json();
+
+                // 2. Upload Metadata JSON
+                const metadata = {
+                  name: newSupplierName,
+                  description: newSupplierBio,
+                  image: `ipfs://${imgCid}`,
+                  type: 'SUPPLIER_VERIFICATION'
+                };
+
+                const metaRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/evidence/metadata`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ metadata, address, signature }),
+                });
+                const { cid: metaCid } = await metaRes.json();
+
+                // 3. Smart Contract Call
+                const hash = await addSupplier(newSupplierAddr, newSupplierName, metaCid);
+
+                // Reset form
+                setNewSupplierAddr('');
+                setNewSupplierName('');
+                setNewSupplierBio('');
+                setNewSupplierFile(null);
+
+                return hash;
+              }, 'add-supplier')}
               onRemove={(addr) => handleAction(() => removeSupplier(addr), `remove-${addr}`)}
             />
           )}

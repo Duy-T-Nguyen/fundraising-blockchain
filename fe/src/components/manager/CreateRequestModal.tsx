@@ -16,6 +16,7 @@ interface CreateRequestModalProps {
 
 // v1.1.0 - AI Relayer Integrated
 const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClose, onSuccess }) => {
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [value, setValue] = useState('');
   const [recipient, setRecipient] = useState('');
@@ -104,6 +105,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
 
       // 3. Upload Metadata JSON to Backend (IPFS)
       const metadata = {
+        title: title.trim(),
         description: description.trim(),
         evidence: imageUrl,
         value: value,
@@ -183,15 +185,28 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto">
+          {/* Request Title */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Request Title</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Emergency Medical Supplies"
+              className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-gray-700"
+            />
+          </div>
+
           {/* Purpose / Description */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Purpose / Description</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Detailed Description</label>
             <textarea
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What will these funds be used for?"
-              className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all resize-none h-20 font-medium text-gray-700"
+              placeholder="Provide more details about how the funds will be used..."
+              className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all resize-none h-24 font-medium text-gray-600 leading-relaxed"
             />
           </div>
 

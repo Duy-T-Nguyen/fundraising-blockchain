@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, ChevronDown, Loader2, AlertCircle, ArrowRight, LayoutGrid, Zap, ShieldCheck } from 'lucide-react';
 import CampaignCard from '../components/home/CampaignCard';
 import { useCampaignFactory } from '../hooks/useCampaignFactory';
+import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 import Reveal from '../components/common/Reveal';
 
 const CATEGORIES = ['All Categories', 'Education', 'Medical', 'Disaster', 'Environment', 'Others'];
@@ -222,7 +223,7 @@ const Campaigns = () => {
                     Retry
                   </button>
                 </div>
-              ) : campaignAddresses.length === 0 ? (
+              ) : filteredCampaigns.length === 0 ? (
                 <div className="flex flex-col items-center text-center py-28 bg-white/5 rounded-3xl border-2 border-dashed border-white/10 gap-4">
                   <LayoutGrid size={44} className="text-white/20" />
                   <p className="text-white/80 text-xl font-bold">No campaigns found yet.</p>
@@ -232,7 +233,7 @@ const Campaigns = () => {
                 <>
                   <div className="flex items-center justify-between mb-6 relative z-10">
                     <span className="text-white/50 text-sm font-semibold">
-                      Showing <span className="text-white font-black">{Math.min(visibleCount, campaignAddresses.length)}</span> of <span className="text-white font-black">{campaignAddresses.length}</span> campaigns
+                      Showing <span className="text-white font-black">{Math.min(visibleCount, filteredCampaigns.length)}</span> of <span className="text-white font-black">{filteredCampaigns.length}</span> campaigns
                     </span>
                     <span className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-[11px] font-black rounded-full uppercase tracking-wider">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -241,12 +242,12 @@ const Campaigns = () => {
                   </div>
                   <Reveal cascade direction="up" delay={200}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 relative z-10">
-                      {displayedAddresses.map((addr) => (
-                        <CampaignCard key={addr} address={addr} />
+                      {displayedCampaigns.map((c) => (
+                        <CampaignCard key={c.address} address={c.address} />
                       ))}
                     </div>
                   </Reveal>
-                  {visibleCount < campaignAddresses.length && (
+                  {visibleCount < filteredCampaigns.length && (
                     <Reveal direction="up" delay={200}>
                       <div className="mt-14 text-center relative z-10">
                         <button onClick={() => setVisibleCount((prev) => prev + 6)} className="inline-flex items-center gap-2 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition-all duration-300 hover:-translate-y-0.5">
