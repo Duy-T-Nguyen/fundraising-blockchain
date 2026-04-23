@@ -31,6 +31,58 @@ const VerifierDashboard = () => {
     }
   };
 
+  const handleExpertVerify = async (task: VerifierTask) => {
+    try {
+      const walletClient = await getWalletClient();
+      if (!walletClient || !address) return;
+
+      toast.info('Initiating on-chain verification...');
+
+      const { request } = await publicClient.simulateContract({
+        address: task.campaignAddress,
+        abi: ABIS.CAMPAIGN,
+        functionName: 'verifyRequest',
+        args: [BigInt(task.requestIndex)],
+        account: address as `0x${string}`
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast.success('Verification submitted! Waiting for confirmation...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Evidence officially verified!');
+      refresh();
+    } catch (error: any) {
+      console.error('Verification failed:', error);
+      toast.error(error?.shortMessage || error?.message || 'Verification failed.');
+    }
+  };
+
+  const handleExpertReject = async (task: VerifierTask) => {
+    const reason = prompt("Enter rejection reason:");
+    if (!reason) return;
+
+    try {
+      const walletClient = await getWalletClient();
+      if (!walletClient || !address) return;
+
+      const { request } = await publicClient.simulateContract({
+        address: task.campaignAddress,
+        abi: ABIS.CAMPAIGN,
+        functionName: 'rejectRequest',
+        args: [BigInt(task.requestIndex), reason],
+        account: address as `0x${string}`
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast.success('Rejection submitted!');
+      await publicClient.waitForTransactionReceipt({ hash });
+      refresh();
+    } catch (error: any) {
+      console.error('Rejection failed:', error);
+      toast.error(error?.shortMessage || error?.message || 'Rejection failed.');
+    }
+  };
+
   const handleCommunityApprove = async (task: VerifierTask) => {
     try {
       const walletClient = await getWalletClient();
@@ -44,8 +96,10 @@ const VerifierDashboard = () => {
         account: address as `0x${string}`
       });
 
-      await walletClient.writeContract(request);
-      toast.success('Vote submitted successfully!');
+      const hash = await walletClient.writeContract(request);
+      toast.success('Vote submitted! Waiting for confirmation...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Community approval confirmed!');
       refresh();
     } catch (error: any) {
       console.error('Approval failed:', error);
@@ -130,7 +184,8 @@ const VerifierDashboard = () => {
                     <ExpertTaskCard
                       key={task.id}
                       task={task}
-                      onSign={setSelectedTask}
+                      onVerify={handleExpertVerify}
+                      onReject={handleExpertReject}
                       onOpenIPFS={openIPFS}
                     />
                   ) : (

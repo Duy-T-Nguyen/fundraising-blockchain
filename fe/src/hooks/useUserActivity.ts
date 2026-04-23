@@ -23,6 +23,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
   const [managedCampaigns, setManagedCampaigns] = useState<ManagedCampaign[]>([]);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [userDonations, setUserDonations] = useState<UserDonation[]>([]);
+  const [managedDonations, setManagedDonations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { getCampaignName, getBlockTimestamp } = useMetadata();
   const isFetching = useRef(false);
@@ -146,22 +147,36 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
       for (let i = chunks.length - 1; i >= 0; i -= 5) {
         const batch = chunks.slice(Math.max(0, i - 4), i + 1);
         try {
-          const batchResults = await Promise.all(
-            batch.map(chunk =>
-              publicClient.getLogs({
-                address: allCampaignAddresses,
-                event: {
-                  type: 'event',
-                  name: 'Donation',
-                  inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
-                },
-                args: { donor: checksumAddress } as any,
-                fromBlock: chunk.from,
-                toBlock: chunk.to
-              })
-            )
-          );
-          allLogs.push(...batchResults.flat());
+          const [userBatch, managedBatch] = await Promise.all([
+            publicClient.getLogs({
+              address: allCampaignAddresses,
+              event: {
+                type: 'event',
+                name: 'Donation',
+                inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
+              },
+              args: { donor: checksumAddress } as any,
+              fromBlock: chunk.from,
+              toBlock: chunk.to
+            }),
+            managedAddresses.length > 0 ? publicClient.getLogs({
+              address: managedAddresses,
+              event: {
+                type: 'event',
+                name: 'Donation',
+                inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
+              },
+              fromBlock: chunk.from,
+              toBlock: chunk.to
+            }) : Promise.resolve([])
+          ]);
+
+          allLogs.push(...userBatch.flat());
+          
+          if (managedBatch.length > 0) {
+            const resolvedManaged = await resolveLogNames(managedBatch);
+            setManagedDonations(prev => [...prev, ...resolvedManaged]);
+          }
 
           if (allLogs.length > 0) {
             const partialDonations = await resolveLogNames(allLogs);
@@ -207,5 +222,5 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
     fetchActivity();
   }, [fetchActivity]);
 
-  return { managedCampaigns, pendingRequests, userDonations, isLoading, refresh: fetchActivity };
+  return { managedCampaigns, pendingRequests, userDonations, managedDonations, isLoading, refresh: fetchActivity };
 }

@@ -40,7 +40,19 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        const balance = await publicClient.getBalance({ address: address as `0x${string}` });
+        // Try to get available funds from the contract logic (balance - lockedFunds)
+        let balance;
+        try {
+          balance = await publicClient.readContract({
+            address: address as `0x${string}`,
+            abi: ABIS.CAMPAIGN as any,
+            functionName: 'availableFunds',
+            authorizationList: undefined
+          }) as bigint;
+        } catch (e) {
+          // Fallback to raw balance if availableFunds function doesn't exist
+          balance = await publicClient.getBalance({ address: address as `0x${string}` });
+        }
         setCampaignBalance(parseFloat(formatEther(balance)).toFixed(4));
       } catch (err) {
         console.error('Error fetching balance:', err);
@@ -225,7 +237,7 @@ const CreateRequestModal: React.FC<CreateRequestModalProps> = ({ address, onClos
               />
               <div className="flex items-center gap-1.5 ml-2 mt-1">
                 <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
-                <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">Available: {campaignBalance} ETH</span>
+                <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">Available: {campaignBalance} ETH </span>
               </div>
             </div>
 

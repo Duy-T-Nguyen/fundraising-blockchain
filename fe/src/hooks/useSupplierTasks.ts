@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { publicClient } from '../blockchain/client';
 import { ABIS, CONTRACT_ADDRESSES } from '../blockchain/constants';
 import { formatEther } from 'viem';
+import { fetchIPFSJSON } from '../utils/ipfs';
 import type { SupplierTask } from '../types/supplier';
 
 export function useSupplierTasks(userAddress?: string) {
@@ -65,24 +66,62 @@ export function useSupplierTasks(userAddress?: string) {
 
           const results = await Promise.all(requestPromises);
           
-          results.forEach((data: any, idx) => {
-            const recipient = data[2]; 
-            console.log(`DEBUG: Checking Req #${idx} on ${campaignAddr.slice(0,6)}:`, {
-              recipientFound: recipient,
-              expectedUser: userAddress,
-              match: recipient?.toLowerCase() === userAddress.toLowerCase()
-            });
+          const taskResults = await Promise.all(results.map(async (data: any, idx) => {
+            const recipient = data[11]; // recipient is at index 11
+            const isCompleted = Number(data[13]) === 1; // status is at index 13 (1 = COMPLETED)
             
             if (recipient && recipient.toLowerCase() === userAddress.toLowerCase()) {
-              allFoundTasks.push({
+              // Check if governance (voting) phase has been passed
+              const validatorApprovalCount = Number(data[7] || 0);
+              const totalApprovalWeight = BigInt(data[4] || 0n);
+              const snapshotTotalFunds = BigInt(data[5] || 0n);
+
+              const validatorApproved = validatorApprovalCount >= 2;
+              const communityApproved = snapshotTotalFunds > 0n && totalApprovalWeight > snapshotTotalFunds / 2n;
+              const isGovernanceApproved = validatorApproved || communityApproved;
+
+              // Only show in Delivery Queue if voting has passed AND not yet finalized
+              if (!isGovernanceApproved && !isCompleted) {
+                return null; // Still in voting phase — hide from supplier
+              }
+
+              const rawCID = data[0] as string;
+              let description = `Request #${idx}`; // safe fallback — never show raw CID
+              let managerEvidenceCID = ''; // Manager's attached document (initial notice)
+              
+              try {
+                const metadata = await fetchIPFSJSON(rawCID);
+                if (metadata) {
+                  if (metadata.title) {
+                    description = metadata.title;
+                  } else if (metadata.name) {
+                    description = metadata.name;
+                  } else if (metadata.description) {
+                    description = metadata.description.split('\n')[0].slice(0, 80);
+                  }
+                  // Extract manager's initial notice document
+                  if (metadata.evidence) {
+                    managerEvidenceCID = metadata.evidence.replace('ipfs://', '');
+                  }
+                }
+              } catch (e) {
+                console.warn(`[SupplierTasks] Metadata fetch failed for req ${idx}:`, e);
+              }
+
+              return {
                 campaignAddress: campaignAddr,
                 requestId: idx,
-                description: data[0],
-                value: formatEther(data[1]),
-                complete: data[3],
-                evidenceHash: data[5],
-              });
+                description,
+                value: formatEther(data[3] || 0n),
+                complete: isCompleted,
+                evidenceHash: managerEvidenceCID, // Manager's initial notice doc
+              } as SupplierTask;
             }
+            return null;
+          }));
+
+          taskResults.forEach(task => {
+            if (task) allFoundTasks.push(task);
           });
         } catch (err) {
           console.error(`DEBUG: Error scanning campaign ${campaignAddr}:`, err);
