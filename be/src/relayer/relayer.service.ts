@@ -370,7 +370,7 @@ export class RelayerService implements OnModuleInit {
   }
 
   async getPendingIntents(address: string): Promise<{ pendingVotes: number[], pendingCreations: any[] }> {
-    const jobs = await this.gasQueue.getJobs(['waiting', 'delayed']);
+    const jobs = await this.gasQueue.getJobs(['waiting', 'delayed', 'active']);
     const pendingVotes: number[] = [];
     const pendingCreations: any[] = [];
 
