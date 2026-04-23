@@ -215,14 +215,14 @@ flowchart TD
 
 ## Slide 2.6: Backend — Công nghệ và Dịch vụ
 
-| Thành phần | Công nghệ | Vai trò |
-|---|---|---|
-| API Server | NestJS + TypeScript | REST API, Swagger docs |
-| Message Queue | BullMQ + Redis | Hàng đợi giao dịch chờ tối ưu |
-| AI Model | d3rlpy (Offline RL) + FastAPI | Quyết định thời điểm gửi giao dịch |
-| Database | MongoDB + Mongoose | Lưu lịch sử Gas, thống kê AI |
-| Real-time | Socket.io (WebSocket) | Cập nhật trạng thái AI cho Frontend |
-| Blockchain | ethers.js v6 | Tương tác với smart contract |
+| Thành phần    | Công nghệ                     | Vai trò                             |
+| ------------- | ----------------------------- | ----------------------------------- |
+| API Server    | NestJS + TypeScript           | REST API, Swagger docs              |
+| Message Queue | BullMQ + Redis                | Hàng đợi giao dịch chờ tối ưu       |
+| AI Model      | d3rlpy (Offline RL) + FastAPI | Quyết định thời điểm gửi giao dịch  |
+| Database      | MongoDB + Mongoose            | Lưu lịch sử Gas, thống kê AI        |
+| Real-time     | Socket.io (WebSocket)         | Cập nhật trạng thái AI cho Frontend |
+| Blockchain    | ethers.js v6                  | Tương tác với smart contract        |
 
 ## Slide 2.7: Frontend — Kiến trúc và Tính năng
 
@@ -230,17 +230,17 @@ flowchart TD
 
 **Các trang chính**:
 
-| Trang | Chức năng |
-|---|---|
-| Home | Landing page, giới thiệu nền tảng |
-| Campaigns | Danh sách chiến dịch, lọc theo Category |
-| Campaign Detail | Chi tiết chiến dịch, donate, vote, finalize |
-| Create Campaign | Form tạo chiến dịch mới (upload IPFS) |
-| Admin Dashboard | Duyệt/từ chối yêu cầu tạo chiến dịch |
-| Creator Dashboard | Quản lý chiến dịch đã tạo |
-| Verifier Dashboard | Xác minh minh chứng chi tiêu |
-| Supplier Dashboard | Theo dõi thanh toán |
-| Activity | Lịch sử hoạt động toàn cầu |
+| Trang              | Chức năng                                   |
+| ------------------ | ------------------------------------------- |
+| Home               | Landing page, giới thiệu nền tảng           |
+| Campaigns          | Danh sách chiến dịch, lọc theo Category     |
+| Campaign Detail    | Chi tiết chiến dịch, donate, vote, finalize |
+| Create Campaign    | Form tạo chiến dịch mới (upload IPFS)       |
+| Admin Dashboard    | Duyệt/từ chối yêu cầu tạo chiến dịch        |
+| Creator Dashboard  | Quản lý chiến dịch đã tạo                   |
+| Verifier Dashboard | Xác minh minh chứng chi tiêu                |
+| Supplier Dashboard | Theo dõi thanh toán                         |
+| Activity           | Lịch sử hoạt động toàn cầu                  |
 
 **Tính năng UX nổi bật**:
 - Kết nối MetaMask qua `viem` + `window.ethereum`
@@ -336,23 +336,34 @@ docker-compose (BE)                docker-compose (FE)
 
 ```mermaid
 graph LR
-    subgraph DC_BE["docker-compose BE"]
-        NEST["backend<br/>NestJS"]
-        AISC["ai-sidecar<br/>FastAPI"]
-        REDIS[("Redis<br/>BullMQ")]
-        MONGO[("MongoDB")]
-        NGX["nginx<br/>Reverse Proxy"]
-    end
-
     subgraph DC_FE["docker-compose FE"]
         FRONT["frontend<br/>Nginx + Vite SPA"]
     end
 
+    subgraph DC_BE["docker-compose BE"]
+        NGX["nginx<br/>Reverse Proxy"]
+        NEST["backend<br/>NestJS"]
+        AISC["ai-sidecar<br/>FastAPI"]
+        REDIS[("Redis<br/>BullMQ")]
+        MONGO[("MongoDB")]
+    end
+
+    subgraph CHAIN["Blockchain"]
+        SEP["Ethereum Sepolia<br/>Smart Contracts"]
+    end
+
+    subgraph STORAGE["Off-chain Storage"]
+        IPFS["Pinata<br/>IPFS Pinning"]
+    end
+
     FRONT -->|API| NGX
+    FRONT -->|Direct RPC| SEP
+    FRONT -->|Upload| IPFS
     NGX --> NEST
     NEST --> REDIS
     NEST --> MONGO
     NEST --> AISC
+    NEST -->|executeBatch| SEP
 ```
 
 - **Testnet**: Ethereum Sepolia
@@ -367,36 +378,36 @@ graph LR
 
 ## Slide 3.1: Môi trường Thử nghiệm
 
-| Thông số | Giá trị |
-|---|---|
-| Blockchain Network | Ethereum Sepolia Testnet |
-| Solidity Version | ^0.8.28 |
-| Node.js | v22 (FE) / v20 (BE) |
-| AI Framework | d3rlpy (Offline RL) |
-| Browser | Chrome + MetaMask Extension |
-| Deployment | Docker Compose (Ubuntu Linux) |
+| Thông số           | Giá trị                       |
+| ------------------ | ----------------------------- |
+| Blockchain Network | Ethereum Sepolia Testnet      |
+| Solidity Version   | ^0.8.28                       |
+| Node.js            | v22 (FE) / v20 (BE)           |
+| AI Framework       | d3rlpy (Offline RL)           |
+| Browser            | Chrome + MetaMask Extension   |
+| Deployment         | Docker Compose (Ubuntu Linux) |
 
 ## Slide 3.2: Kịch bản Thử nghiệm — Tạo và Quản lý Campaign
 
-| Bước | Hành động | Kết quả mong đợi |
-|---|---|---|
-| 1 | Manager tạo Campaign + trả 0.005 ETH | Request PENDING |
-| 2 | Admin duyệt trên Admin Dashboard | Campaign deploy (Proxy Clone) |
-| 3 | Donor donate ETH vào Campaign | Số dư tăng, donor count +1 |
-| 4 | Manager tạo Spending Request | Request OPEN, lock funds |
-| 5 | Donor biểu quyết (Direct hoặc AI) | Approval weight tăng |
-| 6 | Manager Finalize khi đạt >50% | ETH chuyển cho Supplier |
+| Bước | Hành động                            | Kết quả mong đợi              |
+| ---- | ------------------------------------ | ----------------------------- |
+| 1    | Manager tạo Campaign + trả 0.005 ETH | Request PENDING               |
+| 2    | Admin duyệt trên Admin Dashboard     | Campaign deploy (Proxy Clone) |
+| 3    | Donor donate ETH vào Campaign        | Số dư tăng, donor count +1    |
+| 4    | Manager tạo Spending Request         | Request OPEN, lock funds      |
+| 5    | Donor biểu quyết (Direct hoặc AI)    | Approval weight tăng          |
+| 6    | Manager Finalize khi đạt >50%        | ETH chuyển cho Supplier       |
 
 ## Slide 3.3: Kịch bản Thử nghiệm — AI Gas Optimization
 
-| Thông số | Giá trị đo được |
-|---|---|
-| Số lượng giao dịch thử nghiệm | ~50 intents |
-| Batch size trung bình | 2-5 giao dịch/mẻ |
-| Gas tiết kiệm từ Batching | ~21,000 Gas × (n-1) / mẻ |
-| Gas tiết kiệm từ Timing | Phụ thuộc biến động Gas Price |
-| Thời gian chờ trung bình | 15s - 5 phút |
-| Chu kỳ AI quyết định | Mỗi 15 giây |
+| Thông số                      | Giá trị đo được               |
+| ----------------------------- | ----------------------------- |
+| Số lượng giao dịch thử nghiệm | ~50 intents                   |
+| Batch size trung bình         | 2-5 giao dịch/mẻ              |
+| Gas tiết kiệm từ Batching     | ~21,000 Gas × (n-1) / mẻ      |
+| Gas tiết kiệm từ Timing       | Phụ thuộc biến động Gas Price |
+| Thời gian chờ trung bình      | 15s - 5 phút                  |
+| Chu kỳ AI quyết định          | Mỗi 15 giây                   |
 
 **Cơ chế đánh giá tiết kiệm**:
 - `Batching Benefit = (batchSize - 1) × 21,000 × currentGasPrice`
@@ -404,14 +415,14 @@ graph LR
 
 ## Slide 3.4: Kịch bản Thử nghiệm — Bảo mật
 
-| Test Case | Mô tả | Kết quả |
-|---|---|---|
-| Manager tự donate | Gọi `donate()` với ví Manager | ❌ Revert: `ManagerCannotDonate` |
-| Manager tự vote | Gọi `approveRequest()` với ví Manager | ❌ Revert: `ManagerCannotVote` |
-| Donor vote sau khi tạo request | donorId > snapshotDonorCount | ❌ Revert: `JoinedAfterRequest` |
-| Re-entrancy attack | Hợp đồng ác ý gọi lại `finalizeRequest` | ❌ Blocked: `ReentrancyGuard` |
-| Chữ ký EIP-712 giả | Ký với private key khác | ❌ Revert: Signature mismatch |
-| Finalize chưa đủ vote | totalApprovalWeight ≤ 50% | ❌ Revert: `NotEnoughApprovals` |
+| Test Case                           | Mô tả                                      | Kết quả                             |
+| ----------------------------------- | ------------------------------------------ | ----------------------------------- |
+| Manager tự donate                   | Gọi `donate()` với ví Manager              | ❌ Revert: `ManagerCannotDonate`     |
+| Manager tự vote                     | Gọi `approveRequest()` với ví Manager      | ❌ Revert: `ManagerCannotVote`       |
+| Donor vote sau khi tạo request      | donorId > snapshotDonorCount               | ❌ Revert: `JoinedAfterRequest`      |
+| Re-entrancy attack                  | Hợp đồng ác ý gọi lại `finalizeRequest`    | ❌ Blocked: `ReentrancyGuard`        |
+| Chữ ký EIP-712 giả                  | Ký với private key khác                    | ❌ Revert: Signature mismatch        |
+| Finalize chưa đủ vote               | totalApprovalWeight ≤ 50%                  | ❌ Revert: `NotEnoughApprovals`      |
 | Recipient không nằm trong Whitelist | Gọi createRequest với địa chỉ chưa đăng ký | ❌ Revert: `RecipientNotWhitelisted` |
 
 ## Slide 3.5: Đánh giá Ưu điểm
@@ -451,24 +462,24 @@ graph LR
 
 ## Slide 4.2: Hướng phát triển
 
-| Hướng | Mô tả |
-|---|---|
-| **Online RL** | Chuyển từ Offline sang Online Reinforcement Learning, cho phép AI tự cập nhật model theo dữ liệu thực tế |
-| **Layer 2 Deployment** | Triển khai trên Arbitrum/Optimism/Base để giảm thêm chi phí Gas và tăng tốc độ giao dịch |
-| **Cross-chain** | Hỗ trợ nhiều blockchain (Polygon, BSC, ...) thông qua bridge hoặc multi-chain deployment |
-| **Mobile DApp** | Phát triển ứng dụng di động (React Native) tích hợp WalletConnect |
-| **DAO Governance** | Nâng cấp quản trị thành DAO toàn diện với token voting và proposal system |
-| **ZK-Proof Privacy** | Áp dụng Zero-Knowledge Proof cho phép donate ẩn danh nhưng vẫn chứng minh được quyền biểu quyết |
-| **AI Fraud Detection** | Bổ sung mô hình AI phát hiện chiến dịch lừa đảo dựa trên on-chain patterns |
-| **Mainnet Launch** | Kiểm thử kỹ lưỡng (Audit) và triển khai chính thức trên Ethereum Mainnet |
+| Hướng                  | Mô tả                                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Online RL**          | Chuyển từ Offline sang Online Reinforcement Learning, cho phép AI tự cập nhật model theo dữ liệu thực tế |
+| **Layer 2 Deployment** | Triển khai trên Arbitrum/Optimism/Base để giảm thêm chi phí Gas và tăng tốc độ giao dịch                 |
+| **Cross-chain**        | Hỗ trợ nhiều blockchain (Polygon, BSC, ...) thông qua bridge hoặc multi-chain deployment                 |
+| **Mobile DApp**        | Phát triển ứng dụng di động (React Native) tích hợp WalletConnect                                        |
+| **DAO Governance**     | Nâng cấp quản trị thành DAO toàn diện với token voting và proposal system                                |
+| **ZK-Proof Privacy**   | Áp dụng Zero-Knowledge Proof cho phép donate ẩn danh nhưng vẫn chứng minh được quyền biểu quyết          |
+| **AI Fraud Detection** | Bổ sung mô hình AI phát hiện chiến dịch lừa đảo dựa trên on-chain patterns                               |
+| **Mainnet Launch**     | Kiểm thử kỹ lưỡng (Audit) và triển khai chính thức trên Ethereum Mainnet                                 |
 
 ## Slide 4.3: Tổng kết Công nghệ
 
-| Layer | Công nghệ |
-|---|---|
-| Smart Contract | Solidity 0.8.28, OpenZeppelin, Hardhat, Sepolia Testnet |
-| Backend | NestJS, TypeScript, ethers.js v6, BullMQ, MongoDB, Redis |
-| AI Engine | Python, d3rlpy, FastAPI, PyTorch |
-| Frontend | React 18, TypeScript, Vite, viem, TailwindCSS |
-| Infrastructure | Docker Compose, Nginx, IPFS (Pinata) |
-| Standards | EIP-2771, EIP-712, EIP-1167 (Minimal Proxy) |
+| Layer          | Công nghệ                                                |
+| -------------- | -------------------------------------------------------- |
+| Smart Contract | Solidity 0.8.28, OpenZeppelin, Hardhat, Sepolia Testnet  |
+| Backend        | NestJS, TypeScript, ethers.js v6, BullMQ, MongoDB, Redis |
+| AI Engine      | Python, d3rlpy, FastAPI, PyTorch                         |
+| Frontend       | React 18, TypeScript, Vite, viem, TailwindCSS            |
+| Infrastructure | Docker Compose, Nginx, IPFS (Pinata)                     |
+| Standards      | EIP-2771, EIP-712, EIP-1167 (Minimal Proxy)              |
