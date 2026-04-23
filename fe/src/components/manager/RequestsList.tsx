@@ -36,13 +36,13 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   const { requests, votedRequestIds, pendingRequestIds, pendingCreations, isLoading, refresh } = useRequests(address, userAddress || undefined);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const { executeGasless, isRelaying } = useRelayer();
-  const { 
-    uploadingTaskId, 
-    uploadedEvidences, 
-    fileInputRef, 
-    startUpload, 
-    handleFileChange, 
-    openIPFS 
+  const {
+    uploadingTaskId,
+    uploadedEvidences,
+    fileInputRef,
+    startUpload,
+    handleFileChange,
+    openIPFS
   } = useSupplierEvidence(userAddress || undefined, isConnected, connect);
 
   // --- Verification Handlers ---
@@ -94,7 +94,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
       const data = encodeFunctionData({
         abi: ABIS.CAMPAIGN,
         functionName: 'rejectRequest',
-        args: [BigInt(requestId), reason], 
+        args: [BigInt(requestId), reason],
       });
       await executeGasless(address, data);
       refresh();
@@ -172,9 +172,9 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   // --- Loading State ---
   if (isLoading) {
     return (
-      <div className="bg-white/70 backdrop-blur-3xl rounded-[2.5rem] p-10 shadow-xl border border-white/50 text-center">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Loading Requests...</p>
+      <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-blue-900/40 border border-white/10 text-center">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Loading Requests...</p>
       </div>
     );
   }
@@ -182,14 +182,14 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   // --- Empty State ---
   if (requests.length === 0 && pendingCreations.length === 0) {
     return (
-      <div className="bg-white/70 backdrop-blur-3xl rounded-[2.5rem] p-10 shadow-xl border border-white/50 text-center space-y-4">
-        <h2 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">Spending Requests</h2>
-        <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-[2rem]">
-          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-            <LayoutDashboard size={24} className="text-gray-400" />
+      <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-blue-900/40 border border-white/10 text-center space-y-4">
+        <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4">Spending Requests</h2>
+        <div className="py-12 flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-[2rem]">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 text-white/20">
+            <LayoutDashboard size={24} />
           </div>
-          <p className="text-gray-500 font-bold">No active requests found</p>
-          <p className="text-sm text-gray-400">The manager hasn't created any spending requests yet.</p>
+          <p className="text-white/60 font-bold">No active requests found</p>
+          <p className="text-sm text-white/30">The manager hasn't created any spending requests yet.</p>
         </div>
       </div>
     );
@@ -199,20 +199,20 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-          <ShieldCheck size={28} className="text-blue-600" />
+        <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+          <ShieldCheck size={28} className="text-blue-400" />
           Spending Requests
         </h2>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-1 ml-10">
+        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mt-1 ml-10">
           Community Governance in Action
         </p>
       </div>
 
       {/* Pending Creations Cards */}
       {pendingCreations.map((pending, pIdx) => (
-        <div 
+        <div
           key={`pending-cre-${pIdx}`}
-          className="bg-gradient-to-br from-indigo-50 to-white rounded-[2.5rem] p-8 shadow-xl border border-indigo-100/50 animate-pulse"
+          className="bg-gradient-to-br from-indigo-900/60 to-slate-900/80 rounded-[2.5rem] p-8 shadow-xl border border-indigo-500/20 animate-pulse"
         >
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="space-y-4 flex-1">
@@ -225,14 +225,14 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                   New Request Pending...
                 </span>
               </div>
-              <h3 className="text-2xl font-black text-indigo-900 opacity-60">Initializing Request...</h3>
-              <p className="text-sm text-indigo-400 font-medium leading-relaxed max-w-2xl">
+              <h3 className="text-2xl font-black text-white/60">Initializing Request...</h3>
+              <p className="text-sm text-indigo-300/60 font-medium leading-relaxed max-w-2xl">
                 Your spending request has been accepted by the AI Relayer. It is currently being batched for optimal gas efficiency and will appear on-chain shortly.
               </p>
             </div>
-            <div className="bg-indigo-100/50 p-6 rounded-3xl border border-indigo-200/50 text-center min-w-[180px]">
-              <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">AI Optimizing Gas</p>
+            <div className="bg-indigo-500/10 p-6 rounded-3xl border border-indigo-500/20 text-center min-w-[180px]">
+              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">AI Optimizing Gas</p>
             </div>
           </div>
         </div>
@@ -247,14 +247,14 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
           const isVerified = req.verifyStatus === 1; // APPROVED
           const isRejected = req.verifyStatus === 2; // REJECTED
           const canFinalize = currentAmount > targetAmount && isVerified;
-          
+
           const isEligible = userDonorId > BigInt(0) && userDonorId <= req.snapshotDonorCount;
           const isVoted = votedRequestIds.has(req.id);
           const isPending = pendingRequestIds.has(req.id);
 
           const isSupplier = userAddress?.toLowerCase() === req.recipient.toLowerCase();
           const isVerifier = userAddress?.toLowerCase() === req.verifier.toLowerCase();
-          
+
           const hasProof = req.proofCID && req.proofCID !== "";
           const taskKey = `${address}-${req.id}`;
           const localProof = uploadedEvidences[taskKey];
@@ -262,40 +262,37 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
           return (
             <div
               key={idx}
-              className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl transition-shadow group relative overflow-hidden"
+              className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/30 border border-white/10 hover:border-white/20 transition-shadow group relative overflow-hidden"
             >
               {/* Status Banner */}
-              <div className={`-mx-8 -mt-8 mb-6 px-8 py-4 flex items-center justify-between border-b transition-colors shadow-sm ${
-                isComplete ? 'bg-emerald-50/50 border-emerald-100' :
-                isRejected ? 'bg-rose-50/50 border-rose-100' :
-                isVerified ? 'bg-blue-50/50 border-blue-100' :
-                hasProof ? 'bg-amber-50/50 border-amber-100' :
-                'bg-slate-50/50 border-slate-100'
-              }`}>
+              <div className={`-mx-8 -mt-8 mb-6 px-8 py-4 flex items-center justify-between border-b transition-colors ${isComplete ? 'bg-emerald-500/10 border-emerald-500/20' :
+                  isRejected ? 'bg-rose-500/10 border-rose-500/20' :
+                    isVerified ? 'bg-blue-500/10 border-blue-500/20' :
+                      hasProof ? 'bg-amber-500/10 border-amber-500/20' :
+                        'bg-white/5 border-white/10'
+                }`}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full animate-pulse shadow-sm ${
-                    isComplete ? 'bg-emerald-500 shadow-emerald-200' :
-                    isRejected ? 'bg-rose-500 shadow-rose-200' :
-                    isVerified ? 'bg-blue-500 shadow-blue-200' :
-                    hasProof ? 'bg-amber-500 shadow-amber-200' :
-                    'bg-slate-400'
-                  }`} />
-                  <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${
-                    isComplete ? 'text-emerald-700' :
-                    isRejected ? 'text-rose-700' :
-                    isVerified ? 'text-blue-700' :
-                    hasProof ? 'text-amber-700' :
-                    'text-slate-600'
-                  }`}>
+                  <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isComplete ? 'bg-emerald-500' :
+                      isRejected ? 'bg-rose-500' :
+                        isVerified ? 'bg-blue-500' :
+                          hasProof ? 'bg-amber-500' :
+                            'bg-white/30'
+                    }`} />
+                  <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${isComplete ? 'text-emerald-400' :
+                      isRejected ? 'text-rose-400' :
+                        isVerified ? 'text-blue-400' :
+                          hasProof ? 'text-amber-400' :
+                            'text-white/50'
+                    }`}>
                     {isComplete ? 'Funds Successfully Released' :
-                     isRejected ? 'Request Rejected by Verifier' :
-                     isVerified ? 'Verified & Ready for Manager' :
-                     hasProof ? 'Evidence Submitted - Awaiting Review' :
-                     'Action Required: Waiting for Evidence'}
+                      isRejected ? 'Request Rejected by Verifier' :
+                        isVerified ? 'Verified & Ready for Manager' :
+                          hasProof ? 'Evidence Submitted - Awaiting Review' :
+                            'Action Required: Waiting for Evidence'}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100">
+                  <span className="text-[10px] font-black text-white/30 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10">
                     ID: #{req.id}
                   </span>
                 </div>
@@ -307,33 +304,33 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
 
                   {/* Title & Description */}
                   <div className="space-y-4">
-                    {req.title && <h3 className="text-xl font-bold text-gray-900 tracking-tight">{req.title}</h3>}
+                    {req.title && <h3 className="text-xl font-bold text-white tracking-tight">{req.title}</h3>}
                     {req.description && (
-                      <p className="text-sm font-medium text-slate-500 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-sm font-medium text-white/50 leading-relaxed whitespace-pre-wrap">
                         {req.description}
                       </p>
                     )}
                     <div className="flex flex-wrap items-center gap-6 pt-2">
-                      <div className="flex items-center gap-2 text-blue-600 font-bold">
+                      <div className="flex items-center gap-2 text-blue-400 font-bold">
                         <Wallet size={16} />
                         <span>{req.value} ETH</span>
                       </div>
-                      <div className="flex items-center gap-2 text-slate-600 font-bold">
-                        <Users size={16} className="text-blue-500" />
+                      <div className="flex items-center gap-2 text-white/60 font-bold">
+                        <Users size={16} className="text-blue-400" />
                         <span className="flex items-center gap-1.5">
                           {req.voterCount} {req.voterCount === 1 ? 'Approval' : 'Approvals'}
-                          <span className="text-[10px] font-normal text-gray-400">({formatEther(BigInt(req.approvalWeights))} ETH)</span>
+                          <span className="text-[10px] font-normal text-white/30">({formatEther(BigInt(req.approvalWeights))} ETH)</span>
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-lg">
+                      <div className="flex items-center gap-2 text-blue-400 font-bold bg-blue-500/10 px-3 py-1 rounded-lg border border-blue-500/20">
                         <ArrowUpRight size={14} />
                         <span className="font-mono text-xs truncate max-w-[120px]">{req.recipient}</span>
                         {isSupplier && <span className="text-[8px] bg-blue-600 text-white px-1.5 py-0.5 rounded uppercase">You</span>}
                       </div>
                       {hasProof && (
-                        <button 
+                        <button
                           onClick={() => openIPFS(req.proofCID)}
-                          className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-lg hover:bg-emerald-100 transition-colors"
+                          className="flex items-center gap-2 text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-lg hover:bg-emerald-500/20 transition-colors border border-emerald-500/20"
                         >
                           <ImageIcon size={14} />
                           <span className="text-xs">View Proof</span>
@@ -351,7 +348,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                     <div className="flex flex-col gap-3 w-full">
                       {/* Already voted on-chain */}
                       {isVoted && (
-                        <div className="w-full flex items-center justify-center gap-2 text-blue-600 bg-blue-50 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-blue-100">
+                        <div className="w-full flex items-center justify-center gap-2 text-blue-400 bg-blue-500/10 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-blue-500/20">
                           <CheckCircle2 size={16} />
                           Approved
                         </div>
@@ -359,12 +356,12 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
 
                       {/* Pending in AI queue */}
                       {!isVoted && isPending && (
-                        <div className="w-full h-[116px] px-4 bg-indigo-50 border border-indigo-100 text-indigo-500 rounded-xl font-black uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-2 shadow-inner">
+                        <div className="w-full h-[116px] px-4 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl font-black uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-2">
                           <div className="flex items-center gap-2">
                             <span className="animate-spin text-lg">🌀</span>
                             <span>Pending AI Execution</span>
                           </div>
-                          <span className="text-[8px] normal-case tracking-normal font-medium text-indigo-400">
+                          <span className="text-[8px] normal-case tracking-normal font-medium text-indigo-300/60">
                             Your intent is queued for optimal gas
                           </span>
                         </div>
@@ -372,8 +369,8 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
 
                       {/* Not eligible */}
                       {!isVoted && !isPending && !isEligible && (
-                        <div className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
-                          <span className="text-gray-500">Not Eligible</span>
+                        <div className="w-full px-4 py-3 bg-white/5 border-2 border-dashed border-white/10 text-white/40 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
+                          <span className="text-white/50">Not Eligible</span>
                           {!hasDonated ? (
                             <span className="text-[8px] normal-case tracking-normal">Must donate to vote</span>
                           ) : (
@@ -388,13 +385,12 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                           <button
                             onClick={() => handleApproveDirect(req.id)}
                             disabled={processingId !== null || isRelaying}
-                            className={`w-full h-[52px] px-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md flex flex-col items-center justify-center ${
-                              processingId === req.id && !isRelaying
+                            className={`w-full h-[52px] px-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md flex flex-col items-center justify-center ${processingId === req.id && !isRelaying
                                 ? 'opacity-80 scale-[0.98]'
                                 : processingId !== null || isRelaying
-                                ? 'cursor-not-allowed'
-                                : 'hover:bg-gray-800 hover:-translate-y-0.5'
-                            }`}
+                                  ? 'cursor-not-allowed'
+                                  : 'hover:bg-gray-800 hover:-translate-y-0.5'
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               {processingId === req.id && !isRelaying ? (
@@ -411,13 +407,12 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                           <button
                             onClick={() => handleApprove(req.id)}
                             disabled={processingId !== null || isRelaying}
-                            className={`w-full h-[52px] px-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md shadow-blue-600/20 flex flex-col items-center justify-center ${
-                              processingId === req.id && isRelaying
+                            className={`w-full h-[52px] px-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md shadow-blue-600/20 flex flex-col items-center justify-center ${processingId === req.id && isRelaying
                                 ? 'opacity-80 scale-[0.98]'
                                 : processingId !== null || isRelaying
-                                ? 'cursor-not-allowed'
-                                : 'hover:bg-blue-700 hover:-translate-y-0.5'
-                            }`}
+                                  ? 'cursor-not-allowed'
+                                  : 'hover:bg-blue-700 hover:-translate-y-0.5'
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               {processingId === req.id && isRelaying ? (
@@ -480,7 +475,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                   {isVerifier && !isComplete && !isVerified && !isRejected && (
                     <div className="flex flex-col gap-2 w-full min-w-[200px]">
                       {!hasProof ? (
-                        <div className="w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-400 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
+                        <div className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white/40 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
                           <Clock size={14} />
                           <span>Waiting for Supplier</span>
                           <span className="text-[8px] normal-case tracking-normal italic">Proof required to verify</span>
@@ -514,11 +509,10 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                       <button
                         onClick={() => handleFinalize(req.id)}
                         disabled={!canFinalize || processingId === req.id || isRelaying}
-                        className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2 ${
-                          canFinalize
+                        className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2 ${canFinalize
                             ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20 hover:-translate-y-1'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        }`}
+                            : 'bg-white/10 text-white/30 cursor-not-allowed'
+                          }`}
                       >
                         {processingId === req.id ? (
                           <><span className="animate-spin">🌀</span> {isRelaying ? 'AI Finalizing...' : 'Loading...'}</>
@@ -526,7 +520,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                           'Finalize & Pay'
                         )}
                       </button>
-                      
+
                       <div className="flex flex-col items-center md:items-end gap-1.5">
                         {!isVerified && !isRejected && (
                           <span className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1.5">
@@ -544,7 +538,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                           </span>
                         )}
                         {!canFinalize && (
-                          <div className="flex items-center gap-1.5 text-[10px] text-amber-500 font-bold uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                          <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold uppercase tracking-wider bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                             <AlertCircle size={12} />
                             Needs {Math.floor(Number(donorsCount) / 2 + 1)} votes
                           </div>
@@ -561,11 +555,11 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                   {/* === COMPLETED SECTION === */}
                   {isComplete && (
                     <div className="flex flex-col items-center md:items-end gap-2">
-                      <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-emerald-100">
+                      <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-emerald-500/20">
                         <CheckCircle2 size={18} />
                         Funds Released
                       </div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase">Transaction Confirmed</span>
+                      <span className="text-[9px] font-bold text-white/30 uppercase">Transaction Confirmed</span>
                     </div>
                   )}
                 </div>

@@ -202,7 +202,7 @@ const CreateCampaign = () => {
   return (
     <main
       style={{
-        background: 'linear-gradient(180deg, #0b1628 0%, #112044 10%, #1e3464 22%, #4a6fa5 35%, #8aaed4 46%, #c4d6f0 56%, #dde8f8 65%, #eef3fc 75%, #f6f9fe 88%, #ffffff 100%)',
+        background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)',
         minHeight: '100vh',
       }}
     >
@@ -273,18 +273,18 @@ const CreateCampaign = () => {
           {/* ═══ RIGHT: FORM CARD ═══ */}
           <div className="flex-1 min-w-0">
             <form onSubmit={handleSubmit}>
-              <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
+              <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-900/40 border border-white/10 overflow-hidden">
 
                 {/* ── Image Upload ── */}
-                <div className="p-8 border-b border-gray-100">
-                  <label className="block text-sm font-black text-gray-700 uppercase tracking-wider mb-4">
+                <div className="p-8 border-b border-white/10">
+                  <label className="block text-sm font-black text-white/80 uppercase tracking-wider mb-4">
                     Campaign Cover Image
                   </label>
 
                   {/* Upload zone — shows preview inline when image selected */}
                   <div
                     className={`relative border-2 border-dashed rounded-2xl overflow-hidden h-56 flex flex-col items-center justify-center gap-3 transition-all duration-200
-                      ${image ? 'border-blue-400 cursor-default' : isDragging ? 'border-blue-500 bg-blue-50/60 cursor-pointer' : 'border-white/60 hover:border-blue-400 hover:bg-white/40 cursor-pointer'}`}
+                      ${image ? 'border-blue-400/60 cursor-default' : isDragging ? 'border-blue-500 bg-blue-500/10 cursor-pointer' : 'border-white/20 hover:border-blue-400/60 hover:bg-white/5 cursor-pointer'}`}
                     onClick={() => !image && fileInputRef.current?.click()}
                     onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave}
                   >
@@ -306,14 +306,14 @@ const CreateCampaign = () => {
                     ) : (
                       /* ── Empty state ── */
                       <>
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isDragging ? 'bg-blue-100' : 'bg-white/40 backdrop-blur-sm'}`}>
-                          <ImagePlus size={26} className={isDragging ? 'text-blue-500' : 'text-gray-500'} />
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isDragging ? 'bg-blue-500/20' : 'bg-white/10'}`}>
+                          <ImagePlus size={26} className={isDragging ? 'text-blue-400' : 'text-white/40'} />
                         </div>
                         <div className="text-center pointer-events-none">
-                          <p className="font-bold text-gray-700 text-sm">
+                          <p className="font-bold text-white/70 text-sm">
                             {isDragging ? 'Drop your image here' : 'Drag & drop or click to upload'}
                           </p>
-                          <p className="text-gray-400 text-xs mt-1">PNG, JPG, WEBP up to 10MB</p>
+                          <p className="text-white/40 text-xs mt-1">PNG, JPG, WEBP up to 10MB</p>
                         </div>
                       </>
                     )}
@@ -323,11 +323,11 @@ const CreateCampaign = () => {
                   {image && (
                     <div className="mt-3 flex gap-2">
                       <button type="button" onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/60 hover:bg-white/80 border border-white/60 text-gray-700 font-bold rounded-xl text-sm backdrop-blur-sm transition-colors">
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 font-bold rounded-xl text-sm backdrop-blur-sm transition-colors">
                         <ImagePlus size={15} /> Choose Different Image
                       </button>
                       <button type="button" onClick={() => { setImage(null); setImageName(''); }}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-bold rounded-xl text-sm transition-colors">
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 font-bold rounded-xl text-sm transition-colors">
                         <X size={15} /> Remove
                       </button>
                     </div>
@@ -344,45 +344,45 @@ const CreateCampaign = () => {
 
                   {/* Campaign Name */}
                   <div>
-                    <label className="block text-sm font-black text-gray-700 uppercase tracking-wider mb-2">
+                    <label className="block text-sm font-black text-white/80 uppercase tracking-wider mb-2">
                       Campaign Name <span className="text-red-400">*</span>
                     </label>
                     <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
                       placeholder="e.g. Clean Water for Rural Communities" maxLength={80}
-                      className="w-full px-4 py-3.5 rounded-xl border border-white/60 text-gray-900 font-medium text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition bg-white/60 backdrop-blur-sm placeholder-gray-400" />
-                    <p className="text-xs text-gray-400 mt-1.5 text-right">{title.length}/80</p>
+                      className="w-full px-4 py-3.5 rounded-xl border border-white/20 text-white font-medium text-[15px] outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition bg-white/10 backdrop-blur-sm placeholder:text-white/30" />
+                    <p className="text-xs text-white/40 mt-1.5 text-right">{title.length}/80</p>
                   </div>
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-black text-gray-700 uppercase tracking-wider mb-2">
+                    <label className="block text-sm font-black text-white/80 uppercase tracking-wider mb-2">
                       Description <span className="text-red-400">*</span>
                     </label>
                     <textarea required value={description} onChange={(e) => setDescription(e.target.value)}
                       placeholder="Describe your campaign goals, how funds will be used, and who will benefit..."
                       rows={5} maxLength={1000}
-                      className="w-full px-4 py-3.5 rounded-xl border border-white/60 text-gray-900 font-medium text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition bg-white/60 backdrop-blur-sm placeholder-gray-400 resize-none" />
-                    <p className="text-xs text-gray-400 mt-1.5 text-right">{description.length}/1000</p>
+                      className="w-full px-4 py-3.5 rounded-xl border border-white/20 text-white font-medium text-[15px] outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition bg-white/10 backdrop-blur-sm placeholder:text-white/30 resize-none" />
+                    <p className="text-xs text-white/40 mt-1.5 text-right">{description.length}/1000</p>
                   </div>
 
                   {/* Category — full width */}
                   <div>
-                    <label className="block text-sm font-black text-gray-700 uppercase tracking-wider mb-2">
+                    <label className="block text-sm font-black text-white/80 uppercase tracking-wider mb-2">
                       Category <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
                       <select value={category} onChange={(e) => setCategory(Number(e.target.value))}
-                        className="w-full appearance-none px-4 pr-10 py-3.5 rounded-xl border border-white/60 text-gray-900 font-medium text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition bg-white/60 backdrop-blur-sm cursor-pointer">
-                        {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        className="w-full appearance-none px-4 pr-10 py-3.5 rounded-xl border border-white/20 text-white font-medium text-[15px] outline-none focus:border-blue-500/60 focus:ring-4 focus:ring-blue-500/10 transition bg-white/10 backdrop-blur-sm cursor-pointer">
+                        {CATEGORIES.map((c) => <option key={c.value} value={c.value} className="bg-[#1a1c23] text-white">{c.label}</option>)}
                       </select>
-                      <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
                     </div>
                   </div>
 
                   {/* On-chain notice */}
-                  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                    <Zap size={16} className="text-blue-500 mt-0.5 shrink-0" />
-                    <p className="text-blue-700 text-sm leading-relaxed">
+                  <div className="flex items-start gap-3 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
+                    <Zap size={16} className="text-blue-400 mt-0.5 shrink-0" />
+                    <p className="text-blue-300 text-sm leading-relaxed">
                       Notice: Submitting a request incurs a small anti-spam fee to ensure network security and project legitimacy.
                     </p>
                   </div>
@@ -397,7 +397,7 @@ const CreateCampaign = () => {
                     </button>
                   ) : (
                     <button type="submit" disabled={isSubmitting || !title.trim() || !description.trim()}
-                      className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-black rounded-2xl shadow-lg shadow-blue-600/20 disabled:shadow-none transition-all duration-200 hover:enabled:-translate-y-0.5 text-[16px] flex items-center justify-center gap-3">
+                      className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed text-white font-black rounded-2xl shadow-lg shadow-blue-600/20 disabled:shadow-none transition-all duration-200 hover:enabled:-translate-y-0.5 text-[16px] flex items-center justify-center gap-3">
                       {isSubmitting ? (
                         <><Loader2 size={20} className="animate-spin" /> Submitting Request...</>
                       ) : (

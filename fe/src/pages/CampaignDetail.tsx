@@ -39,10 +39,13 @@ const CampaignDetail: React.FC = () => {
 
   if (isResolving || (isLoading && !summary)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-500 font-bold animate-pulse tracking-widest text-xs uppercase">SYNCING WITH BLOCKCHAIN...</p>
+          <div className="w-12 h-12 border-4 border-blue-500/40 border-t-blue-400 rounded-full animate-spin"></div>
+          <p className="text-white/50 font-bold animate-pulse tracking-widest text-xs uppercase">SYNCING WITH BLOCKCHAIN...</p>
         </div>
       </div>
     );
@@ -50,18 +53,24 @@ const CampaignDetail: React.FC = () => {
 
   if (resolutionError || (!isResolving && !address) || (!isLoading && !summary) || !summary || !address) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
         <div className="text-center space-y-4">
-          <div className="text-red-500 text-7xl font-black">404</div>
-          <p className="text-gray-600 font-bold">{resolutionError || 'Campaign Not Found'}</p>
-          <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-gray-200 rounded-xl font-bold hover:bg-gray-300 transition">Go to Home</button>
+          <div className="text-red-400 text-7xl font-black">404</div>
+          <p className="text-white/70 font-bold">{resolutionError || 'Campaign Not Found'}</p>
+          <button onClick={() => window.location.href = '/'} className="px-6 py-2 bg-white/10 border border-white/20 backdrop-blur-sm text-white rounded-xl font-bold hover:bg-white/20 transition">Go to Home</button>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] py-20 px-6 lg:px-12">
+    <main
+      className="min-h-screen py-20 px-6 lg:px-12"
+      style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+    >
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Manager Dashboard Section */}
         {isManager && (
@@ -91,7 +100,7 @@ const CampaignDetail: React.FC = () => {
 
         {/* Manager Financial Status */}
         {isManager && summary && (
-          <ManagerFinancialCard 
+          <ManagerFinancialCard
             totalBalance={summary.balance}
             availableFunds={summary.availableFunds}
             lockedFunds={summary.lockedFunds}
@@ -114,10 +123,10 @@ const CampaignDetail: React.FC = () => {
         />
 
         {/* Campaign Description Section */}
-        <div className="bg-white/70 backdrop-blur-3xl rounded-[2.5rem] p-10 shadow-xl border border-white/50">
-          <h2 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">About this Campaign</h2>
+        <div className="bg-gradient-to-tr from-slate-900 via-indigo-950/60 to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-900/30 border border-indigo-500/20">
+          <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4">About this Campaign</h2>
           <div className="prose prose-slate max-w-none">
-            <p className="text-gray-600 text-[18px] leading-relaxed font-medium whitespace-pre-wrap">
+            <p className="text-white/80 text-[18px] leading-relaxed font-medium whitespace-pre-wrap">
               {summary.description}
             </p>
           </div>
@@ -132,7 +141,7 @@ const CampaignDetail: React.FC = () => {
           donorsCount={summary.donorsCount}
         />
 
-        <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-white/50">
+        <div className="bg-gradient-to-bl from-slate-900 via-[#0a2030] to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-cyan-900/20 border border-cyan-500/15">
           <DonorsTable
             address={address || undefined}
             refreshTrigger={refreshKey}

@@ -140,10 +140,10 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
 
   return (
     <>
-      <div className="relative bg-white/70 backdrop-blur-3xl rounded-[2.5rem] shadow-xl border border-white/50 overflow-hidden mb-12">
+      <div className="relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-blue-900/40 border border-white/10 overflow-hidden mb-12">
         {/* Decorative Gradient Blobs */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/15 rounded-full blur-[100px] -translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-80 h-50 bg-blue-500/15 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-50 bg-indigo-500/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row items-center lg:items-stretch relative z-10">
 
@@ -151,7 +151,7 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
           <div className="w-full lg:w-[45%] p-8 lg:pr-4">
             <div className="relative h-[300px] lg:h-full rounded-[2rem] overflow-hidden shadow-2xl group bg-gray-100">
               {!imageLoaded && (
-                <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 z-10" />
+                <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5 z-10" />
               )}
               <img
                 src={campaignImage}
@@ -182,12 +182,12 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
           {/* RIGHT: CONTENT SECTION */}
           <div className="w-full lg:w-[55%] p-8 lg:pl-6 flex flex-col justify-between">
             <div className="space-y-6">
-              <div className="flex items-center gap-2 text-blue-500">
+              <div className="flex items-center gap-2 text-blue-400">
                 <Zap size={16} />
                 <span className="text-xs font-black uppercase tracking-[0.2em]">Empowered by FundChain</span>
               </div>
 
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
+              <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight tracking-tight">
                 {title}
               </h1>
 
@@ -195,7 +195,7 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
 
             <div className="space-y-6">
               {!isManager ? (
-                <div className="flex flex-col gap-2 pt-6 border-t border-gray-100">
+                <div className="flex flex-col gap-2 pt-6 border-t border-white/10">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 relative">
                       <input
@@ -203,14 +203,14 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
                         placeholder="Amount (ETH)"
                         value={donateAmount}
                         onChange={(e) => setDonateAmount(e.target.value)}
-                        className={`w-full h-14 pl-12 pr-4 bg-white border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-slate-200 focus:ring-indigo-500/10 focus:border-indigo-500'} rounded-2xl text-xl font-black text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all shadow-inner`}
+                        className={`w-full h-14 pl-12 pr-4 bg-white/10 border ${isAmountTooLow ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-white/20 focus:ring-blue-500/10 focus:border-blue-500/60'} rounded-2xl text-xl font-black text-white placeholder:text-white/40 focus:outline-none transition-all`}
                       />
-                      <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-500' : 'text-slate-600'}`} size={20} />
+                      <EthIcon className={`absolute left-4 top-1/2 -translate-y-1/2 ${isAmountTooLow ? 'text-red-400' : 'text-white/60'}`} size={20} />
                     </div>
                     <button
                       onClick={handleDonate}
                       disabled={isPending || !donateAmount || isAmountTooLow}
-                      className={`px-10 h-14 ${isAmountTooLow ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/10'} disabled:bg-gray-200 text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group`}
+                      className={`px-10 h-14 ${isAmountTooLow ? 'bg-gray-600 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-600/30'} disabled:bg-white/10 disabled:text-white/30 text-white font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group`}
                     >
                       {isPending ? 'Processing...' : (
                         isAmountTooLow ? (
@@ -224,33 +224,33 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
                       )}
                     </button>
                   </div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-500 animate-pulse' : 'text-slate-500'}`}>
+                  <p className={`text-[10px] font-black uppercase tracking-widest pl-2 transition-colors ${isAmountTooLow ? 'text-red-400 animate-pulse' : 'text-white/50'}`}>
                     {isAmountTooLow ? 'Below requirements' : `Min contribution: ${minimumContribution} ETH`}
                   </p>
                 </div>
               ) : (
-                <div className="pt-6 border-t border-gray-100">
-                  <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex flex-col gap-3">
-                    <div className="flex items-center gap-3 text-blue-600">
+                <div className="pt-6 border-t border-white/10">
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6 flex flex-col gap-3">
+                    <div className="flex items-center gap-3 text-blue-400">
                       <ShieldCheck size={24} strokeWidth={3} />
                       <span className="text-sm font-black uppercase tracking-widest">Management Mode</span>
                     </div>
-                    <p className="text-blue-800/70 text-sm font-medium leading-relaxed">
+                    <p className="text-blue-200/70 text-sm font-medium leading-relaxed">
                       You are the manager of this campaign. For security and transparency, <strong>self-donations are restricted</strong> by the protocol. Please use the dashboard below to manage your funds.
                     </p>
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+              <div className="flex items-center justify-between pt-2 border-t border-white/10">
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Share this</span>
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Share this</span>
                   <div className="flex gap-3">
                     {shareLinks.map((link, i) => (
                       <button
                         key={i}
                         title={link.label}
-                        className={`w-9 h-9 flex items-center justify-center text-gray-400 ${link.color} transition-colors`}
+                        className={`w-9 h-9 flex items-center justify-center text-white/40 ${link.color} transition-colors`}
                       >
                         {link.icon}
                       </button>
@@ -258,7 +258,7 @@ const CampaignHero: React.FC<CampaignHeroProps> = ({
                   </div>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-400">
+                <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-white/30">
                   <Globe size={14} />
                   Global Impact
                 </div>
