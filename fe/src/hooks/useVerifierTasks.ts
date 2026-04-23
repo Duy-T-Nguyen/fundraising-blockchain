@@ -55,6 +55,9 @@ export const useVerifierTasks = (address: `0x${string}` | undefined) => {
             args: [BigInt(i)]
           }) as any;
 
+          // Log raw struct for index debugging
+          console.log(`[VerifierDebug] Campaign ${campaignAddr} | Req #${i} raw:`, request);
+
           // Correct struct indices (verified against Campaign.sol):
           // [0]=metadataCID, [1]=proofCID, [2]=rejectionReasonCID,
           // [3]=value, [4]=totalApprovalWeight, [5]=snapshotTotalFunds,
@@ -62,64 +65,53 @@ export const useVerifierTasks = (address: `0x${string}` | undefined) => {
           // [8]=lastValidatorSelection, [9]=currentMilestone, [10]=createdAt,
           // [11]=recipient, [12]=requestType, [13]=status, [14]=verifyStatus, [15]=verifier
           
-          const verifierAddr  = request[15] as string;
-          const proofCID      = request[1]  as string;
-          const isVerified    = !!request[14]; // verifyStatus == true
-          const requestType   = Number(request[12]); // 0=SINGLE, 1=MULTI
+          const verifierAddr  = (request[15] as string) || '';
+          const proofCID      = (request[1] as string)  || '';
+          const isVerified    = !!request[14];
+          const requestType   = Number(request[12]);
 
-          // 🔍 DEBUG: log every request to verify data
-          console.log(`[VerifierDebug] Campaign ${campaignAddr} | Req #${i}:`, {
-            verifierAddr,
-            proofCID: proofCID || '(empty)',
-            isVerified,
-            myAddress: address,
-            isMatch: verifierAddr?.toLowerCase() === address.toLowerCase(),
-          });
+          console.log(`[VerifierDebug] Req #${i}: verifierAddr=${verifierAddr} | myAddress=${address} | match=${verifierAddr.toLowerCase() === address.toLowerCase()} | proofCID=${proofCID || '(empty)'}`);
 
-          const selectedValidators = await publicClient.readContract({
-            address: campaignAddr,
-            abi: ABIS.CAMPAIGN,
-            functionName: 'getSelectedValidators',
-            args: [BigInt(i)]
-          }) as `0x${string}`[];
+          // ✅ STRICT FILTER: Only show if this wallet IS the designated verifier
+          const isExpert = verifierAddr.toLowerCase() === address.toLowerCase();
 
-          const isExpert    = verifierAddr?.toLowerCase() === address.toLowerCase();
-          const isValidator = selectedValidators.some(v => v.toLowerCase() === address.toLowerCase());
-
-          console.log(`[VerifierDebug] Req #${i} → isExpert: ${isExpert}, isValidator: ${isValidator}, hasProof: ${!!proofCID}`);
-
-          // For Expert tasks: only show when proof has been submitted (supplier did their job)
-          if (isExpert && !proofCID) {
-            console.log(`[VerifierDebug] Req #${i} → Skipping (no proof yet)`);
+          if (!isExpert) {
+            console.log(`[VerifierDebug] Req #${i} → SKIP: not the designated verifier`);
             continue;
           }
 
-          if (isExpert || isValidator) {
-            // Resolve metadataCID → human-readable title
-            const rawCID = request[0] as string;
-            let description = `Request #${i}`;
-            try {
-              const metadata = await fetchIPFSJSON(rawCID);
-              if (metadata?.title) description = metadata.title;
-              else if (metadata?.name) description = metadata.name;
-              else if (metadata?.description) description = metadata.description.split('\n')[0].slice(0, 80);
-            } catch { /* keep fallback */ }
-
-            allTasks.push({
-              id: `${campaignAddr}-${i}`,
-              campaignAddress: campaignAddr,
-              campaignName: name,
-              requestIndex: i,
-              description,
-              value: formatEther(request[3]),
-              recipient: request[11],
-              evidenceHash: proofCID,
-              type: isExpert ? 'EXPERT_SIGNATURE' : 'COMMUNITY_VOTE',
-              status: isVerified ? 'COMPLETED' : 'PENDING',
-              isMultiStage: requestType === 1,
-              milestoneIndex: requestType === 1 ? Number(request[9]) : undefined
-            });
+          // ✅ Only show to verifier after supplier has submitted proof
+          if (!proofCID) {
+            console.log(`[VerifierDebug] Req #${i} → SKIP: verifier matched but no proof yet`);
+            continue;
           }
+
+          console.log(`[VerifierDebug] Req #${i} → SHOW to verifier ✅`);
+
+          // Resolve metadataCID → human-readable title
+          const rawCID = request[0] as string;
+          let description = `Request #${i}`;
+          try {
+            const metadata = await fetchIPFSJSON(rawCID);
+            if (metadata?.title) description = metadata.title;
+            else if (metadata?.name) description = metadata.name;
+            else if (metadata?.description) description = metadata.description.split('\n')[0].slice(0, 80);
+          } catch { /* keep fallback */ }
+
+          allTasks.push({
+            id: `${campaignAddr}-${i}`,
+            campaignAddress: campaignAddr,
+            campaignName: name,
+            requestIndex: i,
+            description,
+            value: formatEther(request[3]),
+            recipient: request[11],
+            evidenceHash: proofCID,
+            type: 'EXPERT_SIGNATURE',
+            status: isVerified ? 'COMPLETED' : 'PENDING',
+            isMultiStage: requestType === 1,
+            milestoneIndex: requestType === 1 ? Number(request[9]) : undefined
+          });
         }
       }
 

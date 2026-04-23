@@ -10,7 +10,7 @@ import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
-  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+  const { pendingRequests, managedDonations, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
 
   // Filter campaigns where user is the manager
   const managedCampaigns = campaigns.filter(
@@ -18,6 +18,56 @@ const CreatorDashboard: React.FC = () => {
   );
 
   const isLoading = campaignsLoading || requestsLoading;
+
+  // Process chart data
+  const getChartData = () => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(now.getDate() - (6 - i));
+      return {
+        label: days[d.getDay()],
+        dateStr: d.toDateString(),
+        amount: 0
+      };
+    });
+
+    const projectTotals: Record<string, number> = {};
+
+    managedDonations.forEach(don => {
+      const donDate = new Date(Number(don.timestamp) * 1000).toDateString();
+      const dayIndex = last7Days.findIndex(d => d.dateStr === donDate);
+      if (dayIndex !== -1) {
+        last7Days[dayIndex].amount += parseFloat(don.amount);
+      }
+      
+      // Track per-project totals for the last 7 days
+      const isWithin7Days = last7Days.some(d => d.dateStr === donDate);
+      if (isWithin7Days) {
+        const addr = don.targetAddress.toLowerCase();
+        projectTotals[addr] = (projectTotals[addr] || 0) + parseFloat(don.amount);
+      }
+    });
+
+    return { last7Days, projectTotals };
+  };
+
+  const { last7Days: chartData, projectTotals } = getChartData();
+  const totalVolume = chartData.reduce((acc, d) => acc + d.amount, 0);
+  const maxAmount = Math.max(...chartData.map(d => d.amount), 0.01) * 1.2;
+
+  // Map project totals to campaign names for display
+  const breakdownItems = Object.entries(projectTotals)
+    .map(([addr, amount]) => {
+      const campaign = managedCampaigns.find(c => c.address.toLowerCase() === addr);
+      return {
+        name: campaign?.title || 'Unknown Project',
+        amount,
+        percentage: totalVolume > 0 ? (amount / totalVolume) * 100 : 0
+      };
+    })
+    .sort((a, b) => b.amount - a.amount);
 
   // Fallback images for premium look while real IPFS images are not available
   const getPlaceholderImage = (ca: string) => {
@@ -185,18 +235,18 @@ const CreatorDashboard: React.FC = () => {
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {managedCampaigns.map((camp) => (
                     <div key={camp.address} className="rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-white/10 hover:border-blue-500/50 backdrop-blur-sm transition-all duration-300 group/card hover:shadow-xl hover:shadow-blue-500/10 overflow-hidden flex flex-col no-underline">
                       {/* Image Top Section */}
                       <div className="relative h-48 overflow-hidden bg-white/5">
                         <img
                           src={getCampaignImage(camp)}
-                          alt={camp.name}
+                          alt={camp.title}
                           className="w-full h-full object-cover grayscale-[0.2] group-hover/card:scale-110 group-hover/card:grayscale-0 transition-all duration-700"
                         />
-                        <div className="absolute top-6 left-6">
-                          <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${camp.active ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-slate-300'}`}>
+                        <div className="absolute top-4 left-4">
+                          <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg ${camp.active ? 'bg-emerald-500/90 text-white' : 'bg-slate-800/90 text-slate-300'}`}>
                             {camp.active ? '● Active' : '○ Inactive'}
                           </div>
                         </div>
@@ -204,7 +254,7 @@ const CreatorDashboard: React.FC = () => {
                           to={`/campaign/${camp.address}`}
                           className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-blue-600 transition-all shadow-lg"
                         >
-                          <ExternalLink size={18} />
+                          <ExternalLink size={16} />
                         </Link>
                       </div>
 
@@ -218,7 +268,6 @@ const CreatorDashboard: React.FC = () => {
                               <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Balance</p>
                               <p className="text-lg font-black text-emerald-400">{camp.balance} ETH</p>
                             </div>
-                            <div className="text-right text-transparent">Action</div>
                           </div>
 
                           <div className="flex justify-between items-center py-4 border-t border-white/10">
@@ -234,8 +283,8 @@ const CreatorDashboard: React.FC = () => {
                             to={`/campaign/${camp.address}`}
                             className="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-600/20 group-hover/card:shadow-blue-600/30 text-center"
                           >
-                            <Settings size={18} />
-                            Manage Project
+                            <Settings size={16} />
+                            Manage
                           </Link>
                         </div>
                       </div>

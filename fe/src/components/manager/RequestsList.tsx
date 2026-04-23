@@ -14,14 +14,17 @@ import {
   Image as ImageIcon,
   Clock,
   XCircle,
-  Eye,
   Camera,
+  RefreshCw,
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
+import { Link } from 'react-router-dom';
 import { encodeFunctionData, formatEther } from 'viem';
 import { publicClient, getWalletClient } from '../../blockchain/client';
 import { useRelayer } from '../../hooks/useRelayer';
 import { useSupplierEvidence } from '../../hooks/useSupplierEvidence';
+
+import { useNotification } from '../../context/NotificationContext';
 
 interface RequestsListProps {
   address: string;
@@ -35,14 +38,16 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   const { address: userAddress, isConnected, connect } = useWallet();
   const { requests, votedRequestIds, pendingRequestIds, pendingCreations, isLoading, refresh } = useRequests(address, userAddress || undefined);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [localPendingVoteIds, setLocalPendingVoteIds] = useState<Set<number>>(new Set());
   const { executeGasless, isRelaying } = useRelayer();
-  const {
-    uploadingTaskId,
-    uploadedEvidences,
-    fileInputRef,
-    startUpload,
-    handleFileChange,
-    openIPFS
+  const toast = useNotification();
+  const { 
+    uploadingTaskId, 
+    uploadedEvidences, 
+    fileInputRef, 
+    startUpload, 
+    handleFileChange, 
+    openIPFS 
   } = useSupplierEvidence(userAddress || undefined, isConnected, connect);
 
   // --- Verification Handlers ---
@@ -105,30 +110,76 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     }
   };
 
-  // --- AI Approve (Gasless, queued) ---
+  // --- AI Vote (Gasless, queued) ---
   const handleApprove = async (index: number) => {
     if (!userAddress) return;
     setProcessingId(index);
     try {
+      toast.info(`Initiating AI Vote for request #${index}...`);
+      
       const data = encodeFunctionData({
         abi: ABIS.CAMPAIGN,
         functionName: 'approveRequest',
         args: [BigInt(index)],
       });
-      await executeGasless(address, data);
+      
+      const result = await executeGasless(address, data);
+      toast.success('Vote submitted to AI Relayer! It will appear on-chain shortly.');
+      
+      // Update local state for immediate feedback
+      setLocalPendingVoteIds(prev => new Set(prev).add(index));
+      
       refresh();
-    } catch (err) {
-      console.error('AI Approval failed:', err);
+    } catch (err: any) {
+      console.error('[AI Vote] Failed:', err);
+      if (err.message?.includes('User rejected')) {
+        toast.warning('Voting signature denied.');
+      } else {
+        toast.error(err.message || 'AI Relayer failed. Please try Direct Vote.');
+      }
     } finally {
       setProcessingId(null);
     }
   };
 
   // --- Direct Approve (Self-paid gas) ---
+  const handleApproveAsValidator = async (index: number) => {
+    if (!window.ethereum) return;
+    setProcessingId(index);
+    try {
+      const walletClient = getWalletClient();
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
+      const userAccount = accounts[0];
+
+      if (!walletClient || !userAccount) throw new Error('Wallet not connected');
+
+      const { request } = await publicClient.simulateContract({
+        account: userAccount as `0x${string}`,
+        address: address as `0x${string}`,
+        abi: ABIS.CAMPAIGN,
+        functionName: 'approveAsValidator',
+        args: [BigInt(index)],
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast.info('Validation signature sent. Waiting for block confirmation...');
+      
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Validation successful! You have approved this request as an inspector.');
+      refresh();
+    } catch (err: any) {
+      console.error('Validation failed:', err);
+      toast.error(err.message || 'Failed to approve as validator');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleApproveDirect = async (index: number) => {
     if (!userAddress) return;
     setProcessingId(index);
     try {
+      toast.info('Opening MetaMask for direct vote...');
       const walletClient = getWalletClient();
       if (!walletClient) throw new Error('Wallet not found');
 
@@ -141,10 +192,17 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
       });
 
       const hash = await walletClient.writeContract(request);
+      toast.success('Transaction sent! Waiting for block confirmation...');
       await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Vote recorded on-chain!');
       refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Direct Approval failed:', err);
+      if (err.message?.includes('User rejected')) {
+        toast.warning('Transaction cancelled by user.');
+      } else {
+        toast.error(err.shortMessage || err.message || 'Direct Vote failed.');
+      }
     } finally {
       setProcessingId(null);
     }
@@ -209,8 +267,8 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
       </div>
 
       {/* Pending Creations Cards */}
-      {pendingCreations.map((pending, pIdx) => (
-        <div
+      {pendingCreations.map((pIdx) => (
+        <div 
           key={`pending-cre-${pIdx}`}
           className="bg-gradient-to-br from-indigo-900/60 to-slate-900/80 rounded-[2.5rem] p-8 shadow-xl border border-indigo-500/20 animate-pulse"
         >
@@ -246,11 +304,14 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
           const isComplete = req.complete;
           const isVerified = req.verifyStatus === 1; // APPROVED
           const isRejected = req.verifyStatus === 2; // REJECTED
-          const canFinalize = currentAmount > targetAmount && isVerified;
-
+          const isValidatorSelected = req.selectedValidators?.some(v => v.toLowerCase() === userAddress?.toLowerCase());
+          const validatorApproved = req.selectedValidators.length > 0 && req.validatorApprovalCount >= 2;
+          const communityApproved = currentAmount > targetAmount;
+          const canFinalize = (validatorApproved || communityApproved) && isVerified;
+          
           const isEligible = userDonorId > BigInt(0) && userDonorId <= req.snapshotDonorCount;
           const isVoted = votedRequestIds.has(req.id);
-          const isPending = pendingRequestIds.has(req.id);
+          const isPending = pendingRequestIds.has(req.id) || localPendingVoteIds.has(req.id);
 
           const isSupplier = userAddress?.toLowerCase() === req.recipient.toLowerCase();
           const isVerifier = userAddress?.toLowerCase() === req.verifier.toLowerCase();
@@ -265,34 +326,61 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
               className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/30 border border-white/10 hover:border-white/20 transition-shadow group relative overflow-hidden"
             >
               {/* Status Banner */}
-              <div className={`-mx-8 -mt-8 mb-6 px-8 py-4 flex items-center justify-between border-b transition-colors ${isComplete ? 'bg-emerald-500/10 border-emerald-500/20' :
-                  isRejected ? 'bg-rose-500/10 border-rose-500/20' :
-                    isVerified ? 'bg-blue-500/10 border-blue-500/20' :
-                      hasProof ? 'bg-amber-500/10 border-amber-500/20' :
-                        'bg-white/5 border-white/10'
-                }`}>
+              <div className={`-mx-8 -mt-8 mb-6 px-8 py-4 flex items-center justify-between border-b transition-colors shadow-sm ${
+                isComplete ? 'bg-emerald-50/50 border-emerald-100' :
+                isRejected ? 'bg-rose-50/50 border-rose-100' :
+                isVerified ? 'bg-blue-50/50 border-blue-100' :
+                hasProof ? 'bg-amber-50/50 border-amber-100' :
+                (validatorApproved || communityApproved) ? 'bg-indigo-50/50 border-indigo-100' :
+                'bg-slate-50/50 border-slate-100'
+              }`}>
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isComplete ? 'bg-emerald-500' :
-                      isRejected ? 'bg-rose-500' :
-                        isVerified ? 'bg-blue-500' :
-                          hasProof ? 'bg-amber-500' :
-                            'bg-white/30'
-                    }`} />
-                  <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${isComplete ? 'text-emerald-400' :
-                      isRejected ? 'text-rose-400' :
-                        isVerified ? 'text-blue-400' :
-                          hasProof ? 'text-amber-400' :
-                            'text-white/50'
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-inner ${
+                    isComplete ? 'bg-emerald-100 text-emerald-600' :
+                    isRejected ? 'bg-rose-100 text-rose-600' :
+                    isVerified ? 'bg-blue-100 text-blue-600' :
+                    hasProof ? 'bg-amber-100 text-amber-600' :
+                    (validatorApproved || communityApproved) ? 'bg-indigo-100 text-indigo-600' :
+                    'bg-slate-100 text-slate-400'
+                  }`}>
+                    {isComplete ? <CheckCircle2 size={20} /> : 
+                     isRejected ? <XCircle size={20} /> :
+                     isVerified ? <Zap size={20} /> :
+                     hasProof ? <ShieldCheck size={20} /> :
+                     (validatorApproved || communityApproved) ? <Users size={20} /> :
+                     <RefreshCw size={20} className="animate-spin-slow" />}
+                  </div>
+                  <div>
+                    <h4 className={`text-xs font-black uppercase tracking-widest ${
+                      isComplete ? 'text-emerald-700' :
+                      isRejected ? 'text-rose-700' :
+                      isVerified ? 'text-blue-700' :
+                      hasProof ? 'text-amber-700' :
+                      (validatorApproved || communityApproved) ? 'text-indigo-700' :
+                      'text-slate-500'
                     }`}>
-                    {isComplete ? 'Funds Successfully Released' :
-                      isRejected ? 'Request Rejected by Verifier' :
-                        isVerified ? 'Verified & Ready for Manager' :
-                          hasProof ? 'Evidence Submitted - Awaiting Review' :
-                            'Action Required: Waiting for Evidence'}
-                  </span>
+                      {isComplete ? 'Execution Complete' : 
+                       isRejected ? 'Request Rejected' :
+                       isVerified ? 'Verification Passed' :
+                       hasProof ? 'Proof Pending Review' :
+                       (validatorApproved || communityApproved) ? 'Governance Approved' :
+                       'Voting in Progress'}
+                    </h4>
+                    {req.selectedValidators.length > 0 && !isComplete && !isRejected && (
+                      <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">
+                        Inspector Path: <span className={req.validatorApprovalCount >= 2 ? "text-emerald-500" : "text-amber-500"}>{req.validatorApprovalCount}/3 Approved</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
+
                 <div className="flex items-center gap-4">
-                  <span className="text-[10px] font-black text-white/30 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                  {isSupplier && (
+                    <Link to="/supplier" className="text-[9px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100 transition-colors">
+                      Open Task Queue
+                    </Link>
+                  )}
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-slate-100">
                     ID: #{req.id}
                   </span>
                 </div>
@@ -342,32 +430,33 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                 </div>
 
                 {/* Right: Action Area */}
-                <div className="flex flex-col items-stretch md:items-end justify-end min-w-[200px] gap-4 pt-4 md:pt-0 mt-6 md:mt-0">
-                  {/* === DONOR SECTION === */}
-                  {!isManager && !isSupplier && !isVerifier && !isComplete && (
+                <div className="flex flex-col items-stretch md:items-end justify-end min-w-[220px] gap-4 pt-4 md:pt-0 mt-6 md:mt-0">
+                  
+                  {/* === VOTING SECTION (For everyone EXCEPT Manager, if they donated) === */}
+                  {!isManager && !isComplete && !isRejected && (
                     <div className="flex flex-col gap-3 w-full">
-                      {/* Already voted on-chain */}
+                      {/* 1. Already voted on-chain */}
                       {isVoted && (
-                        <div className="w-full flex items-center justify-center gap-2 text-blue-400 bg-blue-500/10 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-blue-500/20">
+                        <div className="w-full flex items-center justify-center gap-2 text-blue-600 bg-blue-50 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-blue-100 animate-in fade-in duration-500">
                           <CheckCircle2 size={16} />
-                          Approved
+                          Voted (Confirmed)
                         </div>
                       )}
 
-                      {/* Pending in AI queue */}
+                      {/* 2. Pending in AI queue (This should hide buttons) */}
                       {!isVoted && isPending && (
-                        <div className="w-full h-[116px] px-4 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl font-black uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-2">
+                        <div className="w-full h-[116px] px-4 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-xl font-black uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-2 shadow-sm animate-pulse">
                           <div className="flex items-center gap-2">
-                            <span className="animate-spin text-lg">🌀</span>
+                            <span className="text-lg">🕒</span>
                             <span>Pending AI Execution</span>
                           </div>
-                          <span className="text-[8px] normal-case tracking-normal font-medium text-indigo-300/60">
-                            Your intent is queued for optimal gas
+                          <span className="text-[8px] normal-case tracking-normal font-medium text-indigo-400">
+                            Your vote is safely queued in the AI Relayer
                           </span>
                         </div>
                       )}
 
-                      {/* Not eligible */}
+                      {/* 3. Not eligible (Hasn't donated or joined late) */}
                       {!isVoted && !isPending && !isEligible && (
                         <div className="w-full px-4 py-3 bg-white/5 border-2 border-dashed border-white/10 text-white/40 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
                           <span className="text-white/50">Not Eligible</span>
@@ -379,187 +468,154 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                         </div>
                       )}
 
-                      {/* Eligible — show both approve buttons */}
-                      {!isVoted && !isPending && isEligible && (
+                      {/* 4. Eligible — Show vote buttons (Hidden if Pending or Voted) */}
+                      {!isVoted && !isPending && (isEligible || isValidatorSelected) && (
                         <>
-                          <button
-                            onClick={() => handleApproveDirect(req.id)}
-                            disabled={processingId !== null || isRelaying}
-                            className={`w-full h-[52px] px-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md flex flex-col items-center justify-center ${processingId === req.id && !isRelaying
-                                ? 'opacity-80 scale-[0.98]'
-                                : processingId !== null || isRelaying
-                                  ? 'cursor-not-allowed'
-                                  : 'hover:bg-gray-800 hover:-translate-y-0.5'
-                              }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {processingId === req.id && !isRelaying ? (
-                                <><span className="animate-spin">🌀</span> Processing...</>
-                              ) : (
-                                <><Zap size={14} className="text-amber-400" /> Direct Approve</>
-                              )}
-                            </div>
-                            {!(processingId === req.id && !isRelaying) && (
-                              <span className="text-[8px] text-gray-400 normal-case tracking-normal font-medium mt-0.5">Self-paid Gas (Fast)</span>
-                            )}
-                          </button>
-
-                          <button
-                            onClick={() => handleApprove(req.id)}
-                            disabled={processingId !== null || isRelaying}
-                            className={`w-full h-[52px] px-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md shadow-blue-600/20 flex flex-col items-center justify-center ${processingId === req.id && isRelaying
-                                ? 'opacity-80 scale-[0.98]'
-                                : processingId !== null || isRelaying
-                                  ? 'cursor-not-allowed'
-                                  : 'hover:bg-blue-700 hover:-translate-y-0.5'
-                              }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {processingId === req.id && isRelaying ? (
-                                <><span className="animate-spin">🌀</span> AI Optimizing...</>
-                              ) : (
-                                <><ShieldCheck size={14} className="text-emerald-300" /> AI Approve</>
-                              )}
-                            </div>
-                            {!(processingId === req.id && isRelaying) && (
-                              <span className="text-[8px] text-blue-200 normal-case tracking-normal font-medium mt-0.5">Free Gas (Delayed)</span>
-                            )}
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* === SUPPLIER SECTION === */}
-                  {isSupplier && !isComplete && !isRejected && (
-                    <div className="flex flex-col gap-2 w-full min-w-[200px]">
-                      {!hasProof ? (
-                        <>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            onChange={(e) => handleFileChange(e)}
-                          />
-                          {localProof ? (
+                          {isValidatorSelected ? (
                             <button
-                              onClick={() => handleSubmitProof(req.id, `ipfs://${localProof}`)}
-                              disabled={processingId === req.id || isRelaying}
-                              className="w-full h-[52px] bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+                              onClick={() => handleApproveAsValidator(req.id)}
+                              disabled={processingId !== null}
+                              className="w-full h-[52px] px-4 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-700 transition-all shadow-md flex items-center justify-center gap-2"
                             >
-                              {processingId === req.id ? <span className="animate-spin">🌀</span> : <CheckCircle2 size={14} />}
-                              Submit Proof to Chain
+                              <ShieldCheck size={14} />
+                              Validate as Inspector
                             </button>
                           ) : (
-                            <button
-                              onClick={() => startUpload(address, req.id)}
-                              disabled={uploadingTaskId === taskKey}
-                              className="w-full h-[52px] bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
-                            >
-                              {uploadingTaskId === taskKey ? <span className="animate-spin">🌀</span> : <Camera size={14} />}
-                              {uploadingTaskId === taskKey ? 'Uploading...' : 'Upload Proof (Image)'}
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleApproveDirect(req.id)}
+                                disabled={processingId !== null || isRelaying}
+                                className={`w-full h-[52px] px-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md flex flex-col items-center justify-center ${
+                                  processingId === req.id && !isRelaying
+                                    ? 'opacity-80 scale-[0.98]'
+                                    : processingId !== null || isRelaying
+                                    ? 'cursor-not-allowed'
+                                    : 'hover:bg-gray-800 hover:-translate-y-0.5'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {processingId === req.id && !isRelaying ? (
+                                    <><span className="animate-spin">🌀</span> Processing...</>
+                                  ) : (
+                                    <><Zap size={14} className="text-amber-400" /> Direct Vote</>
+                                  )}
+                                </div>
+                                <span className="text-[8px] text-gray-400 normal-case tracking-normal font-medium mt-0.5">Self-paid Gas (Fast)</span>
+                              </button>
+
+                              <button
+                                onClick={() => handleApprove(req.id)}
+                                disabled={processingId !== null || isRelaying}
+                                className={`w-full h-[52px] px-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-md shadow-blue-600/20 flex flex-col items-center justify-center ${
+                                  processingId === req.id && isRelaying
+                                    ? 'opacity-80 scale-[0.98]'
+                                    : processingId !== null || isRelaying
+                                    ? 'cursor-not-allowed'
+                                    : 'hover:bg-blue-700 hover:-translate-y-0.5'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {processingId === req.id && isRelaying ? (
+                                    <><span className="animate-spin">🌀</span> AI Optimizing...</>
+                                  ) : (
+                                    <><ShieldCheck size={14} className="text-emerald-300" /> AI Vote</>
+                                  )}
+                                </div>
+                                <span className="text-[8px] text-blue-200 normal-case tracking-normal font-medium mt-0.5">Free Gas (Delayed)</span>
+                              </button>
+                            </>
                           )}
                         </>
-                      ) : (
-                        <div className="w-full px-4 py-3 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
-                          <CheckCircle2 size={14} />
-                          <span>Proof Submitted</span>
-                          <span className="text-[8px] normal-case tracking-normal">Awaiting verification</span>
-                        </div>
                       )}
                     </div>
                   )}
 
-                  {/* === VERIFIER SECTION === */}
-                  {isVerifier && !isComplete && !isVerified && !isRejected && (
-                    <div className="flex flex-col gap-2 w-full min-w-[200px]">
-                      {!hasProof ? (
-                        <div className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white/40 rounded-xl font-bold uppercase tracking-widest text-[10px] text-center flex flex-col items-center justify-center gap-1">
-                          <Clock size={14} />
-                          <span>Waiting for Supplier</span>
-                          <span className="text-[8px] normal-case tracking-normal italic">Proof required to verify</span>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2 w-full">
-                          <button
-                            onClick={() => handleVerify(req.id)}
-                            disabled={processingId === req.id || isRelaying}
-                            className="flex-1 h-[52px] bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            {processingId === req.id ? <span className="animate-spin">🌀</span> : <ShieldCheck size={14} />}
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(req.id)}
-                            disabled={processingId === req.id || isRelaying}
-                            className="flex-1 h-[52px] bg-rose-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:bg-rose-700 transition-all flex items-center justify-center gap-2"
-                          >
-                            {processingId === req.id ? <span className="animate-spin">🌀</span> : <XCircle size={14} />}
-                            Reject
-                          </button>
-                        </div>
+                  {/* === REDIRECT LINKS FOR PROFESSIONAL ROLES (Supplier/Verifier) === */}
+                  {!isComplete && !isRejected && (
+                    <div className="flex flex-col gap-2 w-full">
+                      {isSupplier && !hasProof && (
+                        <Link
+                          to="/supplier"
+                          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-100 transition-all border border-emerald-100"
+                        >
+                          <Camera size={14} />
+                          Open Supplier Portal to Upload
+                        </Link>
+                      )}
+                      {isVerifier && hasProof && !isVerified && (
+                        <Link
+                          to="/verifier"
+                          className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-100 transition-all border border-indigo-100"
+                        >
+                          <ShieldCheck size={14} />
+                          Open Verifier Hub to Review
+                        </Link>
                       )}
                     </div>
                   )}
 
-                  {/* === MANAGER SECTION === */}
-                  {isManager && !isComplete && (
-                    <div className="flex flex-col items-center md:items-end gap-3">
+                  {/* === FINALIZATION SECTION (Manager Only) === */}
+                  {isManager && !isComplete && !isRejected && (
+                    <div className="flex flex-col items-center md:items-end gap-3 w-full">
                       <button
                         onClick={() => handleFinalize(req.id)}
-                        disabled={!canFinalize || processingId === req.id || isRelaying}
-                        className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg flex items-center gap-2 ${canFinalize
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20 hover:-translate-y-1'
-                            : 'bg-white/10 text-white/30 cursor-not-allowed'
-                          }`}
+                        disabled={!canFinalize || processingId !== null}
+                        className={`w-full h-[52px] px-6 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg flex items-center justify-center gap-2 ${
+                          canFinalize
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20 hover:-translate-y-0.5'
+                            : 'bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed'
+                        }`}
                       >
                         {processingId === req.id ? (
-                          <><span className="animate-spin">🌀</span> {isRelaying ? 'AI Finalizing...' : 'Loading...'}</>
+                          <><span className="animate-spin">🌀</span> Processing...</>
                         ) : (
-                          'Finalize & Pay'
+                          <><Zap size={14} fill={canFinalize ? "currentColor" : "none"} /> Finalize & Release Funds</>
                         )}
                       </button>
-
-                      <div className="flex flex-col items-center md:items-end gap-1.5">
+                      
+                      <div className="flex flex-col items-end gap-1.5 pr-2">
                         {!isVerified && !isRejected && (
-                          <span className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1.5">
+                          <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
                             <Clock size={12} /> Awaiting Verification
                           </span>
                         )}
-                        {isVerified && !canFinalize && (
-                          <span className="text-[10px] font-bold text-amber-500 uppercase flex items-center gap-1.5">
-                            <Users size={12} /> Awaiting Donor Approvals
-                          </span>
-                        )}
-                        {isRejected && (
-                          <span className="text-[10px] font-bold text-rose-500 uppercase flex items-center gap-1.5">
-                            <XCircle size={12} /> Rejected by Verifier
-                          </span>
-                        )}
-                        {!canFinalize && (
-                          <div className="flex items-center gap-1.5 text-[10px] text-amber-400 font-bold uppercase tracking-wider bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                            <AlertCircle size={12} />
-                            Needs {Math.floor(Number(donorsCount) / 2 + 1)} votes
+                        {!canFinalize && !isRejected && (
+                          <div className="flex flex-col items-end gap-1">
+                            {req.selectedValidators.length > 0 && req.validatorApprovalCount < 2 && (
+                              <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+                                <ShieldCheck size={12} /> Needs {2 - req.validatorApprovalCount} more Inspector Approvals
+                              </span>
+                            )}
+                            {currentAmount <= targetAmount && (
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <Users size={12} /> Needs {((targetAmount - currentAmount) + 0.0001).toFixed(4)} ETH Approval
+                              </span>
+                            )}
                           </div>
-                        )}
-                        {canFinalize && !isRelaying && (
-                          <span className="text-[9px] text-emerald-500 font-bold uppercase tracking-tight flex items-center gap-1.5">
-                            <Zap size={10} fill="currentColor" /> AI Relayer Ready
-                          </span>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {/* === COMPLETED SECTION === */}
+                  {/* === COMPLETED STATUS === */}
                   {isComplete && (
                     <div className="flex flex-col items-center md:items-end gap-2">
                       <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-emerald-500/20">
                         <CheckCircle2 size={18} />
                         Funds Released
                       </div>
-                      <span className="text-[9px] font-bold text-white/30 uppercase">Transaction Confirmed</span>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase">Transaction Confirmed</span>
+                    </div>
+                  )}
+
+                  {/* === REJECTED STATUS === */}
+                  {isRejected && (
+                    <div className="flex flex-col items-center md:items-end gap-2">
+                      <div className="flex items-center gap-2 text-rose-600 bg-rose-50 px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-rose-100">
+                        <XCircle size={18} />
+                        Request Rejected
+                      </div>
+                      <span className="text-[9px] font-bold text-rose-400 uppercase">By Security Verifier</span>
                     </div>
                   )}
                 </div>
