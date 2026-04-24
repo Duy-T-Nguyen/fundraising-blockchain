@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, LayoutGrid, CheckCircle, Clock, Lock } from 'lucide-react';
+import { Shield, LayoutGrid, CheckCircle, Lock } from 'lucide-react';
 
 import { useWallet } from '../hooks/useWallet';
 import { useVerifierTasks } from '../hooks/useVerifierTasks';

@@ -10,7 +10,7 @@ import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
-  const { pendingRequests, managedDonations, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
 
   // Filter campaigns where user is the manager
   const managedCampaigns = campaigns.filter(
@@ -19,55 +19,7 @@ const CreatorDashboard: React.FC = () => {
 
   const isLoading = campaignsLoading || requestsLoading;
 
-  // Process chart data
-  const getChartData = () => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const now = new Date();
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(now.getDate() - (6 - i));
-      return {
-        label: days[d.getDay()],
-        dateStr: d.toDateString(),
-        amount: 0
-      };
-    });
 
-    const projectTotals: Record<string, number> = {};
-
-    managedDonations.forEach(don => {
-      const donDate = new Date(Number(don.timestamp) * 1000).toDateString();
-      const dayIndex = last7Days.findIndex(d => d.dateStr === donDate);
-      if (dayIndex !== -1) {
-        last7Days[dayIndex].amount += parseFloat(don.amount);
-      }
-      
-      // Track per-project totals for the last 7 days
-      const isWithin7Days = last7Days.some(d => d.dateStr === donDate);
-      if (isWithin7Days) {
-        const addr = don.targetAddress.toLowerCase();
-        projectTotals[addr] = (projectTotals[addr] || 0) + parseFloat(don.amount);
-      }
-    });
-
-    return { last7Days, projectTotals };
-  };
-
-  const { last7Days: chartData, projectTotals } = getChartData();
-  const totalVolume = chartData.reduce((acc, d) => acc + d.amount, 0);
-  const maxAmount = Math.max(...chartData.map(d => d.amount), 0.01) * 1.2;
-
-  // Map project totals to campaign names for display
-  const breakdownItems = Object.entries(projectTotals)
-    .map(([addr, amount]) => {
-      const campaign = managedCampaigns.find(c => c.address.toLowerCase() === addr);
-      return {
-        name: campaign?.title || 'Unknown Project',
-        amount,
-        percentage: totalVolume > 0 ? (amount / totalVolume) * 100 : 0
-      };
-    })
-    .sort((a, b) => b.amount - a.amount);
 
   // Fallback images for premium look while real IPFS images are not available
   const getPlaceholderImage = (ca: string) => {
