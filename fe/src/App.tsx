@@ -12,6 +12,9 @@ import Contact from './pages/Contact';
 import SupplierDashboard from './pages/SupplierDashboard';
 import VerifierDashboard from './pages/VerifierDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import TermsOfService from './pages/legal/TermsOfService';
+import CookiePolicy from './pages/legal/CookiePolicy';
 import { NotificationProvider } from './context/NotificationContext';
 
 import Sidebar from './layouts/Sidebar';
@@ -40,6 +43,9 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/verifier" element={<VerifierDashboard />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
             </Routes>
             <Footer />
           </main>

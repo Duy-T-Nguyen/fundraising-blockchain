@@ -1,7 +1,23 @@
+import { Link } from 'react-router-dom';
+
 const footerLinks = {
-  Platform: ['Home', 'Campaigns', 'Resources', 'Contact'],
-  Company: ['About Us', 'Blog', 'Careers', 'Press'],
-  Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
+  Platform: [
+    { name: 'Home', path: '/' },
+    { name: 'Campaigns', path: '/campaigns' },
+    { name: 'Resources', path: '/resources' },
+    { name: 'Contact', path: '/contact' },
+  ],
+  Company: [
+    { name: 'About Us', path: '#' },
+    { name: 'Blog', path: '#' },
+    { name: 'Careers', path: '#' },
+    { name: 'Press', path: '#' },
+  ],
+  Legal: [
+    { name: 'Privacy Policy', path: '/privacy' },
+    { name: 'Terms of Service', path: '/terms' },
+    { name: 'Cookie Policy', path: '/cookies' },
+  ],
 };
 
 const socialIcons = [
@@ -75,13 +91,13 @@ const Footer = () => {
               </h4>
               <div className="flex flex-col gap-2.5">
                 {links.map((link) => (
-                  <a
-                    key={link}
-                    href="#"
+                  <Link
+                    key={link.name}
+                    to={link.path}
                     className="text-[15px] text-slate-500 hover:text-white transition-colors duration-200"
                   >
-                    {link}
-                  </a>
+                    {link.name}
+                  </Link>
                 ))}
               </div>
             </div>

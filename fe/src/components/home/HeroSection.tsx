@@ -41,7 +41,7 @@ const HeroSection = () => {
         <Reveal direction="up" delay={800}>
           <div className="flex flex-wrap gap-4">
             <Link
-              to="/#campaigns"
+              to="/campaigns"
               className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/40 transition-all duration-300 hover:-translate-y-0.5"
             >
               <Coins size={20} />
@@ -49,7 +49,7 @@ const HeroSection = () => {
             </Link>
 
             <Link
-              to="/#campaigns"
+              to="/campaigns"
               className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5"
             >
               <ShieldCheck size={20} />
