@@ -11,14 +11,25 @@ export function useMetadata() {
     if (nameCache[address]) return nameCache[address];
 
     try {
-      const name = await publicClient.readContract({
+      // Get summary to find metaCID
+      const summary = await publicClient.readContract({
         address,
         abi: ABIS.CAMPAIGN as any,
-        functionName: 'campaignName',
-      } as any) as string;
+        functionName: 'getSummary',
+      } as any) as any;
+
+      const metaCID = summary.metaCID || (Array.isArray(summary) ? summary[5] : null);
       
-      nameCache[address] = name;
-      return name;
+      if (metaCID) {
+        const res = await fetch(`https://gateway.pinata.cloud/ipfs/${metaCID}`);
+        const metadata = await res.json();
+        if (metadata.name) {
+          nameCache[address] = metadata.name;
+          return metadata.name;
+        }
+      }
+      
+      return 'Campaign';
     } catch {
       return 'Campaign';
     }
