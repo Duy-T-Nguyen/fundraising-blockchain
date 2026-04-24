@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, ShieldCheck, Signature, MapPin } from 'lucide-react';
+import { ExternalLink, ShieldCheck } from 'lucide-react';
 import type { VerifierTask } from '../../types/verifier';
 
 interface ExpertTaskCardProps {

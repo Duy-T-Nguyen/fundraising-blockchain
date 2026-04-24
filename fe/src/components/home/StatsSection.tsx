@@ -1,14 +1,41 @@
 import { Users, HeartHandshake } from 'lucide-react';
 import EthIcon from '../common/EthIcon';
 import Reveal from '../common/Reveal';
-
-const stats = [
-  { icon: EthIcon, label: 'Total Raised', value: '4,250 ETH' },
-  { icon: Users, label: 'Donors', value: '3,000+' },
-  { icon: HeartHandshake, label: 'Disbursed', value: '2,100 ETH' },
-];
+import { useCampaignsWithSummaries } from '../../hooks/useCampaignsWithSummaries';
 
 const StatsSection = () => {
+  const { campaigns, isLoading } = useCampaignsWithSummaries();
+
+  // Calculate real stats
+  const totalRaised = campaigns.reduce((sum, camp) => sum + parseFloat(camp.raised), 0);
+  const totalDonors = campaigns.reduce((sum, camp) => sum + camp.donorsCount, 0);
+  const totalDisbursed = campaigns.reduce((sum, camp) => sum + parseFloat(camp.disbursed), 0);
+
+  const formatValue = (val: number) => {
+    return val.toLocaleString(undefined, { 
+      minimumFractionDigits: 0, 
+      maximumFractionDigits: 4 
+    });
+  };
+
+  const stats = [
+    { 
+      icon: EthIcon, 
+      label: 'Total Raised', 
+      value: isLoading ? '...' : `${formatValue(totalRaised)} ETH` 
+    },
+    { 
+      icon: Users, 
+      label: 'Donors', 
+      value: isLoading ? '...' : `${totalDonors.toLocaleString()}+` 
+    },
+    { 
+      icon: HeartHandshake, 
+      label: 'Disbursed', 
+      value: isLoading ? '...' : `${formatValue(totalDisbursed)} ETH` 
+    },
+  ];
+
   return (
     <section className="py-20 px-6 md:px-16">
       <div className="max-w-5xl mx-auto">

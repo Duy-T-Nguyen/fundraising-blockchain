@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronDown, Loader2, AlertCircle, ArrowRight, LayoutGrid, Zap, ShieldCheck } from 'lucide-react';
 import CampaignCard from '../components/home/CampaignCard';
-import { useCampaignFactory } from '../hooks/useCampaignFactory';
 import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 import Reveal from '../components/common/Reveal';
 
@@ -24,8 +23,8 @@ const Campaigns = () => {
     // Filter by Search
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(c => 
-        c.title.toLowerCase().includes(q) || 
+      result = result.filter(c =>
+        c.title.toLowerCase().includes(q) ||
         c.description.toLowerCase().includes(q)
       );
     }

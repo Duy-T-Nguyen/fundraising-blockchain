@@ -1,16 +1,19 @@
 import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
-import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 
+const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
+
+
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
-  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+  const { pendingRequests, managedDonations, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
 
   // Filter campaigns where user is the manager
   const managedCampaigns = campaigns.filter(
@@ -19,10 +22,45 @@ const CreatorDashboard: React.FC = () => {
 
   const isLoading = campaignsLoading || requestsLoading;
 
+  // Process chart data
+  const getChartData = () => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(now.getDate() - (6 - i));
+      return {
+        label: days[d.getDay()],
+        dateStr: d.toDateString(),
+        amount: 0
+      };
+    });
 
+    const projectTotals: Record<string, number> = {};
+
+    managedDonations.forEach(don => {
+      const donDate = new Date(Number(don.timestamp) * 1000).toDateString();
+      const dayIndex = last7Days.findIndex(d => d.dateStr === donDate);
+      if (dayIndex !== -1) {
+        last7Days[dayIndex].amount += parseFloat(don.amount);
+      }
+      
+      // Track per-project totals for the last 7 days
+      const isWithin7Days = last7Days.some(d => d.dateStr === donDate);
+      if (isWithin7Days) {
+        const addr = don.targetAddress.toLowerCase();
+        projectTotals[addr] = (projectTotals[addr] || 0) + parseFloat(don.amount);
+      }
+    });
+
+    return { last7Days, projectTotals };
+  };
+
+  const { last7Days: chartData } = getChartData();
+  // Removed unused chart calculations
 
   // Fallback images for premium look while real IPFS images are not available
-  const getPlaceholderImage = (ca: string) => {
+  const getPlaceholderImage = (ca: string | undefined) => {
     if (!ca) return 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
     const lastChar = ca.slice(-1).toLowerCase();
     const index = parseInt(lastChar, 16) % 5;
@@ -69,7 +107,7 @@ const CreatorDashboard: React.FC = () => {
             <Link to="/" className="p-3 bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-sm rounded-2xl text-white transition-all">
               <ArrowLeft size={20} />
             </Link>
-            <div>
+          <div>
               <h1 className="text-4xl font-black text-white tracking-tight">Manager Dashboard</h1>
               <p className="text-emerald-400 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
                 <ShieldCheck size={14} strokeWidth={3} /> Campaign Management / Ownership
@@ -79,13 +117,6 @@ const CreatorDashboard: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <AIRelayerStatus />
-            <Link
-              to="/campaigns/create"
-              className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-300 hover:-translate-y-1"
-            >
-              <PlusCircle size={20} />
-              Launch Project
-            </Link>
           </div>
         </div>
 
@@ -147,21 +178,29 @@ const CreatorDashboard: React.FC = () => {
                         </div>
                         <div className="w-24 h-24 rounded-2xl bg-white/10 border border-amber-500/20 flex-shrink-0 overflow-hidden">
                           {req.image ? (
-                            <img src={req.image} className="w-full h-full object-cover opacity-60 grayscale" alt="" />
+                            <img 
+                              src={req.image.startsWith('ipfs://') 
+                                ? `https://gateway.pinata.cloud/ipfs/${req.image.replace('ipfs://', '')}`
+                                : req.image} 
+                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
+                              alt="" 
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-amber-400/50">
                               <Layout size={32} />
                             </div>
                           )}
                         </div>
+
                         <div className="flex-1">
                           <h4 className="text-xl font-black text-white mb-1">{req.name || 'Untitled Request'}</h4>
                           <p className="text-sm text-white/50 mb-3 line-clamp-1">{req.description || 'No description provided yet.'}</p>
                           <div className="flex items-center gap-3">
                             <span className="px-3 py-1 bg-amber-500/15 rounded-full text-[10px] font-bold text-amber-400 border border-amber-500/20 uppercase tracking-widest">
-                              Category {req.category}
+                              {CAT_NAMES[req.category] || 'Others'}
                             </span>
                           </div>
+
                         </div>
                       </div>
                     ))}

@@ -6,7 +6,6 @@ import {
   Layout,
   Menu,
   X,
-  Search,
   Truck,
   ShieldCheck
 } from 'lucide-react';
@@ -22,7 +21,7 @@ const Sidebar: React.FC = () => {
   const { address } = useWallet();
   const { managedCampaigns, pendingRequests } = useUserActivity(address as `0x${string}`);
   const { info } = useSupplier(address || undefined);
-  const { tasks: verifierTasks } = useVerifierTasks(address || undefined);
+  const { tasks: verifierTasks } = useVerifierTasks(address as `0x${string}` || undefined);
   const { isAdmin } = useAdmin();
 
   // Close sidebar when clicking outside

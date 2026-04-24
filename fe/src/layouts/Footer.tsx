@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import logo from '../assets/logo_blockchain web.svg';
 
 const footerLinks = {
   Platform: [
@@ -57,14 +58,10 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto px-12 py-20">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand column */}
-          <div className="col-span-1 md:col-span-1 flex flex-col gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
-                <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <span className="text-white font-black text-xl tracking-tighter uppercase">Fundraising</span>
+          <div className="col-span-1 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="MetaMask Logo" className="w-8 h-8 object-contain" />
+              <span className="text-white font-bold text-xl tracking-tight uppercase">Fundraising</span>
             </div>
             <p className="text-[15px] text-slate-500 leading-relaxed max-w-xs">
               Transparent, on-chain fundraising for real-world impact. Built on secure smart contracts.
