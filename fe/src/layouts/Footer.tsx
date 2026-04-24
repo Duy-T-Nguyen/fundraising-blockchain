@@ -1,3 +1,5 @@
+import logo from '../assets/logo_blockchain web.svg';
+
 const footerLinks = {
   Platform: ['Home', 'Campaigns', 'Resources', 'Contact'],
   Company: ['About Us', 'Blog', 'Careers', 'Press'],
@@ -43,12 +45,8 @@ const Footer = () => {
           {/* Brand column */}
           <div className="col-span-1 flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight">CharityChain</span>
+              <img src={logo} alt="MetaMask Logo" className="w-8 h-8 object-contain" />
+              <span className="text-white font-bold text-xl tracking-tight uppercase">Fundraising</span>
             </div>
             <p className="text-base text-gray-500 leading-relaxed">
               Transparent blockchain-powered fundraising for causes that matter.

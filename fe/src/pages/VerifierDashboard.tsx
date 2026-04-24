@@ -16,12 +16,9 @@ const VerifierDashboard = () => {
   const { address } = useWallet();
   const { tasks, isLoading, stats, refresh } = useVerifierTasks(address as `0x${string}` | undefined);
   const toast = useNotification();
-  const [activeTab, setActiveTab] = useState<'expert' | 'community'>('expert');
   const [selectedTask, setSelectedTask] = useState<VerifierTask | null>(null);
 
-  const filteredTasks = tasks.filter(t =>
-    activeTab === 'expert' ? t.type === 'EXPERT_SIGNATURE' : t.type === 'COMMUNITY_VOTE'
-  );
+  const filteredTasks = tasks.filter(t => t.type === 'EXPERT_SIGNATURE');
 
   const handleSignSuccess = (signature: string) => {
     if (selectedTask) {
@@ -144,21 +141,10 @@ const VerifierDashboard = () => {
             <VerifierStats stats={stats} />
 
             <div className="flex items-center justify-between mb-8 gap-4">
-              <div className="flex flex-1 md:flex-none bg-white/5 p-2 rounded-[1.8rem] border border-white/10 backdrop-blur-xl shadow-xl">
-                <button
-                  onClick={() => setActiveTab('expert')}
-                  className={`flex-1 px-8 py-4 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === 'expert' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-xl shadow-indigo-600/30' : 'text-white/30 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                  Expert Tasks ({stats.pendingExpert})
-                </button>
-                <button
-                  onClick={() => setActiveTab('community')}
-                  className={`flex-1 px-8 py-4 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === 'community' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30' : 'text-white/30 hover:text-white hover:bg-white/5'
-                    }`}
-                >
-                  Community Voting ({stats.pendingCommunity})
-                </button>
+              <div className="flex bg-white/5 px-8 py-4 rounded-[1.8rem] border border-white/10 backdrop-blur-xl shadow-xl">
+                 <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">
+                   Active Expert Tasks ({stats.pendingExpert})
+                 </span>
               </div>
 
               <button
@@ -188,32 +174,24 @@ const VerifierDashboard = () => {
                 <p className="text-indigo-400/40 text-[9px] mt-8 uppercase tracking-[0.3em] font-black">Authorized Personnel Only</p>
               </div>
             ) : filteredTasks.length === 0 ? (
-              // Tab is empty but wallet IS a verifier (has tasks in the other tab)
+              // Tab is empty
               <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] py-32 text-center border border-white/5 border-dashed">
                 <div className="w-20 h-20 bg-emerald-500/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/10">
                   <CheckCircle size={48} className="text-emerald-500/20" />
                 </div>
                 <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Queue Synchronized</h3>
-                <p className="text-white/30 max-w-xs mx-auto text-sm font-medium italic">All pending {activeTab === 'expert' ? 'expert' : 'community'} assignments completed.</p>
+                <p className="text-white/30 max-w-xs mx-auto text-sm font-medium italic">All pending expert assignments completed.</p>
               </div>
             ) : (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {filteredTasks.map(task => (
-                  activeTab === 'expert' ? (
-                    <ExpertTaskCard
-                      key={task.id}
-                      task={task}
-                      onVerify={handleExpertVerify}
-                      onReject={handleExpertReject}
-                      onOpenIPFS={openIPFS}
-                    />
-                  ) : (
-                    <CommunityTaskCard
-                      key={task.id}
-                      task={task}
-                      onApprove={handleCommunityApprove}
-                    />
-                  )
+                  <ExpertTaskCard
+                    key={task.id}
+                    task={task}
+                    onVerify={handleExpertVerify}
+                    onReject={handleExpertReject}
+                    onOpenIPFS={openIPFS}
+                  />
                 ))}
               </div>
             )}

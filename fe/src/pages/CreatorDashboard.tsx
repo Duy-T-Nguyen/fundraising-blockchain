@@ -13,7 +13,7 @@ const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
-  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+  const { pendingRequests, managedDonations, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
 
   // Filter campaigns where user is the manager
   const managedCampaigns = campaigns.filter(
@@ -73,7 +73,7 @@ const CreatorDashboard: React.FC = () => {
     .sort((a, b) => b.amount - a.amount);
 
   // Fallback images for premium look while real IPFS images are not available
-  const getPlaceholderImage = (ca: string) => {
+  const getPlaceholderImage = (ca: string | undefined) => {
     if (!ca) return 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
     const lastChar = ca.slice(-1).toLowerCase();
     const index = parseInt(lastChar, 16) % 5;
@@ -120,7 +120,7 @@ const CreatorDashboard: React.FC = () => {
             <Link to="/" className="p-3 bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-sm rounded-2xl text-white transition-all">
               <ArrowLeft size={20} />
             </Link>
-            <div>
+          <div>
               <h1 className="text-4xl font-black text-white tracking-tight">Manager Dashboard</h1>
               <p className="text-emerald-400 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
                 <ShieldCheck size={14} strokeWidth={3} /> Campaign Management / Ownership

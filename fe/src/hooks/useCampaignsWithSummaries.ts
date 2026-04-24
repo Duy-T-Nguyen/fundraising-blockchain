@@ -11,6 +11,8 @@ export interface EnrichedCampaign {
   description: string;
   category: number;
   balance: string;
+  raised: string;
+  disbursed: string;
   donorsCount: number;
   active: boolean;
   imageHash: string;
@@ -26,7 +28,6 @@ export function useCampaignsWithSummaries() {
     setError(null);
     try {
       // 1. Fetch addresses from factory
-      // QueryType: 0 (ALL), manager: zero address, category: 0, offset: 0, limit: 50
       const addresses = await publicClient.readContract({
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
@@ -43,8 +44,7 @@ export function useCampaignsWithSummaries() {
       const enrichedData = await Promise.all(
         addresses.map(async (address) => {
           try {
-            // Only fetch what's available on-chain
-            const [summaryData, category, manager] = await Promise.all([
+            const [summaryData, category, manager, totalFundsRaised] = await Promise.all([
               publicClient.readContract({
                 address,
                 abi: ABIS.CAMPAIGN as any,
@@ -60,26 +60,32 @@ export function useCampaignsWithSummaries() {
                 abi: ABIS.CAMPAIGN as any,
                 functionName: 'manager',
               } as any),
-            ]) as [any, number, string];
+              publicClient.readContract({
+                address,
+                abi: ABIS.CAMPAIGN as any,
+                functionName: 'totalFundsRaised',
+              } as any),
+            ]) as [any, number, string, bigint];
 
             const data: any = summaryData;
             const metaCID = data.metaCID || data[5];
-
-            // 3. Fetch metadata from IPFS
             const metadata = await fetchIPFSJSON(metaCID);
-
-            const onChainName = data[7] || '';
+            
+            const balanceVal = data.balance || data[0];
+            const raisedVal = totalFundsRaised; // Use the explicitly fetched value
 
             return {
               address,
               manager,
-              title: metadata?.name || onChainName || 'Active Project',
+              title: metadata?.name || 'Active Project',
               description: metadata?.description || '',
               category: Number(category),
-              balance: formatEther(data.balance || data[0]),
+              balance: formatEther(balanceVal),
+              raised: formatEther(raisedVal),
+              disbursed: formatEther(raisedVal - balanceVal),
               donorsCount: Number(data.donors || data[3]),
               active: data.isActive !== undefined ? data.isActive : data[6],
-              imageHash: metadata?.image || data.imgHash || data[5] || '',
+              imageHash: metadata?.image || '',
             };
           } catch (err) {
             console.error(`Error fetching summary for ${address}:`, err);

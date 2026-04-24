@@ -207,20 +207,36 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     }
   };
 
-  // --- Finalize & Pay (Manager only, AI gasless) ---
+  // --- Finalize & Pay (Manager only, Direct Gas) ---
   const handleFinalize = async (index: number) => {
     if (!userAddress) return;
     setProcessingId(index);
     try {
-      const data = encodeFunctionData({
+      toast.info('Opening MetaMask to finalize & release funds...');
+      const walletClient = getWalletClient();
+      if (!walletClient) throw new Error('Wallet client not found');
+
+      const { request } = await publicClient.simulateContract({
+        account: userAddress as `0x${string}`,
+        address: address as `0x${string}`,
         abi: ABIS.CAMPAIGN,
         functionName: 'finalizeRequest',
         args: [BigInt(index)],
       });
-      await executeGasless(address, data);
+      
+      const hash = await walletClient.writeContract(request);
+      
+      toast.info('Finalization submitted! Mining on-chain...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Funds released successfully!');
       refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Finalization failed:', err);
+      if (err.message?.includes('User rejected')) {
+        toast.warning('Transaction cancelled by user.');
+      } else {
+        toast.error(err.shortMessage || err.message || 'Failed to release funds.');
+      }
     } finally {
       setProcessingId(null);
     }

@@ -102,34 +102,59 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Slot 1: Manager's Notice */}
         <div className="space-y-4">
           <label className="text-[9px] font-black uppercase text-white/20 tracking-[0.3em] ml-2 block italic">Manager's Initial Notice</label>
-          <button
-            onClick={() => onOpenIPFS(task.evidenceHash)}
-            className="w-full flex items-center justify-between gap-3 bg-white/5 p-4 rounded-2xl border border-white/10 text-[11px] text-white/50 font-mono hover:bg-white/10 transition-all group/link"
+          <div 
+            onClick={() => task.evidenceHash && onOpenIPFS(task.evidenceHash)}
+            className="aspect-video w-full bg-white/5 rounded-3xl border border-white/10 overflow-hidden relative group/preview cursor-pointer hover:border-blue-500/30 transition-all shadow-inner"
           >
-            <div className="flex items-center gap-3 truncate">
-              < Globe size={14} className="text-white/20 group-hover/link:text-blue-400 transition-colors" />
-              <span className="truncate tracking-tight">{task.evidenceHash || 'No initial hash'}</span>
-            </div>
-            <ExternalLink size={12} className="text-white/10 group-hover/link:text-blue-400 transition-colors" />
-          </button>
+            {task.evidenceHash ? (
+              <>
+                <img 
+                  src={`https://ipfs.io/ipfs/${task.evidenceHash.replace('ipfs://', '')}`} 
+                  alt="Initial Notice"
+                  className="w-full h-full object-cover opacity-60 group-hover/preview:opacity-100 transition-opacity duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent flex items-end p-4">
+                  <div className="flex items-center justify-end w-full">
+                    <ExternalLink size={14} className="text-white/20 group-hover/preview:text-blue-400 transition-colors" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 opacity-20">
+                <Globe size={24} />
+                <span className="text-[10px] font-black uppercase tracking-widest">No data available</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Slot 2: Supplier's Evidence */}
         <div className="space-y-4">
           <label className="text-[9px] font-black uppercase text-blue-400/80 tracking-[0.3em] ml-2 block italic font-serif">Your Delivery Proof</label>
-          <button
+          <div 
             onClick={() => localCID && onOpenIPFS(localCID)}
-            disabled={!localCID}
-            className={`w-full flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${localCID ? 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20 group/link' : 'bg-white/[0.02] border-white/5 text-white/20 font-mono italic cursor-default'}`}
+            className={`aspect-video w-full rounded-3xl border overflow-hidden relative group/preview transition-all shadow-inner ${localCID ? 'cursor-pointer bg-blue-500/5 border-blue-500/20 hover:border-blue-500/50' : 'bg-white/[0.02] border-white/5 border-dashed'}`}
           >
-            <div className="flex items-center gap-3 truncate">
-              {localCID ? <CheckCircle2 size={14} className="animate-pulse" /> : < Globe size={14} className="text-white/5" />}
-              <span className="text-[11px] font-black tracking-tight truncate">
-                {localCID ? `ipfs://${localCID}` : 'Not yet uploaded'}
-              </span>
-            </div>
-            {localCID && <ExternalLink size={12} className="text-blue-400/30 group-hover/link:text-blue-400 transition-colors" />}
-          </button>
+            {localCID ? (
+              <>
+                <img 
+                  src={`https://ipfs.io/ipfs/${localCID.replace('ipfs://', '')}`} 
+                  alt="Delivery Proof"
+                  className="w-full h-full object-cover opacity-80 group-hover/preview:opacity-100 transition-opacity duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 to-transparent flex items-end p-4">
+                  <div className="flex items-center justify-end w-full">
+                    <ExternalLink size={14} className="text-blue-400/20 group-hover/preview:text-blue-400 transition-colors" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 opacity-20">
+                <UploadCloud size={24} className="text-blue-400/50" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400/50">Awaiting Upload</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
