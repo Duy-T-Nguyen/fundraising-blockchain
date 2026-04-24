@@ -139,7 +139,7 @@ const AdminDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-10 py-12">
         {/* ── HORIZONTAL TABS ── */}
-        <div className="flex flex-wrap gap-2 p-2 bg-white/5 border border-white/10 backdrop-blur-xl rounded-[28px] mb-12 w-fit shadow-xl">
+        <div className="flex gap-2 p-2 bg-white/5 border border-white/10 backdrop-blur-xl rounded-[28px] mb-12 w-full shadow-xl">
           {[
             { id: 'overview', icon: <BarChart3 size={18} />, label: 'Overview' },
             { id: 'requests', icon: <Plus size={18} />, label: 'Campaign Requests' },
@@ -151,7 +151,7 @@ const AdminDashboard = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`
-                px-8 py-4 rounded-[22px] flex items-center gap-3 text-sm font-black transition-all duration-300 tracking-tight
+                flex-1 px-4 py-4 rounded-[22px] flex items-center justify-center gap-3 text-sm font-black transition-all duration-300 tracking-tight
                 ${activeTab === tab.id
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30'
                   : 'text-white/40 hover:text-white hover:bg-white/10'
