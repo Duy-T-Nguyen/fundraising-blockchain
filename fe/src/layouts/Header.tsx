@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useWallet } from '../hooks/useWallet';
 import { useNotification } from '../context/NotificationContext';
+import logo from '../assets/logo_blockchain web.svg';
 import metamaskLogo from '../assets/metamask.png';
 
 const navLinks = [
@@ -12,7 +13,7 @@ const navLinks = [
 ];
 
 const Header = () => {
-  const [activeLink, setActiveLink] = useState('Home');
+  const location = useLocation();
   const [copied, setCopied] = useState(false);
   const { address, isConnected, isConnecting, error, connect, disconnect } = useWallet();
   const toast = useNotification();
@@ -31,51 +32,78 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-blue-600 sticky top-0 z-50 shadow-md">
-      <nav className="relative flex items-center justify-center h-16 px-10">
-        <ul className="flex items-center gap-2 list-none m-0 p-0">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <Link
-                to={link.href}
-                onClick={() => setActiveLink(link.label)}
-                className={`text-blue-100 no-underline text-[17px] font-medium px-5 py-2 rounded-md transition-all duration-200 hover:bg-white/15 hover:text-white ${activeLink === link.label ? 'text-white font-semibold' : ''
-                  }`}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <header className="sticky top-0 z-[100] bg-slate-950/40 backdrop-blur-xl border-b border-white/5">
+      <nav className="max-w-6xl mx-auto h-20 px-8 flex items-center justify-between gap-4">
 
-        <div className="absolute right-10 flex flex-col items-end gap-1">
+        {/* Logo Section */}
+        <div className="flex-shrink-0">
+          <Link to="/" className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95 no-underline">
+            <img
+              src={logo}
+              alt="Blockchain Logo"
+              className="h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(60,177,154,0.3)]"
+            />
+            <span className="text-white text-xl font-black tracking-tighter uppercase whitespace-nowrap">
+              Fundraising
+            </span>
+          </Link>
+        </div>
+
+        {/* Navigation Section */}
+        <div className="hidden lg:flex items-center bg-white/5 rounded-full px-2 py-1 border border-white/10 backdrop-blur-md">
+          <ul className="flex items-center gap-1 list-none m-0 p-0">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.href;
+              return (
+                <li key={link.label}>
+                  <Link
+                    to={link.href}
+                    className={`
+                        relative px-6 py-2.5 rounded-full text-[14px] font-bold tracking-tight transition-all duration-300
+                        ${isActive
+                        ? 'text-white bg-blue-600/20 shadow-inner'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    {link.label}
+                    {isActive && (
+                      <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa]" />
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Wallet Section */}
+        <div className="flex items-center gap-4 flex-shrink-0">
           {isConnected ? (
-            <div className="flex items-center gap-3 bg-white/10 px-2 py-1.5 rounded-full border border-white/20 backdrop-blur-sm">
+            <div className="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-2 py-1.5 rounded-2xl border border-white/10 backdrop-blur-md transition-all duration-300 group/wallet">
               <div
                 className="relative group cursor-pointer"
                 onClick={handleCopy}
               >
-                {/* MetaMask Icon using Image */}
-                <div className="w-9 h-9 rounded-full overflow-hidden transition-all duration-300 group-hover:scale-110 group-active:scale-95">
+                <div className="w-9 h-9 rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-active:scale-95 ring-2 ring-white/5 group-hover:ring-blue-500/50">
                   <img
                     src={metamaskLogo}
                     alt="MetaMask"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain p-1"
                   />
                 </div>
 
-                {/* Tooltip/Label - Positioned BELOW because header is at top */}
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-gray-900 border border-white/10 text-white text-[10px] font-bold  tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-xl z-20">
-                  {copied ? ' Copied!' : 'Copy full address'}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-gray-900" />
+                <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap shadow-2xl z-[110]">
+                  {copied ? 'Copied!' : 'Copy Address'}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-8 border-transparent border-b-slate-900" />
                 </div>
               </div>
 
-              <div className="w-[1px] h-6 bg-white/20" />
+              <div className="w-px h-6 bg-white/10" />
 
               <button
                 onClick={disconnect}
-                className="pr-2 text-[10px] text-white/70 hover:text-white font-black uppercase tracking-[0.1em] transition-all duration-200 hover:text-red-400"
+                className="px-3 py-1.5 text-[10px] text-slate-400 hover:text-red-400 font-black uppercase tracking-widest transition-all duration-200"
               >
                 Disconnect
               </button>
@@ -84,9 +112,10 @@ const Header = () => {
             <button
               onClick={connect}
               disabled={isConnecting}
-              className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white border-0 px-5 py-2.5 rounded-lg text-[16px] font-semibold cursor-pointer tracking-wide shadow-lg shadow-emerald-400/30 transition-all duration-200 hover:from-teal-500 hover:to-teal-600 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-wait"
+              className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-8 py-3 rounded-2xl text-[14px] font-black uppercase tracking-widest cursor-pointer shadow-xl shadow-teal-900/20 transition-all duration-300 hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
             >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+              <span className="relative z-10">{isConnecting ? 'Syncing...' : 'Connect'}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
           )}
         </div>
