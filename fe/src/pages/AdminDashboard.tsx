@@ -43,33 +43,39 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center gap-4">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-4"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="w-16 h-16 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <ShieldCheck size={24} className="text-blue-600" />
+            <ShieldCheck size={24} className="text-blue-400" />
           </div>
         </div>
-        <p className="text-slate-500 font-bold tracking-tight animate-pulse uppercase text-[10px]">Establishing Secure Admin Tunnel...</p>
+        <p className="text-white/40 font-bold tracking-tight animate-pulse uppercase text-[10px]">Establishing Secure Admin Tunnel...</p>
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white border border-slate-200 rounded-[40px] p-12 text-center shadow-2xl">
-          <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
-            <XCircle size={48} className="text-red-500" />
+      <div
+        className="min-h-screen flex items-center justify-center p-6"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
+        <div className="max-w-md w-full bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-white/10 rounded-[2.5rem] p-12 text-center shadow-2xl shadow-black/50 backdrop-blur-xl">
+          <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/20">
+            <XCircle size={48} className="text-red-400" />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Access Denied</h2>
-          <p className="text-slate-500 leading-relaxed mb-8 font-medium">
+          <h2 className="text-3xl font-black text-white mb-4 tracking-tighter">Access Denied</h2>
+          <p className="text-white/50 leading-relaxed mb-8 font-medium">
             This sector is restricted to the platform administrator. Connect the master wallet to proceed.
           </p>
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-[10px] font-mono text-slate-400 break-all mb-8 uppercase tracking-wider">
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-mono text-white/30 break-all mb-8 uppercase tracking-wider">
             {(window.ethereum as any)?.selectedAddress || 'No Wallet Detected'}
           </div>
-          <button onClick={() => window.location.href = '/'} className="w-full py-4 bg-slate-900 hover:bg-black text-white font-black rounded-3xl transition-all shadow-xl active:scale-95">
+          <button onClick={() => window.location.href = '/'} className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-black rounded-3xl transition-all shadow-xl shadow-blue-600/30 active:scale-95">
             Return to Safety
           </button>
         </div>
@@ -81,12 +87,9 @@ const AdminDashboard = () => {
     try {
       setProcessingId(id);
       const hash = await action();
-
-      // If it's a transaction hash, wait for it to be mined
       if (hash && typeof hash === 'string' && hash.startsWith('0x')) {
         await publicClient.waitForTransactionReceipt({ hash: hash as `0x${string}` });
       }
-
       await refresh();
       toast.success('Action completed successfully.');
     } catch (err: any) {
@@ -97,28 +100,35 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-24 font-sans">
+    <div
+      className="min-h-screen text-white pb-24 font-sans"
+      style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+    >
       {/* ── HEADER ── */}
-      <header className="px-10 pt-24 pb-12 bg-white border-b border-slate-200">
+      <header className="px-10 pt-24 pb-12 border-b border-white/10 bg-white/5 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Platform Command Center</h1>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.6)]" />
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.25em]">Secured Admin Access</p>
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tight">Platform Command Center</h1>
           </div>
 
           <div className="flex items-center gap-5">
-            <button onClick={refresh} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-200 transition-all group active:scale-95">
-              <Activity size={22} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+            <button onClick={refresh} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all group active:scale-95">
+              <Activity size={22} className="text-white/40 group-hover:text-white transition-colors" />
             </button>
 
-            <div className="px-8 py-5 bg-white border border-slate-200 rounded-[32px] flex items-center gap-6 shadow-xl shadow-slate-200/40">
+            <div className="px-8 py-5 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-white/10 rounded-[2rem] flex items-center gap-6 shadow-2xl shadow-blue-900/30 backdrop-blur-xl">
               <div className="text-right">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Global Treasury</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tighter">{stats?.factoryBalance} <span className="text-blue-600">ETH</span></p>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Global Treasury</p>
+                <p className="text-2xl font-black text-white tracking-tighter">{stats?.factoryBalance} <span className="text-blue-400">ETH</span></p>
               </div>
               <button
                 onClick={() => handleAction(withdrawFactoryFees, 'withdraw-fees')}
                 disabled={processingId === 'withdraw-fees' || stats?.factoryBalance === '0'}
-                className="p-4 bg-slate-900 hover:bg-black disabled:bg-slate-100 disabled:text-slate-300 text-white rounded-2xl transition-all shadow-lg active:scale-90"
+                className="p-4 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/20 text-white rounded-2xl transition-all shadow-lg shadow-blue-600/30 active:scale-90"
               >
                 {processingId === 'withdraw-fees' ? <Loader2 size={24} className="animate-spin" /> : <Wallet size={24} />}
               </button>
@@ -129,7 +139,7 @@ const AdminDashboard = () => {
 
       <main className="max-w-7xl mx-auto px-10 py-12">
         {/* ── HORIZONTAL TABS ── */}
-        <div className="flex flex-wrap gap-2 p-2 bg-white border border-slate-200 rounded-[28px] mb-12 w-fit shadow-sm">
+        <div className="flex flex-wrap gap-2 p-2 bg-white/5 border border-white/10 backdrop-blur-xl rounded-[28px] mb-12 w-fit shadow-xl">
           {[
             { id: 'overview', icon: <BarChart3 size={18} />, label: 'Overview' },
             { id: 'requests', icon: <Plus size={18} />, label: 'Campaign Requests' },
@@ -143,8 +153,8 @@ const AdminDashboard = () => {
               className={`
                 px-8 py-4 rounded-[22px] flex items-center gap-3 text-sm font-black transition-all duration-300 tracking-tight
                 ${activeTab === tab.id
-                  ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/10'
-                  : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30'
+                  : 'text-white/40 hover:text-white hover:bg-white/10'
                 }
               `}
             >
@@ -188,7 +198,6 @@ const AdminDashboard = () => {
                   message: 'FundChain IPFS Upload',
                 });
 
-                // 1. Upload Evidence Image
                 const formData = new FormData();
                 formData.append('file', newSupplierFile);
                 formData.append('address', address);
@@ -200,7 +209,6 @@ const AdminDashboard = () => {
                 });
                 const { cid: imgCid } = await uploadRes.json();
 
-                // 2. Upload Metadata JSON
                 const metadata = {
                   name: newSupplierName,
                   description: newSupplierBio,
@@ -215,10 +223,8 @@ const AdminDashboard = () => {
                 });
                 const { cid: metaCid } = await metaRes.json();
 
-                // 3. Smart Contract Call
                 const hash = await addSupplier(newSupplierAddr, newSupplierName, metaCid);
 
-                // Reset form
                 setNewSupplierAddr('');
                 setNewSupplierName('');
                 setNewSupplierBio('');
