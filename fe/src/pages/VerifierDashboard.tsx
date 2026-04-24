@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Shield, LayoutGrid, CheckCircle, Clock } from 'lucide-react';
+import { Shield, LayoutGrid, CheckCircle, Clock, Lock } from 'lucide-react';
+
 import { useWallet } from '../hooks/useWallet';
 import { useVerifierTasks } from '../hooks/useVerifierTasks';
 import { VerifierStats } from '../components/verifier/VerifierStats';
@@ -31,6 +32,58 @@ const VerifierDashboard = () => {
     }
   };
 
+  const handleExpertVerify = async (task: VerifierTask) => {
+    try {
+      const walletClient = await getWalletClient();
+      if (!walletClient || !address) return;
+
+      toast.info('Initiating on-chain verification...');
+
+      const { request } = await publicClient.simulateContract({
+        address: task.campaignAddress,
+        abi: ABIS.CAMPAIGN,
+        functionName: 'verifyRequest',
+        args: [BigInt(task.requestIndex)],
+        account: address as `0x${string}`
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast.success('Verification submitted! Waiting for confirmation...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Evidence officially verified!');
+      refresh();
+    } catch (error: any) {
+      console.error('Verification failed:', error);
+      toast.error(error?.shortMessage || error?.message || 'Verification failed.');
+    }
+  };
+
+  const handleExpertReject = async (task: VerifierTask) => {
+    const reason = prompt("Enter rejection reason:");
+    if (!reason) return;
+
+    try {
+      const walletClient = await getWalletClient();
+      if (!walletClient || !address) return;
+
+      const { request } = await publicClient.simulateContract({
+        address: task.campaignAddress,
+        abi: ABIS.CAMPAIGN,
+        functionName: 'rejectRequest',
+        args: [BigInt(task.requestIndex), reason],
+        account: address as `0x${string}`
+      });
+
+      const hash = await walletClient.writeContract(request);
+      toast.success('Rejection submitted!');
+      await publicClient.waitForTransactionReceipt({ hash });
+      refresh();
+    } catch (error: any) {
+      console.error('Rejection failed:', error);
+      toast.error(error?.shortMessage || error?.message || 'Rejection failed.');
+    }
+  };
+
   const handleCommunityApprove = async (task: VerifierTask) => {
     try {
       const walletClient = await getWalletClient();
@@ -44,8 +97,10 @@ const VerifierDashboard = () => {
         account: address as `0x${string}`
       });
 
-      await walletClient.writeContract(request);
-      toast.success('Vote submitted successfully!');
+      const hash = await walletClient.writeContract(request);
+      toast.success('Vote submitted! Waiting for confirmation...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      toast.success('Community approval confirmed!');
       refresh();
     } catch (error: any) {
       console.error('Approval failed:', error);
@@ -115,11 +170,24 @@ const VerifierDashboard = () => {
                 <div className="animate-spin h-12 w-12 border-4 border-slate-100 border-t-indigo-600 rounded-full mb-6" />
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Blockchain for Verification duties...</p>
               </div>
+            ) : stats.totalTasks === 0 ? (
+              // ❌ NOT A VERIFIER: Show Access Denied
+              <div className="bg-white rounded-[3rem] py-32 text-center border-2 border-dashed border-slate-100 mt-4">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Lock size={36} className="text-slate-300" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 mb-3">Access Restricted</h3>
+                <p className="text-slate-400 max-w-sm mx-auto text-sm leading-relaxed">
+                  Your wallet <span className="font-mono text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">{address?.slice(0,6)}...{address?.slice(-4)}</span> has not been assigned as a Verifier for any active request.
+                </p>
+                <p className="text-slate-300 text-xs mt-4 uppercase tracking-widest font-black">Contact the Campaign Manager to be assigned</p>
+              </div>
             ) : filteredTasks.length === 0 ? (
+              // Tab is empty but wallet IS a verifier (has tasks in the other tab)
               <div className="bg-white rounded-[3rem] py-32 text-center border border-slate-100 border-dashed">
-                <Clock size={48} className="mx-auto text-slate-100 mb-6" />
-                <h3 className="text-xl font-black text-slate-900 mb-2">No pending items</h3>
-                <p className="text-slate-400 max-w-xs mx-auto text-sm">You have cleared all your current {activeTab} tasks. Good job!</p>
+                <CheckCircle size={48} className="mx-auto text-emerald-100 mb-6" />
+                <h3 className="text-xl font-black text-slate-900 mb-2">All clear!</h3>
+                <p className="text-slate-400 max-w-xs mx-auto text-sm">No pending {activeTab === 'expert' ? 'expert' : 'community'} tasks right now.</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -130,7 +198,8 @@ const VerifierDashboard = () => {
                     <ExpertTaskCard
                       key={task.id}
                       task={task}
-                      onSign={setSelectedTask}
+                      onVerify={handleExpertVerify}
+                      onReject={handleExpertReject}
                       onOpenIPFS={openIPFS}
                     />
                   ) : (

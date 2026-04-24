@@ -4,11 +4,12 @@ import type { VerifierTask } from '../../types/verifier';
 
 interface ExpertTaskCardProps {
   task: VerifierTask;
-  onSign: (task: VerifierTask) => void;
+  onVerify: (task: VerifierTask) => void;
+  onReject: (task: VerifierTask) => void;
   onOpenIPFS: (hash: string) => void;
 }
 
-export const ExpertTaskCard: React.FC<ExpertTaskCardProps> = ({ task, onSign, onOpenIPFS }) => {
+export const ExpertTaskCard: React.FC<ExpertTaskCardProps> = ({ task, onVerify, onReject, onOpenIPFS }) => {
   const isPending = task.status === 'PENDING';
 
   return (
@@ -18,9 +19,6 @@ export const ExpertTaskCard: React.FC<ExpertTaskCardProps> = ({ task, onSign, on
           <div className="flex items-center gap-3 mb-3">
             <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-indigo-100">
               Expert Verification
-            </span>
-            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1">
-              <MapPin size={12} /> {task.campaignName}
             </span>
           </div>
           
@@ -46,13 +44,21 @@ export const ExpertTaskCard: React.FC<ExpertTaskCardProps> = ({ task, onSign, on
           </button>
           
           {isPending ? (
-            <button 
-              onClick={() => onSign(task)}
-              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5"
-            >
-              <Signature size={18} />
-              Sign Verification
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => onVerify(task)}
+                className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5"
+              >
+                <ShieldCheck size={18} />
+                Approve Proof
+              </button>
+              <button 
+                onClick={() => onReject(task)}
+                className="px-4 py-4 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+              >
+                Reject
+              </button>
+            </div>
           ) : (
             <div className="px-8 py-4 bg-emerald-50 text-emerald-600 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 border border-emerald-100">
               <ShieldCheck size={18} />

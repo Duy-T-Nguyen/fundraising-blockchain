@@ -70,8 +70,48 @@ export function useSupplierEvidence(userAddress: string | undefined, isConnected
       }
 
       const { cid } = await res.json();
+
+      // 3. Submit proof CID to Smart Contract (write on-chain)
+      const { ABIS, CONTRACT_ADDRESSES } = await import('../blockchain/constants');
       
-      // Update local state for persistence
+      // Try gasless relayer first, fall back to direct tx
+      let txSent = false;
+      try {
+        const relayRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/relay`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target: campaignAddress,
+            functionName: 'submitProof',
+            args: [requestId, cid],
+            abi: ABIS.CAMPAIGN,
+            from: userAddress,
+            signature,
+          }),
+        });
+        if (relayRes.ok) txSent = true;
+      } catch {
+        // Relayer not available, use direct tx
+      }
+
+      if (!txSent) {
+        const { publicClient } = await import('../blockchain/client');
+        const { encodeFunctionData } = await import('viem');
+        const data = encodeFunctionData({
+          abi: ABIS.CAMPAIGN,
+          functionName: 'submitProof',
+          args: [BigInt(requestId), cid],
+        });
+        await walletClient.sendTransaction({
+          account: userAddress as `0x${string}`,
+          to: campaignAddress as `0x${string}`,
+          data,
+        });
+      }
+
+      console.log(`[Evidence] Proof submitted on-chain for req #${requestId}: ${cid}`);
+      
+      // 4. Update local state for immediate UI feedback
       setUploadedEvidences(prev => ({ ...prev, [taskKey]: cid }));
       
       if (onSuccess) onSuccess();

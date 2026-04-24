@@ -22,6 +22,8 @@ export type CampaignRequest = {
   proofCID: string;
   verifyStatus: number; // 0: PENDING, 1: APPROVED, 2: REJECTED
   rejectionReasonCID: string;
+  validatorApprovalCount: number;
+  selectedValidators: string[];
 }
 
 export function useRequests(address: string | undefined, userAddress?: string) {
@@ -130,12 +132,20 @@ export function useRequests(address: string | undefined, userAddress?: string) {
       // 3. Fetch each request detail
       const requestsData = await Promise.all(
         Array.from({ length: numRequests }).map(async (_, i) => {
-          const req = await publicClient.readContract({
-            address: address as `0x${string}`,
-            abi: ABIS.CAMPAIGN as any,
-            functionName: 'requests',
-            args: [BigInt(i)],
-          } as any) as any[];
+          const [req, validators] = await Promise.all([
+            publicClient.readContract({
+              address: address as `0x${string}`,
+              abi: ABIS.CAMPAIGN as any,
+              functionName: 'requests',
+              args: [BigInt(i)],
+            } as any),
+            publicClient.readContract({
+              address: address as `0x${string}`,
+              abi: ABIS.CAMPAIGN as any,
+              functionName: 'getSelectedValidators',
+              args: [BigInt(i)],
+            } as any)
+          ]) as [any[], `0x${string}`[]];
 
           const metaCID = req[0];
           const metadata = await fetchIPFSJSON(metaCID);
@@ -182,6 +192,8 @@ export function useRequests(address: string | undefined, userAddress?: string) {
             proofCID: req[1],
             verifyStatus: Number(req[14]),
             rejectionReasonCID: req[2],
+            validatorApprovalCount: Number(req[7] || 0),
+            selectedValidators: Array.isArray(validators) ? validators : [],
           };
         })
       );
