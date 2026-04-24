@@ -147,35 +147,39 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
       for (let i = chunks.length - 1; i >= 0; i -= 5) {
         const batch = chunks.slice(Math.max(0, i - 4), i + 1);
         try {
-          const [userBatch, managedBatch] = await Promise.all([
-            publicClient.getLogs({
-              address: allCampaignAddresses,
-              event: {
-                type: 'event',
-                name: 'Donation',
-                inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
-              },
-              args: { donor: checksumAddress } as any,
-              fromBlock: chunk.from,
-              toBlock: chunk.to
-            }),
-            managedAddresses.length > 0 ? publicClient.getLogs({
-              address: managedAddresses,
-              event: {
-                type: 'event',
-                name: 'Donation',
-                inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
-              },
-              fromBlock: chunk.from,
-              toBlock: chunk.to
-            }) : Promise.resolve([])
-          ]);
+          const results = await Promise.all(batch.map(async (chunk) => {
+            const [userBatch, managedBatch] = await Promise.all([
+              publicClient.getLogs({
+                address: allCampaignAddresses,
+                event: {
+                  type: 'event',
+                  name: 'Donation',
+                  inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
+                },
+                args: { donor: checksumAddress } as any,
+                fromBlock: chunk.from,
+                toBlock: chunk.to
+              }),
+              managedAddresses.length > 0 ? publicClient.getLogs({
+                address: managedAddresses,
+                event: {
+                  type: 'event',
+                  name: 'Donation',
+                  inputs: ABIS.CAMPAIGN.find((x: any) => x.name === 'Donation')?.inputs || [],
+                },
+                fromBlock: chunk.from,
+                toBlock: chunk.to
+              }) : Promise.resolve([])
+            ]);
+            return { userBatch, managedBatch };
+          }));
 
-          allLogs.push(...userBatch.flat());
-          
-          if (managedBatch.length > 0) {
-            const resolvedManaged = await resolveLogNames(managedBatch);
-            setManagedDonations(prev => [...prev, ...resolvedManaged]);
+          for (const res of results) {
+            allLogs.push(...res.userBatch.flat());
+            if (res.managedBatch.length > 0) {
+              const resolvedManaged = await resolveLogNames(res.managedBatch);
+              setManagedDonations(prev => [...prev, ...resolvedManaged]);
+            }
           }
 
           if (allLogs.length > 0) {

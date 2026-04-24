@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Wallet,
   Users,
-  AlertCircle,
   ArrowUpRight,
   ShieldCheck,
   Zap,
@@ -326,39 +325,29 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
               className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/30 border border-white/10 hover:border-white/20 transition-shadow group relative overflow-hidden"
             >
               {/* Status Banner */}
-              <div className={`-mx-8 -mt-8 mb-6 px-8 py-4 flex items-center justify-between border-b transition-colors shadow-sm ${
-                isComplete ? 'bg-emerald-50/50 border-emerald-100' :
-                isRejected ? 'bg-rose-50/50 border-rose-100' :
-                isVerified ? 'bg-blue-50/50 border-blue-100' :
-                hasProof ? 'bg-amber-50/50 border-amber-100' :
-                (validatorApproved || communityApproved) ? 'bg-indigo-50/50 border-indigo-100' :
-                'bg-slate-50/50 border-slate-100'
+              <div className={`-mx-8 -mt-8 mb-6 px-8 py-5 flex items-center justify-between border-b transition-all duration-500 shadow-lg ${
+                isComplete ? 'bg-emerald-500/90 border-emerald-400 shadow-emerald-500/40' :
+                isRejected ? 'bg-rose-500/90 border-rose-400 shadow-rose-500/40' :
+                isVerified ? 'bg-blue-500/90 border-blue-400 shadow-blue-500/40' :
+                hasProof ? 'bg-amber-500/90 border-amber-400 shadow-amber-500/40' :
+                (validatorApproved || communityApproved) ? 'bg-indigo-500/90 border-indigo-400 shadow-indigo-500/40' :
+                'bg-cyan-600/90 border-cyan-400 shadow-cyan-500/30'
               }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-inner ${
-                    isComplete ? 'bg-emerald-100 text-emerald-600' :
-                    isRejected ? 'bg-rose-100 text-rose-600' :
-                    isVerified ? 'bg-blue-100 text-blue-600' :
-                    hasProof ? 'bg-amber-100 text-amber-600' :
-                    (validatorApproved || communityApproved) ? 'bg-indigo-100 text-indigo-600' :
-                    'bg-slate-100 text-slate-400'
+                <div className="flex items-center gap-4">
+                  <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-xl backdrop-blur-md ${
+                    isComplete || isRejected || isVerified || hasProof || (validatorApproved || communityApproved)
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-white/20 text-white'
                   }`}>
-                    {isComplete ? <CheckCircle2 size={20} /> : 
-                     isRejected ? <XCircle size={20} /> :
-                     isVerified ? <Zap size={20} /> :
-                     hasProof ? <ShieldCheck size={20} /> :
-                     (validatorApproved || communityApproved) ? <Users size={20} /> :
-                     <RefreshCw size={20} className="animate-spin-slow" />}
+                    {isComplete ? <CheckCircle2 size={24} strokeWidth={3} /> : 
+                     isRejected ? <XCircle size={24} strokeWidth={3} /> :
+                     isVerified ? <Zap size={24} strokeWidth={3} /> :
+                     hasProof ? <ShieldCheck size={24} strokeWidth={3} /> :
+                     (validatorApproved || communityApproved) ? <Users size={24} strokeWidth={3} /> :
+                     <RefreshCw size={24} strokeWidth={3} className="animate-spin-slow" />}
                   </div>
                   <div>
-                    <h4 className={`text-xs font-black uppercase tracking-widest ${
-                      isComplete ? 'text-emerald-700' :
-                      isRejected ? 'text-rose-700' :
-                      isVerified ? 'text-blue-700' :
-                      hasProof ? 'text-amber-700' :
-                      (validatorApproved || communityApproved) ? 'text-indigo-700' :
-                      'text-slate-500'
-                    }`}>
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] drop-shadow-md text-white">
                       {isComplete ? 'Execution Complete' : 
                        isRejected ? 'Request Rejected' :
                        isVerified ? 'Verification Passed' :
@@ -367,12 +356,14 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
                        'Voting in Progress'}
                     </h4>
                     {req.selectedValidators.length > 0 && !isComplete && !isRejected && (
-                      <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5 tracking-tighter">
-                        Inspector Path: <span className={req.validatorApprovalCount >= 2 ? "text-emerald-500" : "text-amber-500"}>{req.validatorApprovalCount}/3 Approved</span>
+                      <p className="text-[9px] font-black uppercase mt-0.5 tracking-tight text-white/80">
+                        Inspector Path: <span className="underline decoration-white/30">{req.validatorApprovalCount}/3 Approved</span>
                       </p>
                     )}
                   </div>
                 </div>
+
+
 
                 <div className="flex items-center gap-4">
                   {isSupplier && (

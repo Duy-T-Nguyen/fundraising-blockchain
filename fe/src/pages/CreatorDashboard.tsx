@@ -7,6 +7,9 @@ import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
 
+const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
+
+
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
@@ -41,7 +44,7 @@ const CreatorDashboard: React.FC = () => {
       if (dayIndex !== -1) {
         last7Days[dayIndex].amount += parseFloat(don.amount);
       }
-      
+
       // Track per-project totals for the last 7 days
       const isWithin7Days = last7Days.some(d => d.dateStr === donDate);
       if (isWithin7Days) {
@@ -127,13 +130,6 @@ const CreatorDashboard: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <AIRelayerStatus />
-            <Link
-              to="/campaigns/create"
-              className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-300 hover:-translate-y-1"
-            >
-              <PlusCircle size={20} />
-              Launch Project
-            </Link>
           </div>
         </div>
 
@@ -195,21 +191,29 @@ const CreatorDashboard: React.FC = () => {
                         </div>
                         <div className="w-24 h-24 rounded-2xl bg-white/10 border border-amber-500/20 flex-shrink-0 overflow-hidden">
                           {req.image ? (
-                            <img src={req.image} className="w-full h-full object-cover opacity-60 grayscale" alt="" />
+                            <img 
+                              src={req.image.startsWith('ipfs://') 
+                                ? `https://gateway.pinata.cloud/ipfs/${req.image.replace('ipfs://', '')}`
+                                : req.image} 
+                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
+                              alt="" 
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-amber-400/50">
                               <Layout size={32} />
                             </div>
                           )}
                         </div>
+
                         <div className="flex-1">
                           <h4 className="text-xl font-black text-white mb-1">{req.name || 'Untitled Request'}</h4>
                           <p className="text-sm text-white/50 mb-3 line-clamp-1">{req.description || 'No description provided yet.'}</p>
                           <div className="flex items-center gap-3">
                             <span className="px-3 py-1 bg-amber-500/15 rounded-full text-[10px] font-bold text-amber-400 border border-amber-500/20 uppercase tracking-widest">
-                              Category {req.category}
+                              {CAT_NAMES[req.category] || 'Others'}
                             </span>
                           </div>
+
                         </div>
                       </div>
                     ))}
