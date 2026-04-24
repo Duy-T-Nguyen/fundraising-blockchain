@@ -9,6 +9,8 @@ interface RequestsTabProps {
   onReject: (id: number) => Promise<void>;
 }
 
+const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
+
 const RequestsTab: React.FC<RequestsTabProps> = ({ requests, processingId, onApprove, onReject }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -46,7 +48,9 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ requests, processingId, onApp
             <p className="text-white/30 font-black uppercase text-[10px] tracking-widest">No active requests found.</p>
           </div>
         ) : (
-          requests.map((request) => {
+          [...requests]
+            .sort((a, b) => b.id - a.id)
+            .map((request) => {
             const isExpanded = expandedId === request.id;
             const imageUrl = getImageUrl(request.image);
 
@@ -87,7 +91,13 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ requests, processingId, onApp
                           <span className="bg-white/5 px-2 py-1 rounded-lg border border-white/10 flex items-center gap-1.5">
                             <User size={10} /> {request.manager.slice(0, 6)}...{request.manager.slice(-4)}
                           </span>
-                          <span>Category {request.category}</span>
+                          <span>{CAT_NAMES[request.category] || 'Others'}</span>
+                          <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border
+                            ${request.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                              request.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
+                              'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                            {request.status}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -112,16 +122,6 @@ const RequestsTab: React.FC<RequestsTabProps> = ({ requests, processingId, onApp
                           </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                            <p className="text-[9px] font-black text-white/30 uppercase mb-1">Manager Address</p>
-                            <p className="text-white/60 font-mono text-xs truncate">{request.manager}</p>
-                          </div>
-                          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                            <p className="text-[9px] font-black text-white/30 uppercase mb-1">Metadata CID</p>
-                            <p className="text-white/60 font-mono text-xs truncate">{request.metadataCID}</p>
-                          </div>
-                        </div>
                       </div>
 
                       <div className="space-y-6">

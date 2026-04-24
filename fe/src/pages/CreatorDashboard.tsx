@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
-import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
@@ -56,21 +56,8 @@ const CreatorDashboard: React.FC = () => {
     return { last7Days, projectTotals };
   };
 
-  const { last7Days: chartData, projectTotals } = getChartData();
-  const totalVolume = chartData.reduce((acc, d) => acc + d.amount, 0);
-  const maxAmount = Math.max(...chartData.map(d => d.amount), 0.01) * 1.2;
-
-  // Map project totals to campaign names for display
-  const breakdownItems = Object.entries(projectTotals)
-    .map(([addr, amount]) => {
-      const campaign = managedCampaigns.find(c => c.address.toLowerCase() === addr);
-      return {
-        name: campaign?.title || 'Unknown Project',
-        amount,
-        percentage: totalVolume > 0 ? (amount / totalVolume) * 100 : 0
-      };
-    })
-    .sort((a, b) => b.amount - a.amount);
+  const { last7Days: chartData } = getChartData();
+  // Removed unused chart calculations
 
   // Fallback images for premium look while real IPFS images are not available
   const getPlaceholderImage = (ca: string | undefined) => {

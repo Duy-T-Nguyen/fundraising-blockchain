@@ -105,6 +105,7 @@ export function useCampaign(address: string | undefined, userAddress?: string) {
         title: metadata?.name || 'Unnamed Campaign',
         description: metadata?.description || '',
         imageHash: metadata?.image || '',
+        category: Number(summaryData.category !== undefined ? summaryData.category : summaryData[5]),
         balance: formatEther(summaryData.balance || summaryData[0]),
         minimumContribution: formatEther(summaryData.minContribution || summaryData[1]),
         numRequests: Number(summaryData.numRequests || summaryData[2]),

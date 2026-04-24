@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Building, Globe, Save, ShieldCheck, MapPin, ExternalLink, UploadCloud, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Building, Globe, Save, ShieldCheck, MapPin, UploadCloud, Loader2, Image as ImageIcon } from 'lucide-react';
 import { fetchIPFSJSON } from '../../utils/ipfs';
 import { useWallet } from '../../hooks/useWallet';
 

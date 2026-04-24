@@ -41,73 +41,9 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
   const { executeGasless, isRelaying } = useRelayer();
   const toast = useNotification();
   const { 
-    uploadingTaskId, 
     uploadedEvidences, 
-    fileInputRef, 
-    startUpload, 
-    handleFileChange, 
     openIPFS 
   } = useSupplierEvidence(userAddress || undefined, isConnected, connect);
-
-  // --- Verification Handlers ---
-  const handleSubmitProof = async (requestId: number, proofCID: string) => {
-    if (!userAddress) return;
-    setProcessingId(requestId);
-    try {
-      const data = encodeFunctionData({
-        abi: ABIS.CAMPAIGN,
-        functionName: 'submitProof',
-        args: [BigInt(requestId), proofCID],
-      });
-      await executeGasless(address, data);
-      refresh();
-    } catch (err) {
-      console.error('Submit proof failed:', err);
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const handleVerify = async (requestId: number) => {
-    if (!userAddress) return;
-    setProcessingId(requestId);
-    try {
-      const data = encodeFunctionData({
-        abi: ABIS.CAMPAIGN,
-        functionName: 'verifyRequest',
-        args: [BigInt(requestId)],
-      });
-      await executeGasless(address, data);
-      refresh();
-    } catch (err) {
-      console.error('Verification failed:', err);
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
-  const handleReject = async (requestId: number) => {
-    if (!userAddress) return;
-    const reason = prompt("Please enter the reason for rejection (will be stored on IPFS/Chain):");
-    if (!reason) return;
-
-    setProcessingId(requestId);
-    try {
-      // In a real app, we would upload the reason to IPFS first
-      // For now, we'll use a placeholder or the raw text if short
-      const data = encodeFunctionData({
-        abi: ABIS.CAMPAIGN,
-        functionName: 'rejectRequest',
-        args: [BigInt(requestId), reason],
-      });
-      await executeGasless(address, data);
-      refresh();
-    } catch (err) {
-      console.error('Rejection failed:', err);
-    } finally {
-      setProcessingId(null);
-    }
-  };
 
   // --- AI Vote (Gasless, queued) ---
   const handleApprove = async (index: number) => {
@@ -122,7 +58,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
         args: [BigInt(index)],
       });
       
-      const result = await executeGasless(address, data);
+      await executeGasless(address, data);
       toast.success('Vote submitted to AI Relayer! It will appear on-chain shortly.');
       
       // Update local state for immediate feedback
@@ -132,7 +68,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     } catch (err: any) {
       console.error('[AI Vote] Failed:', err);
       if (err.message?.includes('User rejected')) {
-        toast.warning('Voting signature denied.');
+        toast.info('Voting signature denied.');
       } else {
         toast.error(err.message || 'AI Relayer failed. Please try Direct Vote.');
       }
@@ -198,7 +134,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     } catch (err: any) {
       console.error('Direct Approval failed:', err);
       if (err.message?.includes('User rejected')) {
-        toast.warning('Transaction cancelled by user.');
+        toast.info('Transaction cancelled by user.');
       } else {
         toast.error(err.shortMessage || err.message || 'Direct Vote failed.');
       }
@@ -233,7 +169,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
     } catch (err: any) {
       console.error('Finalization failed:', err);
       if (err.message?.includes('User rejected')) {
-        toast.warning('Transaction cancelled by user.');
+        toast.info('Transaction cancelled by user.');
       } else {
         toast.error(err.shortMessage || err.message || 'Failed to release funds.');
       }
@@ -333,7 +269,7 @@ const RequestsList: React.FC<RequestsListProps> = ({ address, isManager, hasDona
 
           const hasProof = req.proofCID && req.proofCID !== "";
           const taskKey = `${address}-${req.id}`;
-          const localProof = uploadedEvidences[taskKey];
+          // localProof removed
 
           return (
             <div

@@ -72,7 +72,7 @@ export function useSupplierEvidence(userAddress: string | undefined, isConnected
       const { cid } = await res.json();
 
       // 3. Submit proof CID to Smart Contract (write on-chain)
-      const { ABIS, CONTRACT_ADDRESSES } = await import('../blockchain/constants');
+      const { ABIS } = await import('../blockchain/constants');
       
       // Try gasless relayer first, fall back to direct tx
       let txSent = false;
@@ -95,7 +95,7 @@ export function useSupplierEvidence(userAddress: string | undefined, isConnected
       }
 
       if (!txSent) {
-        const { publicClient } = await import('../blockchain/client');
+        // Logic to fetch logs
         const { encodeFunctionData } = await import('viem');
         const data = encodeFunctionData({
           abi: ABIS.CAMPAIGN,

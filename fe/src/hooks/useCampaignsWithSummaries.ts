@@ -70,7 +70,7 @@ export function useCampaignsWithSummaries() {
             const data: any = summaryData;
             const metaCID = data.metaCID || data[5];
             const metadata = await fetchIPFSJSON(metaCID);
-            
+
             const balanceVal = data.balance || data[0];
             const raisedVal = totalFundsRaised; // Use the explicitly fetched value
 
@@ -95,7 +95,8 @@ export function useCampaignsWithSummaries() {
       );
 
       // Filter out failures and set state
-      setCampaigns(enrichedData.filter((c): c is EnrichedCampaign => c !== null));
+      const validCampaigns = enrichedData.filter(c => c !== null) as EnrichedCampaign[];
+      setCampaigns(validCampaigns);
     } catch (err) {
       console.error('Error fetching enriched campaigns:', err);
       setError('Failed to fetch campaign data. Please try again.');

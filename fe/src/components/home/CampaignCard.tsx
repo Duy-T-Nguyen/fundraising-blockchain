@@ -29,13 +29,13 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
 
   if (isLoading || !summary) {
     return (
-      <div className="bg-white rounded-[2.5rem] overflow-hidden flex flex-col animate-pulse shadow-sm border border-gray-100 h-full min-h-[480px]">
-        <div className="h-64 bg-gray-200" />
+      <div className="bg-slate-900/40 backdrop-blur-md rounded-[2.5rem] overflow-hidden flex flex-col animate-pulse shadow-2xl border border-white/5 h-full min-h-[480px]">
+        <div className="h-64 bg-white/5" />
         <div className="p-8 space-y-4">
-          <div className="h-4 w-20 bg-gray-100 rounded-full" />
-          <div className="h-8 bg-gray-200 rounded-xl w-3/4" />
-          <div className="h-4 bg-gray-100 rounded-lg w-full" />
-          <div className="h-4 bg-gray-100 rounded-lg w-5/6" />
+          <div className="h-4 w-20 bg-white/10 rounded-full" />
+          <div className="h-8 bg-white/10 rounded-xl w-3/4" />
+          <div className="h-4 bg-white/5 rounded-lg w-full" />
+          <div className="h-4 bg-white/5 rounded-lg w-5/6" />
         </div>
       </div>
     );
@@ -50,14 +50,14 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
   return (
     <Link
       to={detailUrl}
-      className="group bg-white rounded-[2rem] overflow-hidden flex flex-col shadow-2xl hover:shadow-[0_20px_60px_rgba(0,0,0,0.12)] hover:-translate-y-2 transition-all duration-500 border border-gray-100 no-underline h-full min-h-[420px]"
+      className="group bg-slate-900/40 backdrop-blur-md rounded-[2rem] overflow-hidden flex flex-col shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2 transition-all duration-500 border border-white/10 no-underline h-full min-h-[420px]"
     >
       {/* Image Section with Overlaid Stats */}
       <div className="p-4 pb-0">
-        <div className="relative h-56 overflow-hidden bg-gray-200 rounded-2xl">
+        <div className="relative h-56 overflow-hidden bg-white/5 rounded-2xl">
           {/* Skeleton Loader */}
           {!imageLoaded && (
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5" />
           )}
 
           <img
@@ -94,18 +94,18 @@ const CampaignCard = ({ address }: CampaignCardProps) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-[22px] font-extrabold text-gray-900 mb-3 leading-[1.2] tracking-tight line-clamp-2 transition-colors">
+        <h3 className="text-[22px] font-extrabold text-white mb-3 leading-[1.2] tracking-tight line-clamp-2 transition-colors">
           {summary.title}
         </h3>
 
         {/* Description Snippet */}
-        <p className="text-[15px] leading-relaxed text-gray-500 line-clamp-3 mb-5">
+        <p className="text-[15px] leading-relaxed text-white/50 line-clamp-3 mb-5">
           {summary.description || 'Transparency-driven decentralised fundraising powered by secure blockchain smart contracts and IPFS evidence.'}
         </p>
 
         {/* Subtle Footnote */}
-        <div className="mt-auto pt-5 border-t border-gray-50 flex items-center justify-end">
-          <ArrowRight size={22} className="text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+        <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-end">
+          <ArrowRight size={22} className="text-white/20 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
         </div>
       </div>
     </Link>

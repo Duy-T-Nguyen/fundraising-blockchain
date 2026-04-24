@@ -193,6 +193,7 @@ const AdminDashboard = () => {
                 if (!newSupplierFile || !address) return;
 
                 const walletClient = await getWalletClient();
+                if (!walletClient) return;
                 const signature = await walletClient.signMessage({
                   account: address as `0x${string}`,
                   message: 'FundChain IPFS Upload',

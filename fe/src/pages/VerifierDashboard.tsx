@@ -5,7 +5,6 @@ import { useWallet } from '../hooks/useWallet';
 import { useVerifierTasks } from '../hooks/useVerifierTasks';
 import { VerifierStats } from '../components/verifier/VerifierStats';
 import { ExpertTaskCard } from '../components/verifier/ExpertTaskCard';
-import { CommunityTaskCard } from '../components/verifier/CommunityTaskCard';
 import { SignatureModal } from '../components/verifier/SignatureModal';
 import type { VerifierTask } from '../types/verifier';
 import { publicClient, getWalletClient } from '../blockchain/client';
@@ -78,30 +77,6 @@ const VerifierDashboard = () => {
     } catch (error: any) {
       console.error('Rejection failed:', error);
       toast.error(error?.shortMessage || error?.message || 'Rejection failed.');
-    }
-  };
-
-  const handleCommunityApprove = async (task: VerifierTask) => {
-    try {
-      const walletClient = await getWalletClient();
-      if (!walletClient || !address) return;
-
-      const { request } = await publicClient.simulateContract({
-        address: task.campaignAddress,
-        abi: ABIS.CAMPAIGN,
-        functionName: 'approveAsValidator',
-        args: [BigInt(task.requestIndex)],
-        account: address as `0x${string}`
-      });
-
-      const hash = await walletClient.writeContract(request);
-      toast.success('Vote submitted! Waiting for confirmation...');
-      await publicClient.waitForTransactionReceipt({ hash });
-      toast.success('Community approval confirmed!');
-      refresh();
-    } catch (error: any) {
-      console.error('Approval failed:', error);
-      toast.error(error?.shortMessage || error?.message || 'Approval failed.');
     }
   };
 

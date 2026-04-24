@@ -59,7 +59,7 @@ export function useUserActivity(userAddress: `0x${string}` | undefined) {
         })) as any,
       });
       
-      const managedAddresses = allCampaignAddresses.filter((addr, i) => 
+      const managedAddresses = allCampaignAddresses.filter((_, i) => 
         managers[i].status === 'success' && 
         (String(managers[i].result)).toLowerCase() === checksumAddress.toLowerCase()
       );
