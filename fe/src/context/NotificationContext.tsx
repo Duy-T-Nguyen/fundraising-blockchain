@@ -22,28 +22,33 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 // ── Toast Item ────────────────────────────────────────────────────────────────
 const STYLE_MAP: Record<ToastType, {
-    border: string; accent: string; borderColor: string;
-    icon: React.ReactNode; label: string;
+    border: string; accent: string;
+    iconBg: string; iconColor: string;
+    icon: React.ReactNode; label: string; labelColor: string;
 }> = {
     success: {
-        border: 'border-emerald-500/40', accent: 'bg-emerald-500', borderColor: '#10b98166',
-        icon: <CheckCircle className="text-emerald-500 shrink-0" size={20} />,
-        label: 'Success',
+        border: 'border-emerald-500/30', accent: 'bg-emerald-500',
+        iconBg: 'bg-emerald-500/15 border border-emerald-500/25', iconColor: 'text-emerald-400',
+        icon: <CheckCircle className="text-emerald-400 shrink-0" size={18} />,
+        label: 'SUCCESS', labelColor: 'text-emerald-400',
     },
     error: {
-        border: 'border-red-500/40', accent: 'bg-red-500', borderColor: '#ef444466',
-        icon: <AlertCircle className="text-red-500 shrink-0" size={20} />,
-        label: 'Error',
+        border: 'border-red-500/30', accent: 'bg-red-500',
+        iconBg: 'bg-red-500/15 border border-red-500/25', iconColor: 'text-red-400',
+        icon: <AlertCircle className="text-red-400 shrink-0" size={18} />,
+        label: 'ERROR', labelColor: 'text-red-400',
     },
     warning: {
-        border: 'border-amber-400/40', accent: 'bg-amber-400', borderColor: '#fbbf2466',
-        icon: <AlertTriangle className="text-amber-400 shrink-0" size={20} />,
-        label: 'Warning',
+        border: 'border-amber-400/30', accent: 'bg-amber-400',
+        iconBg: 'bg-amber-400/15 border border-amber-400/25', iconColor: 'text-amber-400',
+        icon: <AlertTriangle className="text-amber-400 shrink-0" size={18} />,
+        label: 'WARNING', labelColor: 'text-amber-400',
     },
     info: {
-        border: 'border-blue-500/40', accent: 'bg-blue-500', borderColor: '#3b82f666',
-        icon: <Info className="text-blue-500 shrink-0" size={20} />,
-        label: 'Info',
+        border: 'border-blue-500/30', accent: 'bg-blue-500',
+        iconBg: 'bg-blue-500/15 border border-blue-500/25', iconColor: 'text-blue-400',
+        icon: <Info className="text-blue-400 shrink-0" size={18} />,
+        label: 'INFO', labelColor: 'text-blue-400',
     },
 };
 
@@ -59,35 +64,36 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
             role="alert"
             aria-live="assertive"
             aria-atomic="true"
-            className="relative min-w-[300px] max-w-md border rounded-2xl shadow-2xl p-5 overflow-hidden animate-in slide-in-from-right-4 duration-300"
-            style={{ backgroundColor: '#ffffff', borderColor: s.borderColor }}
+            className={`relative min-w-[320px] max-w-sm bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 backdrop-blur-2xl border ${s.border} rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-right-4 duration-300`}
         >
             {/* Left accent bar */}
-            <div className={`absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl ${s.accent}`} />
+            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${s.accent} opacity-80`} />
 
-            <div className="flex gap-4 pl-2">
-                <div className="pt-0.5">{s.icon}</div>
+            <div className="flex gap-4 px-5 pt-5 pb-4 pl-6">
+                <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${s.iconBg}`}>
+                    {s.icon}
+                </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-1 opacity-60 text-slate-700">
+                    <p className={`text-[10px] font-black uppercase tracking-[0.25em] mb-1 ${s.labelColor}`}>
                         {s.label}
                     </p>
-                    <p className="text-sm font-extrabold text-slate-800 leading-snug break-words">
+                    <p className="text-sm font-semibold text-white/80 leading-snug break-words">
                         {toast.message}
                     </p>
                 </div>
                 <button
                     onClick={() => onClose(toast.id)}
                     aria-label="Dismiss notification"
-                    className="shrink-0 h-6 w-6 flex items-center justify-center rounded-lg hover:bg-black/5 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="shrink-0 h-6 w-6 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/30 hover:text-white/60 transition-colors"
                 >
                     <X size={14} />
                 </button>
             </div>
 
             {/* Shrinking progress bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/5">
+            <div className="h-[2px] bg-white/5">
                 <div
-                    className={`h-full ${s.accent} origin-left`}
+                    className={`h-full ${s.accent} opacity-60 origin-left`}
                     style={{ animation: 'toast-shrink 4s linear forwards' }}
                 />
             </div>
