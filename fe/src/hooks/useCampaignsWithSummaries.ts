@@ -6,6 +6,7 @@ import { fetchIPFSJSON } from '../utils/ipfs';
 
 export interface EnrichedCampaign {
   address: string;
+  manager: string;
   title: string;
   description: string;
   category: number;
@@ -30,7 +31,7 @@ export function useCampaignsWithSummaries() {
         address: CONTRACT_ADDRESSES.CAMPAIGN_FACTORY,
         abi: ABIS.CAMPAIGN_FACTORY as any,
         functionName: 'getCampaigns',
-        args: [0, '0x0000000000000000000000000000000000000000', 0, 0n, 50n],
+        args: [0, '0x0000000000000000000000000000000000000000', 0, BigInt(0), BigInt(50)],
       } as any) as `0x${string}`[];
 
       if (!addresses || addresses.length === 0) {
@@ -63,12 +64,12 @@ export function useCampaignsWithSummaries() {
 
             const data: any = summaryData;
             const metaCID = data.metaCID || data[5];
-            
+
             // 3. Fetch metadata from IPFS
             const metadata = await fetchIPFSJSON(metaCID);
 
             const onChainName = data[7] || '';
-            
+
             return {
               address,
               manager,

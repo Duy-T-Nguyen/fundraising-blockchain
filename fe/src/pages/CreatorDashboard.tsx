@@ -13,7 +13,7 @@ const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
   const { campaigns, isLoading: campaignsLoading } = useCampaignsWithSummaries();
-  const { pendingRequests, managedDonations, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
+  const { pendingRequests, isLoading: requestsLoading } = useUserActivity(address as `0x${string}`);
 
   // Filter campaigns where user is the manager
   const managedCampaigns = campaigns.filter(
@@ -44,7 +44,7 @@ const CreatorDashboard: React.FC = () => {
       if (dayIndex !== -1) {
         last7Days[dayIndex].amount += parseFloat(don.amount);
       }
-
+      
       // Track per-project totals for the last 7 days
       const isWithin7Days = last7Days.some(d => d.dateStr === donDate);
       if (isWithin7Days) {

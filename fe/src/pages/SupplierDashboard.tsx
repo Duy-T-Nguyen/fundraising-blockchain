@@ -29,22 +29,28 @@ const SupplierDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] gap-6">
-        <div className="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin" />
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Querying blockchain state...</p>
+      <div
+        className="min-h-screen flex flex-col items-center justify-center gap-6"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
+        <div className="w-16 h-16 border-4 border-white/5 border-t-blue-500 rounded-full animate-spin shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+        <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] animate-pulse">Querying blockchain state...</p>
       </div>
     );
   }
 
   if (!info?.isRegistered) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#f8fafc]">
-        <div className="w-24 h-24 bg-white border border-slate-100 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-sm">
-          <Building size={40} className="text-slate-300" />
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 text-center"
+        style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+      >
+        <div className="w-24 h-24 bg-gradient-to-br from-slate-900 to-blue-950 border border-white/10 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl backdrop-blur-xl">
+          <Building size={40} className="text-white/20" />
         </div>
-        <h1 className="text-4xl font-black mb-4 text-slate-900 tracking-tight">Restricted Portal</h1>
-        <p className="text-slate-500 max-w-sm mx-auto mb-8 font-medium leading-relaxed">
-          Access to the Supplier Dashboard is exclusive to verified partners. 
+        <h1 className="text-4xl font-black mb-4 text-white tracking-tight">Restricted Portal</h1>
+        <p className="text-white/40 max-w-sm mx-auto mb-8 font-medium leading-relaxed">
+          Access to the Supplier Dashboard is exclusive to verified partners.
           Your wallet is not currently whitelisted in the Supplier Registry.
         </p>
       </div>
@@ -54,11 +60,14 @@ const SupplierDashboard: React.FC = () => {
   const activeTasksCount = tasks.filter(t => !t.complete).length;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pt-24 pb-32">
+    <div
+      className="min-h-screen pt-24 pb-32"
+      style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 lg:px-12">
-        
+
         {/* Modular Header */}
-        <SupplierDashboardHeader 
+        <SupplierDashboardHeader
           name={info.name}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -68,7 +77,7 @@ const SupplierDashboard: React.FC = () => {
         {/* Tab Content Orchestration */}
         <div className="relative">
           {activeTab === 'dashboard' && (
-            <SupplierOverview 
+            <SupplierOverview
               info={info}
               tasks={tasks}
               isLoading={isTasksLoading}
@@ -77,7 +86,7 @@ const SupplierDashboard: React.FC = () => {
           )}
 
           {activeTab === 'evidence' && (
-            <SupplierTaskQueue 
+            <SupplierTaskQueue
               tasks={tasks}
               isLoading={isTasksLoading}
               onRefresh={refreshTasks}
@@ -89,7 +98,7 @@ const SupplierDashboard: React.FC = () => {
           )}
 
           {activeTab === 'profile' && (
-            <SupplierProfile 
+            <SupplierProfile
               info={info}
               isUpdating={isUpdating}
               onUpdate={updateInfo}
@@ -98,12 +107,12 @@ const SupplierDashboard: React.FC = () => {
         </div>
 
         {/* Hidden File Input for useSupplierEvidence */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          className="hidden" 
-          accept="image/*" 
-          onChange={(e) => handleFileChange(e, refreshTasks)} 
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={(e) => handleFileChange(e, refreshTasks)}
         />
       </div>
     </div>
