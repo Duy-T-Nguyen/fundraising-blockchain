@@ -42,7 +42,7 @@ const HowItWorksSection = () => {
             {steps.map(({ icon: Icon, title, description }, index) => (
               <div
                 key={title}
-                className="group bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-blue-900/20 hover:shadow-2xl hover:shadow-blue-600/15 hover:-translate-y-1.5 transition-all duration-300"
+                className="group bg-slate-900/40 backdrop-blur-md rounded-3xl p-8 border border-white/10 shadow-2xl shadow-black/20 hover:shadow-blue-500/10 hover:-translate-y-1.5 transition-all duration-300"
               >
                 {/* Step number */}
                 <div className="text-[11px] font-black text-blue-400 tracking-[0.2em] uppercase mb-4">
@@ -51,13 +51,13 @@ const HowItWorksSection = () => {
 
                 {/* Icon + Title same row */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-md shadow-blue-600/30 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30 group-hover:scale-110 transition-transform duration-300">
                     <Icon size={22} className="text-white" strokeWidth={2} />
                   </div>
-                  <h3 className="text-[20px] font-black text-gray-900">{title}</h3>
+                  <h3 className="text-[20px] font-black text-white">{title}</h3>
                 </div>
 
-                <p className="text-gray-500 leading-relaxed text-[15px]">{description}</p>
+                <p className="text-white/60 leading-relaxed text-[15px]">{description}</p>
               </div>
             ))}
           </div>

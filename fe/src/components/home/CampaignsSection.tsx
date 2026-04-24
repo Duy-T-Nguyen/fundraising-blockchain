@@ -11,8 +11,8 @@ const CampaignsSection = () => {
     return (
       <section id="campaigns" className="py-24 px-6 md:px-16">
         <div className="max-w-5xl mx-auto flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 size={40} className="text-blue-600 animate-spin" />
-          <p className="text-gray-500 font-bold text-lg">Fetching campaigns from blockchain...</p>
+          <Loader2 size={40} className="text-blue-400 animate-spin" />
+          <p className="text-white/40 font-bold text-lg">Fetching campaigns from blockchain...</p>
         </div>
       </section>
     );
@@ -21,10 +21,10 @@ const CampaignsSection = () => {
   if (error) {
     return (
       <section id="campaigns" className="py-24 px-6 md:px-16">
-        <div className="max-w-4xl mx-auto flex flex-col items-center text-center py-16 bg-white rounded-3xl border border-red-100 shadow-xl gap-4">
+        <div className="max-w-4xl mx-auto flex flex-col items-center text-center py-16 bg-red-500/5 backdrop-blur-md rounded-3xl border border-red-500/20 shadow-2xl gap-4">
           <AlertCircle size={40} className="text-red-400" />
-          <p className="text-red-500 font-black text-xl">{error}</p>
-          <p className="text-gray-400">Please ensure you are connected to Sepolia testnet.</p>
+          <p className="text-red-400 font-black text-xl">{error}</p>
+          <p className="text-white/40">Please ensure you are connected to Sepolia testnet.</p>
         </div>
       </section>
     );
@@ -44,8 +44,8 @@ const CampaignsSection = () => {
                 Verified impact projects, deployed and governed on-chain.
               </p>
             </div>
-            <span className="flex items-center gap-2 px-4 py-1.5 bg-green-50 text-green-700 text-sm font-black rounded-full border border-green-200 whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="flex items-center gap-2 px-4 py-1.5 bg-green-500/10 text-green-400 text-sm font-black rounded-full border border-green-500/20 whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               Live On-Chain
             </span>
           </div>
@@ -53,9 +53,9 @@ const CampaignsSection = () => {
 
         {campaignAddresses.length === 0 ? (
           <Reveal direction="up" delay={200}>
-            <div className="text-center py-24 bg-white/60 backdrop-blur-sm rounded-3xl border-2 border-dashed border-gray-200 shadow-xl">
-              <p className="text-gray-400 text-xl font-bold">No campaigns found yet.</p>
-              <p className="text-gray-400 mt-2 text-[15px]">Check back soon for new impact opportunities.</p>
+            <div className="text-center py-24 bg-slate-900/20 backdrop-blur-sm rounded-3xl border-2 border-dashed border-white/10 shadow-xl">
+              <p className="text-white/30 text-xl font-bold">No campaigns found yet.</p>
+              <p className="text-white/20 mt-2 text-[15px]">Check back soon for new impact opportunities.</p>
             </div>
           </Reveal>
         ) : (
@@ -72,7 +72,7 @@ const CampaignsSection = () => {
               <div className="mt-14 text-center">
                 <Link
                   to="/#campaigns"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-bold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 group shadow-lg shadow-blue-600/10"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600/10 border-2 border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white font-bold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 group shadow-xl shadow-blue-500/5"
                 >
                   Explore All Campaigns
                   <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
