@@ -113,43 +113,48 @@ const VerifierDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-20">
+    <div
+      className="min-h-screen pb-20 pt-24"
+      style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
+    >
       <div className="max-w-7xl mx-auto px-6">
         {/* Header Section */}
-        <div className="pt-12 pb-12">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-              <Shield size={24} />
+        <div className="pb-12">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/20 rounded-[2rem] flex items-center justify-center text-indigo-400 shadow-2xl backdrop-blur-xl">
+              <Shield size={32} />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-slate-900">Verifier Hub</h1>
-              <p className="text-slate-500 font-medium tracking-wide">Secure certification & community validation center.</p>
+              <h1 className="text-4xl font-black text-white tracking-tight uppercase">Verifier Hub</h1>
+              <p className="text-white/40 font-black tracking-[0.2em] uppercase text-[10px] mt-2">Secure certification & community validation center.</p>
             </div>
           </div>
         </div>
 
         {!address ? (
-          <div className="bg-white rounded-[3rem] p-20 text-center border border-slate-100 shadow-sm mt-32">
-            <Shield size={64} className="mx-auto text-slate-200 mb-6" />
-            <h2 className="text-2xl font-black text-slate-900 mb-2">Wallet Disconnected</h2>
-            <p className="text-slate-400">Please connect your wallet to access your verification duties.</p>
+          <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] p-24 text-center border border-white/10 shadow-2xl mt-20 max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-white/5 shadow-inner">
+              <Shield size={40} className="text-white/10" />
+            </div>
+            <h2 className="text-2xl font-black text-white mb-2">Wallet Disconnected</h2>
+            <p className="text-white/30 text-sm font-medium">Please connect your authorized identity to access verification duties.</p>
           </div>
         ) : (
           <>
             <VerifierStats stats={stats} />
 
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between mb-8 gap-4">
+              <div className="flex flex-1 md:flex-none bg-white/5 p-2 rounded-[1.8rem] border border-white/10 backdrop-blur-xl shadow-xl">
                 <button
                   onClick={() => setActiveTab('expert')}
-                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'expert' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-400 hover:text-slate-600'
+                  className={`flex-1 px-8 py-4 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === 'expert' ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-xl shadow-indigo-600/30' : 'text-white/30 hover:text-white hover:bg-white/5'
                     }`}
                 >
                   Expert Tasks ({stats.pendingExpert})
                 </button>
                 <button
                   onClick={() => setActiveTab('community')}
-                  className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-400 hover:text-slate-600'
+                  className={`flex-1 px-8 py-4 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === 'community' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30' : 'text-white/30 hover:text-white hover:bg-white/5'
                     }`}
                 >
                   Community Voting ({stats.pendingCommunity})
@@ -158,41 +163,41 @@ const VerifierDashboard = () => {
 
               <button
                 onClick={() => refresh()}
-                className="p-3 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 transition-all hover:shadow-md"
+                className="p-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white/20 hover:text-indigo-400 transition-all hover:bg-white/10 hover:shadow-2xl active:scale-95"
                 title="Refresh tasks"
               >
-                <LayoutGrid size={20} />
+                <LayoutGrid size={22} />
               </button>
             </div>
 
             {isLoading ? (
               <div className="py-40 flex flex-col items-center justify-center">
-                <div className="animate-spin h-12 w-12 border-4 border-slate-100 border-t-indigo-600 rounded-full mb-6" />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Blockchain for Verification duties...</p>
+                <div className="animate-spin h-12 w-12 border-4 border-white/5 border-t-indigo-500 rounded-full mb-8 shadow-[0_0_15px_rgba(99,102,241,0.3)]" />
+                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] animate-pulse">Synchronizing with Decentralized Registry...</p>
               </div>
             ) : stats.totalTasks === 0 ? (
               // ❌ NOT A VERIFIER: Show Access Denied
-              <div className="bg-white rounded-[3rem] py-32 text-center border-2 border-dashed border-slate-100 mt-4">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Lock size={36} className="text-slate-300" />
+              <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] py-32 text-center border-2 border-dashed border-white/5 mt-4">
+                <div className="w-24 h-24 bg-red-500/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-500/10">
+                  <Lock size={40} className="text-red-500/20" />
                 </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-3">Access Restricted</h3>
-                <p className="text-slate-400 max-w-sm mx-auto text-sm leading-relaxed">
-                  Your wallet <span className="font-mono text-xs bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">{address?.slice(0,6)}...{address?.slice(-4)}</span> has not been assigned as a Verifier for any active request.
+                <h3 className="text-2xl font-black text-white mb-3 tracking-tight">Personnel Access Restricted</h3>
+                <p className="text-white/40 max-w-sm mx-auto text-[13px] font-medium leading-relaxed">
+                  Wallet <span className="font-mono text-[11px] bg-white/5 text-indigo-400 px-3 py-1 rounded-lg border border-white/10">{address?.slice(0, 6)}...{address?.slice(-4)}</span> has not been assigned protocol validation permissions for any current cycles.
                 </p>
-                <p className="text-slate-300 text-xs mt-4 uppercase tracking-widest font-black">Contact the Campaign Manager to be assigned</p>
+                <p className="text-indigo-400/40 text-[9px] mt-8 uppercase tracking-[0.3em] font-black">Authorized Personnel Only</p>
               </div>
             ) : filteredTasks.length === 0 ? (
               // Tab is empty but wallet IS a verifier (has tasks in the other tab)
-              <div className="bg-white rounded-[3rem] py-32 text-center border border-slate-100 border-dashed">
-                <CheckCircle size={48} className="mx-auto text-emerald-100 mb-6" />
-                <h3 className="text-xl font-black text-slate-900 mb-2">All clear!</h3>
-                <p className="text-slate-400 max-w-xs mx-auto text-sm">No pending {activeTab === 'expert' ? 'expert' : 'community'} tasks right now.</p>
+              <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[3rem] py-32 text-center border border-white/5 border-dashed">
+                <div className="w-20 h-20 bg-emerald-500/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/10">
+                  <CheckCircle size={48} className="text-emerald-500/20" />
+                </div>
+                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Queue Synchronized</h3>
+                <p className="text-white/30 max-w-xs mx-auto text-sm font-medium italic">All pending {activeTab === 'expert' ? 'expert' : 'community'} assignments completed.</p>
               </div>
             ) : (
-              <div className="space-y-6">
-
-
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {filteredTasks.map(task => (
                   activeTab === 'expert' ? (
                     <ExpertTaskCard
