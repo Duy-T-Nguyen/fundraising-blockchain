@@ -1,7 +1,24 @@
+import { Link } from 'react-router-dom';
+import logo from '../assets/logo_blockchain web.svg';
+
 const footerLinks = {
-  Platform: ['Home', 'Campaigns', 'Resources', 'Contact'],
-  Company: ['About Us', 'Blog', 'Careers', 'Press'],
-  Legal: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'],
+  Platform: [
+    { name: 'Home', path: '/' },
+    { name: 'Campaigns', path: '/campaigns' },
+    { name: 'Resources', path: '/resources' },
+    { name: 'Contact', path: '/contact' },
+  ],
+  Company: [
+    { name: 'About Us', path: '#' },
+    { name: 'Blog', path: '#' },
+    { name: 'Careers', path: '#' },
+    { name: 'Press', path: '#' },
+  ],
+  Legal: [
+    { name: 'Privacy Policy', path: '/privacy' },
+    { name: 'Terms of Service', path: '/terms' },
+    { name: 'Cookie Policy', path: '/cookies' },
+  ],
 };
 
 const socialIcons = [
@@ -36,31 +53,26 @@ const socialIcons = [
 
 const Footer = () => {
   return (
-    <footer className="bg-[#0f1c3f] text-gray-400">
+    <footer className="bg-[#0f1115] text-slate-400 border-t border-white/5">
       {/* Main footer content */}
-      <div className="max-w-6xl mx-auto px-12 py-14">
-        <div className="grid grid-cols-4 gap-10">
+      <div className="max-w-6xl mx-auto px-12 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand column */}
           <div className="col-span-1 flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight">CharityChain</span>
+              <img src={logo} alt="MetaMask Logo" className="w-8 h-8 object-contain" />
+              <span className="text-white font-bold text-xl tracking-tight uppercase">Fundraising</span>
             </div>
-            <p className="text-base text-gray-500 leading-relaxed">
-              Transparent blockchain-powered fundraising for causes that matter.
+            <p className="text-[15px] text-slate-500 leading-relaxed max-w-xs">
+              Transparent, on-chain fundraising for real-world impact. Built on secure smart contracts.
             </p>
             {/* Social icons */}
-            <div className="flex gap-3 mt-2">
+            <div className="flex gap-4">
               {socialIcons.map((icon) => (
                 <a
                   key={icon.label}
                   href={icon.href}
-                  aria-label={icon.label}
-                  className="text-gray-500 hover:text-emerald-400 transition-colors duration-200"
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-blue-400 hover:bg-white/10 transition-all duration-300"
                 >
                   {icon.svg}
                 </a>
@@ -70,35 +82,40 @@ const Footer = () => {
 
           {/* Link columns */}
           {Object.entries(footerLinks).map(([section, links]) => (
-            <div key={section} className="flex flex-col gap-3">
-              <h4 className="text-white text-base font-semibold tracking-wider uppercase mb-1">
+            <div key={section} className="flex flex-col gap-4">
+              <h4 className="text-white text-[13px] font-black uppercase tracking-widest">
                 {section}
               </h4>
-              {links.map((link) => (
-                <a
-                  key={link}
-                  href="#"
-                  className="text-base text-gray-500 hover:text-emerald-400 transition-colors duration-200"
-                >
-                  {link}
-                </a>
-              ))}
+              <div className="flex flex-col gap-2.5">
+                {links.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    className="text-[15px] text-slate-500 hover:text-white transition-colors duration-200"
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Divider & copyright */}
-      <div className="border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-12 py-5 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            © {new Date().getFullYear()} CharityChain. All rights reserved.
+      <div className="border-t border-white/5 bg-black/20">
+        <div className="max-w-6xl mx-auto px-12 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-slate-600 font-medium">
+            © {new Date().getFullYear()} Fundraising Blockchain Lab. All rights reserved.
           </p>
-          <p className="text-sm text-gray-600 flex items-center gap-1.5">
-            Powered by
-            <span className="text-emerald-500 font-medium">Blockchain</span>
-            &amp; built with ❤️
-          </p>
+          <div className="flex items-center gap-6 text-xs text-slate-600 font-medium">
+            <p className="flex items-center gap-1.5">
+              Network: <span className="text-teal-400 font-bold">Sepolia Testnet</span>
+            </p>
+            <p className="flex items-center gap-1.5">
+              Powered by <span className="text-blue-400 font-bold">Smart Contracts</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

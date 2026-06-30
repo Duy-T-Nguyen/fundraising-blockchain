@@ -1,11 +1,14 @@
 import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useUserActivity } from '../hooks/useUserActivity';
-import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink, PlusCircle } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, TrendingUp, Layout, Settings, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AIRelayerStatus from '../components/common/AIRelayerStatus';
 
 import { useCampaignsWithSummaries } from '../hooks/useCampaignsWithSummaries';
+
+const CAT_NAMES = ['Education', 'Medical', 'Disaster', 'Environment', 'Others'];
+
 
 const CreatorDashboard: React.FC = () => {
   const { address } = useWallet();
@@ -53,24 +56,11 @@ const CreatorDashboard: React.FC = () => {
     return { last7Days, projectTotals };
   };
 
-  const { last7Days: chartData, projectTotals } = getChartData();
-  const totalVolume = chartData.reduce((acc, d) => acc + d.amount, 0);
-  const maxAmount = Math.max(...chartData.map(d => d.amount), 0.01) * 1.2;
-
-  // Map project totals to campaign names for display
-  const breakdownItems = Object.entries(projectTotals)
-    .map(([addr, amount]) => {
-      const campaign = managedCampaigns.find(c => c.address.toLowerCase() === addr);
-      return {
-        name: campaign?.title || 'Unknown Project',
-        amount,
-        percentage: totalVolume > 0 ? (amount / totalVolume) * 100 : 0
-      };
-    })
-    .sort((a, b) => b.amount - a.amount);
+  const { last7Days: chartData } = getChartData();
+  // Removed unused chart calculations
 
   // Fallback images for premium look while real IPFS images are not available
-  const getPlaceholderImage = (ca: string) => {
+  const getPlaceholderImage = (ca: string | undefined) => {
     if (!ca) return 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop';
     const lastChar = ca.slice(-1).toLowerCase();
     const index = parseInt(lastChar, 16) % 5;
@@ -117,7 +107,7 @@ const CreatorDashboard: React.FC = () => {
             <Link to="/" className="p-3 bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-sm rounded-2xl text-white transition-all">
               <ArrowLeft size={20} />
             </Link>
-            <div>
+          <div>
               <h1 className="text-4xl font-black text-white tracking-tight">Manager Dashboard</h1>
               <p className="text-emerald-400 font-black tracking-[0.2em] uppercase text-[10px] mt-1 flex items-center gap-2">
                 <ShieldCheck size={14} strokeWidth={3} /> Campaign Management / Ownership
@@ -127,22 +117,14 @@ const CreatorDashboard: React.FC = () => {
 
           <div className="flex items-center gap-4">
             <AIRelayerStatus />
-            <Link
-              to="/campaigns/create"
-              className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-blue-600/30 transition-all duration-300 hover:-translate-y-1"
-            >
-              <PlusCircle size={20} />
-              Launch Project
-            </Link>
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* ... (existing stats cards) */}
-          <div className="p-8 bg-white border border-slate-200 rounded-[2.5rem] flex flex-col justify-between shadow-sm">
-            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4">
-              <Layout className="text-emerald-600" size={24} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="p-8 bg-gradient-to-tr from-slate-900 via-emerald-950/40 to-slate-900 border border-emerald-500/20 backdrop-blur-xl rounded-[2.5rem] flex flex-col justify-between shadow-2xl shadow-emerald-900/20">
+            <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-4">
+              <Layout className="text-emerald-400" size={24} />
             </div>
             <div>
               <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Active Campaigns</p>
@@ -165,131 +147,6 @@ const CreatorDashboard: React.FC = () => {
             <div>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Ownership Status</p>
               <p className="text-xl font-black text-slate-600 mt-1">Verified Manager</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Donation Activity Chart */}
-        <div className="mb-12 bg-white border border-slate-200 rounded-[3rem] p-10 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-            <TrendingUp size={120} className="text-slate-900" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Funding Performance</h2>
-              <p className="text-slate-400 text-sm font-medium mt-1">Donation volume across all your managed projects (Last 7 Days)</p>
-            </div>
-            <div className="px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
-              <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Total Volume</p>
-              <p className="text-xl font-black text-emerald-600">{totalVolume.toFixed(3)} ETH</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Chart Area */}
-            <div className="lg:col-span-2 relative h-64 w-full">
-              <svg viewBox="0 0 700 200" className="w-full h-full overflow-visible">
-                <defs>
-                  <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                  </linearGradient>
-                  <filter id="glow">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                  </filter>
-                </defs>
-
-                {/* Grid Lines */}
-                {[0, 1, 2].map((i) => (
-                  <line 
-                    key={i} 
-                    x1="0" y1={i * 100} x2="700" y2={i * 100} 
-                    stroke="#f1f5f9" strokeWidth="1" 
-                  />
-                ))}
-
-                {/* Area */}
-                <path
-                  d={`M 0 200 ${chartData.map((d, i) => `L ${i * 116.6} ${200 - (d.amount / maxAmount) * 180}`).join(' ')} L 700 200 Z`}
-                  fill="url(#chartGradient)"
-                />
-
-                {/* Line */}
-                <path
-                  d={`M 0 ${200 - (chartData[0].amount / maxAmount) * 180} ${chartData.slice(1).map((d, i) => `L ${(i + 1) * 116.6} ${200 - (d.amount / maxAmount) * 180}`).join(' ')}`}
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  filter="url(#glow)"
-                />
-
-                {/* Points */}
-                {chartData.map((d, i) => (
-                  <g key={i} className="group/point">
-                    <circle
-                      cx={i * 116.6}
-                      cy={200 - (d.amount / maxAmount) * 180}
-                      r="6"
-                      fill="white"
-                      stroke="#10b981"
-                      strokeWidth="3"
-                      className="transition-all duration-300 group-hover/point:r-8 cursor-pointer"
-                    />
-                    {d.amount > 0 && (
-                      <text
-                        x={i * 116.6}
-                        y={200 - (d.amount / maxAmount) * 180 - 15}
-                        textAnchor="middle"
-                        className="text-[10px] font-black fill-emerald-600 opacity-0 group-hover/point:opacity-100 transition-opacity"
-                      >
-                        {d.amount.toFixed(3)}
-                      </text>
-                    )}
-                  </g>
-                ))}
-
-                {/* Labels */}
-                {chartData.map((d, i) => (
-                  <text
-                    key={i}
-                    x={i * 116.6}
-                    y="220"
-                    textAnchor="middle"
-                    className="text-[10px] font-black fill-slate-400 uppercase tracking-widest"
-                  >
-                    {d.label}
-                  </text>
-                ))}
-              </svg>
-            </div>
-
-            {/* Breakdown Area */}
-            <div className="flex flex-col gap-6">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Contribution</h3>
-              <div className="space-y-5">
-                {breakdownItems.length === 0 ? (
-                  <p className="text-sm text-slate-400 italic">No donation data for this week.</p>
-                ) : (
-                  breakdownItems.map((item, idx) => (
-                    <div key={idx} className="space-y-2">
-                      <div className="flex justify-between items-end">
-                        <p className="text-xs font-black text-slate-700 truncate max-w-[150px]">{item.name}</p>
-                        <p className="text-[10px] font-black text-emerald-600">{item.amount.toFixed(3)} ETH</p>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -321,21 +178,29 @@ const CreatorDashboard: React.FC = () => {
                         </div>
                         <div className="w-24 h-24 rounded-2xl bg-white/10 border border-amber-500/20 flex-shrink-0 overflow-hidden">
                           {req.image ? (
-                            <img src={req.image} className="w-full h-full object-cover opacity-60 grayscale" alt="" />
+                            <img 
+                              src={req.image.startsWith('ipfs://') 
+                                ? `https://gateway.pinata.cloud/ipfs/${req.image.replace('ipfs://', '')}`
+                                : req.image} 
+                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
+                              alt="" 
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-amber-400/50">
                               <Layout size={32} />
                             </div>
                           )}
                         </div>
+
                         <div className="flex-1">
                           <h4 className="text-xl font-black text-white mb-1">{req.name || 'Untitled Request'}</h4>
                           <p className="text-sm text-white/50 mb-3 line-clamp-1">{req.description || 'No description provided yet.'}</p>
                           <div className="flex items-center gap-3">
                             <span className="px-3 py-1 bg-amber-500/15 rounded-full text-[10px] font-bold text-amber-400 border border-amber-500/20 uppercase tracking-widest">
-                              Category {req.category}
+                              {CAT_NAMES[req.category] || 'Others'}
                             </span>
                           </div>
+
                         </div>
                       </div>
                     ))}
@@ -363,9 +228,9 @@ const CreatorDashboard: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {managedCampaigns.map((camp) => (
-                    <div key={camp.address} className="rounded-[2rem] bg-white border border-slate-100 hover:border-emerald-500 transition-all duration-300 group/card shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 overflow-hidden flex flex-col no-underline">
+                    <div key={camp.address} className="rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 border border-white/10 hover:border-blue-500/50 backdrop-blur-sm transition-all duration-300 group/card hover:shadow-xl hover:shadow-blue-500/10 overflow-hidden flex flex-col no-underline">
                       {/* Image Top Section */}
-                      <div className="relative h-40 overflow-hidden bg-slate-100">
+                      <div className="relative h-48 overflow-hidden bg-white/5">
                         <img
                           src={getCampaignImage(camp)}
                           alt={camp.title}
@@ -378,36 +243,36 @@ const CreatorDashboard: React.FC = () => {
                         </div>
                         <Link
                           to={`/campaign/${camp.address}`}
-                          className="absolute top-4 right-4 p-1.5 bg-white/90 backdrop-blur-md rounded-lg text-slate-900 hover:bg-blue-600 hover:text-white transition-all shadow-lg"
+                          className="absolute top-6 right-6 p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-blue-600 transition-all shadow-lg"
                         >
                           <ExternalLink size={16} />
                         </Link>
                       </div>
 
                       {/* Content Section */}
-                      <div className="p-6 flex flex-col flex-1">
-                        <h4 className="text-lg font-black text-slate-900 mb-3 truncate">{camp.title}</h4>
+                      <div className="p-8 flex flex-col flex-1">
+                        <h4 className="text-2xl font-black text-white mb-4 truncate">{camp.title}</h4>
 
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center py-3 border-t border-slate-50">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center py-4 border-t border-white/10">
                             <div>
-                              <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Balance</p>
-                              <p className="text-base font-black text-emerald-600">{camp.balance} ETH</p>
+                              <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Balance</p>
+                              <p className="text-lg font-black text-emerald-400">{camp.balance} ETH</p>
                             </div>
                           </div>
 
-                          <div className="flex justify-between items-center py-3 border-t border-slate-50">
+                          <div className="flex justify-between items-center py-4 border-t border-white/10">
                             <div>
-                              <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest">Contract</p>
-                              <p className="text-slate-900 font-mono text-[10px] bg-slate-50 px-2 py-1 rounded-md mt-1">
-                                {camp.address.substring(0, 6)}...{camp.address.substring(38)}
+                              <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Contract Address</p>
+                              <p className="text-white/70 font-mono text-[11px] bg-white/10 px-3 py-1.5 rounded-lg mt-1">
+                                {camp.address.substring(0, 10)}...{camp.address.substring(34)}
                               </p>
                             </div>
                           </div>
 
                           <Link
                             to={`/campaign/${camp.address}`}
-                            className="w-full py-3 mt-1 bg-slate-900 text-white text-sm font-black rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-slate-900/5 text-center"
+                            className="w-full py-4 mt-2 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-600/20 group-hover/card:shadow-blue-600/30 text-center"
                           >
                             <Settings size={16} />
                             Manage

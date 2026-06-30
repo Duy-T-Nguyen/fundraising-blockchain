@@ -72,6 +72,28 @@ const CampaignDetail: React.FC = () => {
       style={{ background: 'linear-gradient(180deg, #0b1628 0%, #112044 20%, #1e3464 50%, #0b1628 100%)' }}
     >
       <div className="max-w-7xl mx-auto space-y-8">
+        <CampaignHero
+          address={address}
+          title={summary.title}
+          imageHash={summary.imageHash}
+          balance={summary.balance}
+          minimumContribution={summary.minimumContribution}
+          donorsCount={summary.donorsCount}
+          active={summary.active}
+          isManager={isManager}
+          onSuccess={handleDonationSuccess}
+        />
+
+        {/* Campaign Description Section */}
+        <div className="bg-gradient-to-tr from-slate-900 via-indigo-950/60 to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-900/30 border border-indigo-500/20">
+          <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4">About this Campaign</h2>
+          <div className="prose prose-slate max-w-none">
+            <p className="text-white/80 text-[18px] leading-relaxed font-medium whitespace-pre-wrap">
+              {summary.description}
+            </p>
+          </div>
+        </div>
+
         {/* Manager Dashboard Section */}
         {isManager && (
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 shadow-xl shadow-blue-600/20 flex flex-col md:flex-row items-center justify-between gap-6 text-white overflow-hidden relative">
@@ -107,30 +129,6 @@ const CampaignDetail: React.FC = () => {
           />
         )}
 
-        {/* AI Status Section */}
-        <AIRelayerStatus />
-
-        <CampaignHero
-          address={address}
-          title={summary.title}
-          imageHash={summary.imageHash}
-          balance={summary.balance}
-          minimumContribution={summary.minimumContribution}
-          donorsCount={summary.donorsCount}
-          active={summary.active}
-          isManager={isManager}
-          onSuccess={handleDonationSuccess}
-        />
-
-        {/* Campaign Description Section */}
-        <div className="bg-gradient-to-tr from-slate-900 via-indigo-950/60 to-slate-900 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-900/30 border border-indigo-500/20">
-          <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4">About this Campaign</h2>
-          <div className="prose prose-slate max-w-none">
-            <p className="text-white/80 text-[18px] leading-relaxed font-medium whitespace-pre-wrap">
-              {summary.description}
-            </p>
-          </div>
-        </div>
 
         {/* Spending Requests Section */}
         <RequestsList
@@ -147,7 +145,13 @@ const CampaignDetail: React.FC = () => {
             refreshTrigger={refreshKey}
           />
         </div>
+
+        {/* AI Status Section */}
+        <div className="pt-8">
+          <AIRelayerStatus />
+        </div>
       </div>
+
 
       {isModalOpen && address && (
         <CreateRequestModal

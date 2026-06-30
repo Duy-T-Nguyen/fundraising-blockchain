@@ -5,7 +5,7 @@ const ContactInfo = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      value: 'support@charitychain.com',
+      value: 'duynguyen.das@gmail.com',
       desc: 'Our support team responds within 24 hours.'
     },
     {

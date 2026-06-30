@@ -6,7 +6,6 @@ import {
   Layout,
   Menu,
   X,
-  Search,
   Truck,
   ShieldCheck
 } from 'lucide-react';
@@ -22,7 +21,7 @@ const Sidebar: React.FC = () => {
   const { address } = useWallet();
   const { managedCampaigns, pendingRequests } = useUserActivity(address as `0x${string}`);
   const { info } = useSupplier(address || undefined);
-  const { tasks: verifierTasks } = useVerifierTasks(address || undefined);
+  const { tasks: verifierTasks } = useVerifierTasks(address as `0x${string}` || undefined);
   const { isAdmin } = useAdmin();
 
   // Close sidebar when clicking outside
@@ -40,7 +39,7 @@ const Sidebar: React.FC = () => {
     { name: 'Donation Activity', path: '/dashboard/activity', icon: <Activity size={22} /> },
     ...((managedCampaigns.length > 0 || pendingRequests.length > 0) ? [{ name: 'Creator Dashboard', path: '/dashboard/creator', icon: <Layout size={22} /> }] : []),
     ...(info?.isRegistered ? [{ name: 'Supplier Portal', path: '/supplier', icon: <Truck size={22} /> }] : []),
-    { name: 'Verifier Portal', path: '/verifier', icon: <ShieldCheck size={22} /> },
+    ...(verifierTasks.length > 0 ? [{ name: 'Verifier Portal', path: '/verifier', icon: <ShieldCheck size={22} /> }] : []),
     ...(isAdmin ? [{ name: 'Platform Admin', path: '/admin', icon: <ShieldCheck size={22}/> }] : []),
     { name: 'Launch Project', path: '/campaigns/create', icon: <PlusCircle size={22} /> },
   ];

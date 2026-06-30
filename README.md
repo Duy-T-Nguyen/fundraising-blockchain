@@ -85,4 +85,4 @@ Hệ thống đã được triển khai chính thức trên mạng thử nghiệ
 - **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và xác thực on-chain từ Verifier độc lập.
 
 ---
-*Dự án được phát triển và tối ưu bởi Antigravity AI Assistant — Cập nhật lần cuối: 22/04/2026.*
+*Dự án được phát triển và tối ưu bởi Nhóm 3 — Cập nhật lần cuối: 23/04/2026.*

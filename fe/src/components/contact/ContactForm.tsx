@@ -13,12 +13,22 @@ const ContactForm = () => {
     e.preventDefault();
     setStatus('sending');
     
-    // Simulate API call
+    const subject = encodeURIComponent(`Contact Inquiry from ${formData.name}`);
+    const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`);
+    const mailtoUrl = `mailto:duynguyen.das@gmail.com?subject=${subject}&body=${body}`;
+    
+    // Use a small timeout to ensure the sending state is visible
     setTimeout(() => {
-      setStatus('success');
-      setFormData({ name: '', email: '', message: '' });
-      setTimeout(() => setStatus('idle'), 5000);
-    }, 1500);
+      // Try to open email client in a new tab/window (standard practice for external protocols)
+      window.open(mailtoUrl, '_blank');
+
+      // Show success state after a longer delay to let the browser process the mailto
+      setTimeout(() => {
+        setStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+        setTimeout(() => setStatus('idle'), 5000);
+      }, 500);
+    }, 500);
   };
 
   if (status === 'success') {
@@ -54,7 +64,6 @@ const ContactForm = () => {
             <input 
               required
               type="text"
-              placeholder="John Doe"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all"
@@ -68,7 +77,6 @@ const ContactForm = () => {
             <input 
               required
               type="email"
-              placeholder="john@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all"

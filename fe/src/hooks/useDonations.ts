@@ -51,7 +51,7 @@ export function useDonations(address: string | undefined) {
 
       // Transform logs into Donation objects
       const formattedDonations = await Promise.all(
-        flattenedLogs.map(async (log: any, index: number) => {
+        flattenedLogs.map(async (log: any) => {
           const { donor, amount } = log.args;
           
           let date = 'Recent';
