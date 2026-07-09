@@ -1,0 +1,253 @@
+\chapter{QUẢN LÝ TRUYỀN THÔNG}
+
+Trong FundChain, kế hoạch truyền thông tập trung vào ba điểm dễ gây sai lệch nhất: blocker trên đường găng, thay đổi contract làm lệch ABI/address và bằng chứng nghiệm thu chưa đầy đủ. Ma trận dưới đây quy định người gửi, người nhận, thời hạn và đầu ra truy vết được cho từng tình huống.
+
+\iffalse
+\section{Tầm quan trọng của quản lý truyền thông}
+
+\subsection{Vai trò của truyền thông trong dự án}
+
+Quản lý truyền thông giúp dự án trả lời ba câu hỏi cơ bản: ai cần thông tin, họ cần loại thông tin nào và thông tin đó được cung cấp bằng cách nào. Với FundChain, cùng một sự kiện có thể cần được diễn đạt khác nhau cho từng đối tượng. Ví dụ, một thay đổi về smart contract có thể được Technical Lead mô tả theo hướng kỹ thuật cho đội phát triển, nhưng PM lại cần trình bày tác động của thay đổi đó tới phạm vi, lịch biểu và chất lượng trong báo cáo trạng thái.
+
+Do đó, truyền thông trong dự án không chỉ là ``nói chuyện với nhau'', mà bao gồm:
+
+\begin{itemize}
+  \item truyền đạt tiến độ, blocker và dependency;
+  \item làm rõ yêu cầu và tiêu chí chấp nhận;
+  \item công bố quyết định, action item và owner;
+  \item cảnh báo rủi ro, incident hoặc thay đổi vượt baseline;
+  \item lưu vết tri thức và lịch sử quyết định để phục vụ kiểm soát và closure.
+\end{itemize}
+
+\subsection{Hệ quả nếu truyền thông yếu}
+
+Khi truyền thông không được quản lý bài bản, dự án thường gặp các vấn đề như:
+
+\begin{itemize}
+  \item thành viên hiểu khác nhau về yêu cầu hoặc Definition of Done;
+  \item code, tài liệu, ABI và cấu hình triển khai bị lệch phiên bản;
+  \item blocker tồn tại lâu nhưng không được escalated đúng lúc;
+  \item báo cáo trạng thái thiếu nhất quán giữa các nhóm;
+  \item quyết định quan trọng chỉ tồn tại trong chat, không thể truy vết về sau.
+\end{itemize}
+
+Đối với FundChain, những lệch pha như vậy đặc biệt nguy hiểm ở giai đoạn tích hợp, vì thay đổi nhỏ ở contract hoặc deployment có thể kéo theo backend, frontend, test case và tài liệu phải cập nhật đồng bộ.
+
+\subsection{Mục tiêu quản lý truyền thông}
+
+Kế hoạch truyền thông của dự án đặt ra các mục tiêu sau:
+
+\begin{enumerate}
+  \item 100\% stakeholder chính được xác định nhu cầu thông tin và kênh nhận phù hợp.
+  \item Mọi cuộc họp chính thức đều có agenda, biên bản ngắn và action item rõ owner.
+  \item Quyết định quan trọng về phạm vi, lịch biểu, chi phí, chất lượng hoặc kỹ thuật phải được lưu bằng chứng.
+  \item Blocker ảnh hưởng milestone được escalated trong ngày, không để tồn đọng âm thầm.
+  \item Mọi thay đổi có tác động liên nhóm phải được công bố trên kênh chung trước khi áp dụng.
+  \item Tài liệu dự án duy trì một nguồn tham chiếu chính thức, tránh phân mảnh thông tin.
+\end{enumerate}
+
+\section{Quy trình quản lý truyền thông}
+
+\subsection{Lập kế hoạch truyền thông}
+
+Ở bước lập kế hoạch truyền thông, PM và nhóm xác định:
+
+\begin{itemize}
+  \item stakeholder nào cần được cập nhật;
+  \item mỗi stakeholder cần loại thông tin gì;
+  \item thông tin cần ở mức chi tiết nào;
+  \item tần suất và kênh truyền thông phù hợp;
+  \item ai là người chịu trách nhiệm gửi, theo dõi phản hồi và chốt action item.
+\end{itemize}
+
+Kế hoạch này là đầu vào quan trọng để tránh tình trạng gửi quá nhiều thông tin không cần thiết cho một số đối tượng, trong khi các đối tượng khác lại thiếu thông tin để ra quyết định.
+
+\subsection{Quản lý truyền thông}
+
+Manage Communications là giai đoạn bảo đảm thông tin thực sự được phân phối, tiếp nhận và phản hồi đúng kế hoạch. Trong FundChain, hoạt động này gồm:
+
+\begin{itemize}
+  \item cập nhật tiến độ hằng ngày hoặc bất đồng bộ;
+  \item họp nhóm định kỳ để đồng bộ dependency và ưu tiên;
+  \item phát hành status report hằng tuần;
+  \item review thay đổi liên quan đến nhiều nhóm;
+  \item ghi nhận incident và escalated issue khi vượt ngưỡng quản trị.
+\end{itemize}
+
+\subsection{Giám sát truyền thông}
+
+Giám sát truyền thông giúp PM đánh giá xem kế hoạch hiện tại có hiệu quả hay không. Dấu hiệu cho thấy truyền thông cần điều chỉnh gồm:
+
+\begin{itemize}
+  \item action item quá hạn lặp lại;
+  \item cùng một vấn đề bị hỏi lại nhiều lần;
+  \item hiểu sai yêu cầu hoặc dùng tài liệu cũ;
+  \item stakeholder phản hồi chậm hoặc bỏ sót thông tin quan trọng;
+  \item incident diễn ra nhưng escalation chậm.
+\end{itemize}
+
+\figureplaceholder{ch08-communication-management-process.png}{Sơ đồ gồm ba bước: Plan Communications, Manage Communications và Monitor Communications. Từ bước giám sát có vòng phản hồi về kế hoạch để điều chỉnh stakeholder, kênh, tần suất hoặc biểu mẫu báo cáo.}{Quy trình quản lý truyền thông của dự án}{fig:communication-process}
+
+\fi
+\section{Kế hoạch truyền thông của dự án}
+
+\subsection{Nguyên tắc truyền thông}
+
+Dự án áp dụng các nguyên tắc sau:
+
+\begin{enumerate}
+  \item \textbf{Đúng người:} chỉ gửi thông tin chi tiết kỹ thuật cho người cần xử lý, nhưng vẫn bảo đảm PM và stakeholder liên quan nắm được tác động quản trị.
+  \item \textbf{Đúng thời điểm:} blocker, incident và thay đổi có ảnh hưởng lớn phải được thông báo ngay, không chờ đến họp định kỳ.
+  \item \textbf{Truy vết được:} quyết định và biên bản quan trọng phải có nơi lưu chính thức.
+  \item \textbf{Một nguồn sự thật:} task, tài liệu, action item và quyết định phải tham chiếu về công cụ chung.
+  \item \textbf{Bảo mật thông tin:} secret, private key và credential không được truyền qua kênh không phù hợp.
+\end{enumerate}
+
+\subsection{Ma trận truyền thông}
+
+Bảng~\ref{tab:communication-matrix} mô tả các hoạt động truyền thông cốt lõi của dự án.
+
+\begin{landscape}
+\small
+\begin{longtable}{p{2.4cm}p{3.2cm}p{2cm}p{2.4cm}p{1.6cm}p{1.8cm}p{2.4cm}}
+\caption{Ma trận truyền thông của dự án}\label{tab:communication-matrix}\\
+\toprule
+\textbf{Hoạt động} & \textbf{Nội dung chính} & \textbf{Người gửi} & \textbf{Người nhận} & \textbf{Tần suất} & \textbf{Kênh} & \textbf{Đầu ra} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Hoạt động} & \textbf{Nội dung chính} & \textbf{Người gửi} & \textbf{Người nhận} & \textbf{Tần suất} & \textbf{Kênh} & \textbf{Đầu ra} \\
+\midrule
+\endhead
+Daily sync & Tiến độ, blocker, effort còn lại & Thành viên & Nhóm dự án & Hằng ngày & Chat/board & Action list ngắn \\
+Weekly status & Scope, schedule, cost, risk, chất lượng & PM & Nhóm 2, stakeholder chính & Hằng tuần & Report/meeting & Status report \\
+Sprint planning & Backlog, capacity, ưu tiên & PM/BA & Dev, QA, nhóm liên quan & Mỗi sprint & Meeting/board & Sprint backlog \\
+Sprint review & Demo, phản hồi, acceptance sơ bộ & Nhóm dự án & Stakeholder liên quan & Mỗi sprint & Demo/meeting & Accepted hoặc rework \\
+Technical review & API, ABI, design, integration impact & Technical Lead & Dev, QA, PM & Khi có thay đổi & PR/doc/meeting & Decision record \\
+Incident alert & Lỗi Critical, deploy sai, outage, secret risk & Người phát hiện & PM, TL, nhóm liên quan & Ngay lập tức & Alert/call/chat & Incident record \\
+Change request & Tác động baseline và đề xuất xử lý & PM & CCB/giảng viên khi cần & Khi phát sinh & Form/meeting & Quyết định thay đổi \\
+\bottomrule
+\end{longtable}
+\end{landscape}
+\normalsize
+
+\subsection{Công cụ và baseline kênh truyền thông}
+
+Baseline công cụ của dự án được xác định như sau:
+
+\begin{itemize}
+  \item GitHub Issues/Projects dùng cho task, issue và truy vết thực hiện;
+  \item Git repository là nguồn chính cho source, lịch sử thay đổi và review;
+  \item Zalo hoặc Messenger dùng cho trao đổi nhanh, nhắc blocker và điều phối ngắn;
+  \item Google Meet dùng cho họp định kỳ, sprint review hoặc incident call;
+  \item Google Drive dùng để lưu biên bản, báo cáo và tài liệu học thuật;
+  \item diagrams.net hoặc công cụ tương đương dùng cho sơ đồ và minh họa quản trị.
+\end{itemize}
+
+Việc xác định baseline công cụ giúp nhóm tránh tình trạng cùng một loại thông tin xuất hiện rải rác ở nhiều nơi mà không có điểm tham chiếu chính.
+
+\subsection{Báo cáo trạng thái}
+
+Status report hằng tuần là sản phẩm truyền thông quan trọng nhất ở góc độ quản trị dự án. Báo cáo này nên trình bày ngắn gọn nhưng đủ cho việc ra quyết định, bao gồm:
+
+\begin{itemize}
+  \item RAG status cho phạm vi, lịch biểu, chi phí, chất lượng và rủi ro;
+  \item công việc đã hoàn thành trong kỳ;
+  \item kế hoạch kỳ tiếp theo;
+  \item blocker hoặc dependency đang mở;
+  \item thay đổi đã duyệt và tác động nếu có;
+  \item hỗ trợ hoặc quyết định cần từ stakeholder.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Nội dung chuẩn của báo cáo trạng thái}
+\label{tab:status-report-content}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}X}
+\toprule
+Thành phần & Nội dung yêu cầu \\
+\midrule
+Tổng quan kỳ báo cáo & Mốc thời gian, người lập, trạng thái tổng thể \\
+RAG dashboard & Scope, Schedule, Cost, Quality, Risk \\
+Hoàn thành chính & Deliverable, milestone hoặc decision đã đạt \\
+Kế hoạch tiếp theo & Task trọng tâm và owner \\
+Blocker/Issue & Mô tả, tác động, người xử lý, hạn hoàn thành \\
+Thay đổi & Change request đã duyệt hoặc đang chờ xem xét \\
+Hỗ trợ cần thiết & Quyết định hoặc nguồn lực cần từ stakeholder \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\iffalse
+\section{Truyền thông với người dùng hệ thống}
+
+\subsection{Nguyên tắc truyền thông hướng người dùng}
+
+Vì FundChain có yếu tố blockchain, việc truyền thông với người dùng cuối cần rõ ràng hơn về trạng thái hệ thống. Người dùng không nhất thiết quan tâm cơ chế kỹ thuật bên dưới, nhưng họ cần biết hệ thống đang làm gì, bước kế tiếp là gì và khi nào giao dịch được xem là hoàn tất.
+
+Do đó, truyền thông hướng người dùng cần bảo đảm:
+
+\begin{itemize}
+  \item thông báo rõ trạng thái pending/success/error;
+  \item giải thích ngắn gọn các độ trễ có thể xảy ra trên blockchain;
+  \item cung cấp link kiểm chứng như transaction explorer hoặc CID khi phù hợp;
+  \item tránh dùng ngôn ngữ kỹ thuật quá sâu trong thông báo giao diện.
+\end{itemize}
+
+\subsection{Các hình thức truyền thông tới người dùng}
+
+Dự án định hướng sử dụng các hình thức sau:
+
+\begin{itemize}
+  \item thông báo trên giao diện khi giao dịch đang xử lý hoặc đã hoàn tất;
+  \item WebSocket notification hoặc cơ chế cập nhật tương đương cho nhiệm vụ mới;
+  \item liên kết tới Etherscan hoặc nguồn kiểm chứng để tăng tính minh bạch;
+  \item cảnh báo rõ rằng giao dịch blockchain có thể chậm và không thể hoàn tác theo cách của hệ thống tập trung.
+\end{itemize}
+
+\section{Giám sát và cải tiến truyền thông}
+
+\subsection{Chỉ số theo dõi}
+
+Hiệu quả truyền thông được theo dõi bằng các tín hiệu sau:
+
+\begin{itemize}
+  \item tỷ lệ action item quá hạn;
+  \item thời gian phản hồi đối với blocker hoặc incident;
+  \item số lần yêu cầu phải làm rõ lại do hiểu nhầm;
+  \item tỷ lệ cập nhật tài liệu sau thay đổi quan trọng;
+  \item mức độ tham gia họp và phản hồi status report.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ngưỡng theo dõi hiệu quả truyền thông}
+\label{tab:communication-thresholds}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.5cm}X}
+\toprule
+Mức & Điều kiện & Hành động quản trị \\
+\midrule
+Xanh & Action item và phản hồi trong ngưỡng chấp nhận & Duy trì cơ chế hiện tại \\
+Vàng & Nhiều action item trễ hoặc hiểu sai yêu cầu lặp lại & PM rà lại tần suất, biểu mẫu và owner \\
+Đỏ & Incident hoặc thay đổi quan trọng không được truyền đạt kịp thời & Escalation và điều chỉnh kế hoạch truyền thông ngay \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Cải tiến liên tục}
+
+Cuối mỗi sprint hoặc milestone, nhóm cần rà lại:
+
+\begin{itemize}
+  \item kênh nào hiệu quả, kênh nào gây nhiễu;
+  \item loại họp nào nên giữ, loại nào nên rút gọn;
+  \item có cần thay đổi người gửi hoặc mức chi tiết của thông tin hay không;
+  \item tài liệu nào thường xuyên bị quên cập nhật sau thay đổi.
+\end{itemize}
+
+\fi
+\section{Kết luận chương}
+
+Chương VIII đã xây dựng kế hoạch quản lý truyền thông cho FundChain theo đúng tinh thần của môn Quản trị dự án: xác định stakeholder, loại thông tin, kênh, tần suất, owner, báo cáo trạng thái và cơ chế escalation. Nhờ đó, truyền thông không còn là hoạt động tự phát mà trở thành một quy trình có thể thiết kế, theo dõi và cải tiến.
+
+Đối với FundChain, giá trị lớn nhất của quản lý truyền thông nằm ở chỗ giữ cho các nhóm không bị lệch pha giữa tài liệu, quyết định và triển khai thực tế. Khi truyền thông được quản lý tốt, dự án giảm hiểu nhầm, phản ứng nhanh hơn với rủi ro và có nền tảng vững hơn để kiểm soát thay đổi ở các chương tiếp theo.

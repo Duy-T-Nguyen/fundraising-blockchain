@@ -1,0 +1,126 @@
+\chapter{TÀI LIỆU VÀ BIỂU MẪU QUẢN TRỊ}
+
+Phụ lục này tổng hợp các nhóm tài liệu và biểu mẫu quản trị chính được sử dụng trong báo cáo. Mục đích của phụ lục không phải lặp lại toàn bộ nội dung các chương trước, mà tạo một danh mục tham chiếu nhanh để người đọc biết bộ hồ sơ dự án cần bao gồm những gì khi triển khai hoặc nghiệm thu.
+
+\iffalse
+\section{Danh mục hồ sơ quản trị cốt lõi}
+
+\begin{longtable}{p{4.2cm}p{4.8cm}p{5.2cm}}
+\toprule
+\textbf{Nhóm tài liệu} & \textbf{Nội dung chính} & \textbf{Mục đích sử dụng} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nhóm tài liệu} & \textbf{Nội dung chính} & \textbf{Mục đích sử dụng} \\
+\midrule
+\endhead
+Project Charter & Mục tiêu, phạm vi sơ bộ, stakeholder chính, giả định và ràng buộc & Khởi tạo dự án và thống nhất định hướng \\
+Scope Baseline & Scope Statement, WBS, WBS Dictionary, RTM & Kiểm soát phạm vi và truy vết deliverable \\
+Schedule Baseline & Network Diagram, Gantt, milestone list, critical path & Theo dõi tiến độ và kiểm soát chậm trễ \\
+Cost Baseline & Ước lượng chi phí, ngân sách theo giai đoạn, reserve & So sánh chi phí kế hoạch với thực tế \\
+Quality Records & Test plan, test case, test report, defect log, UAT checklist & Kiểm soát chất lượng và nghiệm thu \\
+Resource Records & RACI, resource calendar, competency matrix, team charter & Phân công và điều phối nguồn lực \\
+Communication Records & Communication matrix, status report, meeting minutes & Bảo đảm thông tin được truyền đạt đúng đối tượng \\
+Risk Records & RBS, Risk Register, response plan, issue log & Theo dõi và phản hồi rủi ro \\
+Procurement Records & Make-or-buy, tiêu chí chọn nhà cung cấp, checklist dịch vụ & Quản lý dịch vụ và tài nguyên mua ngoài \\
+Closure Records & Acceptance record, handover checklist, lessons learned & Kết thúc dự án và lưu giữ tri thức \\
+\bottomrule
+\end{longtable}
+
+\fi
+\section{Giả định quản trị trọng yếu}
+
+\subsection{Assumption Register của số liệu quản trị}
+
+\begin{landscape}
+\begin{longtable}{p{1.3cm}p{5.2cm}p{5cm}p{3.5cm}p{4.5cm}}
+\caption{Assumption Register cho các số liệu định lượng}\label{tab:assumption-register}\\
+\toprule
+\textbf{ID} & \textbf{Giả định} & \textbf{Cơ sở/mục đích} & \textbf{Loại dữ liệu} & \textbf{Điều kiện cập nhật} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Giả định} & \textbf{Cơ sở/mục đích} & \textbf{Loại dữ liệu} & \textbf{Điều kiện cập nhật} \\
+\midrule
+\endhead
+AS-01 & Project Budget 64 triệu VNĐ & Baseline học thuật để thực hành cost control & Planned/simulated & Khi scope hoặc báo giá thay đổi \\
+AS-02 & Tổng effort 960 giờ; Nhóm 2 là 240 giờ & Lập resource và cost baseline & Planned & Cập nhật bằng timesheet thực tế \\
+AS-03 & Lợi ích 30 triệu VNĐ/năm trong ba năm & Minh họa NPV & Simulated & Thay bằng dữ liệu adoption/tiết kiệm đo được \\
+AS-04 & Discount rate 12\%/năm & Kịch bản đánh giá tài chính & Simulated & Khi có cost of capital phù hợp \\
+AS-05 & Lịch 65 ngày làm việc & CPM từ 01/04 đến 30/06/2026 & Planned & Khi baseline/change request được duyệt \\
+AS-06 & Sepolia và dịch vụ ngoài khả dụng & Điều kiện thực hiện demo/UAT & Planned assumption & Khi outage/quota tạo issue thực tế \\
+\bottomrule
+\end{longtable}
+\end{landscape}
+
+Register được rà soát tại mỗi milestone. Owner phải ghi nguồn, ngày xác nhận, tác động nếu sai và trạng thái Open/Validated/Invalidated trong bản theo dõi vận hành.
+
+\iffalse
+\subsection{Mẫu biên bản họp trạng thái}
+
+\begin{itemize}
+  \item Thời gian, hình thức họp, thành phần tham dự.
+  \item Công việc hoàn thành từ kỳ trước.
+  \item Công việc đang thực hiện và tỷ lệ hoàn thành.
+  \item Vấn đề tồn đọng, blocker, dependency.
+  \item Rủi ro mới hoặc rủi ro thay đổi mức độ.
+  \item Quyết định được chốt và người chịu trách nhiệm hành động tiếp theo.
+\end{itemize}
+
+\subsection{Mẫu Change Request}
+
+\begin{itemize}
+  \item Mã thay đổi, ngày đề xuất, người đề xuất.
+  \item Mô tả thay đổi và lý do kinh doanh/học thuật.
+  \item Hạng mục bị ảnh hưởng: phạm vi, lịch biểu, chi phí, chất lượng, rủi ro, tài liệu.
+  \item Phân tích tác động và phương án thay thế.
+  \item Quyết định của CCB: chấp thuận, từ chối, hoãn.
+  \item Hành động sau phê duyệt và bằng chứng cập nhật baseline.
+\end{itemize}
+
+\subsection{Mẫu biên bản nghiệm thu}
+
+\begin{itemize}
+  \item Tên deliverable hoặc milestone được nghiệm thu.
+  \item Danh sách yêu cầu/tiêu chí chấp nhận được đối chiếu.
+  \item Kết quả kiểm tra, defect còn lại và mức chấp nhận.
+  \item Bằng chứng đính kèm: test report, transaction hash, CID, ảnh chụp màn hình, log.
+  \item Kết luận: chấp nhận, chấp nhận có điều kiện hoặc yêu cầu làm lại.
+\end{itemize}
+
+\subsection{Checklist triển khai smart contract}
+
+\begin{itemize}
+  \item Ghi Git commit, release tag, compiler/settings và checksum artifact.
+  \item Chạy unit, security, regression test và lưu test report.
+  \item Xác nhận network/chain ID, deployer và constructor arguments.
+  \item Deploy, kiểm tra receipt, transaction hash, block và verify source.
+  \item Ghi address vào versioned deployment manifest; không ghi đè release cũ.
+  \item Đồng bộ ABI/address cho backend, frontend và listener; chạy smoke/E2E test.
+  \item Kiểm tra source, log, image và artifact không chứa private key/secret.
+  \item Có phê duyệt của TL, QA và PM; cập nhật runbook, known issues và handover record.
+\end{itemize}
+
+\fi
+\section{Danh mục minh chứng bàn giao cuối kỳ}
+\iffalse
+
+Khi kết thúc dự án môn học, bộ bàn giao tối thiểu nên gồm:
+
+\begin{enumerate}
+  \item Mã nguồn và cấu trúc thư mục của các hợp phần blockchain, backend và frontend.
+  \item Tài liệu cài đặt, build, test, deploy và mẫu biến môi trường.
+  \item ABI, địa chỉ contract trên Sepolia, chain ID và hướng dẫn cấu hình tích hợp.
+  \item Test report, defect summary, UAT checklist và known issues.
+  \item Các baseline đã phê duyệt và log thay đổi trong quá trình thực hiện.
+  \item Biên bản nghiệm thu, biên bản bàn giao và lessons learned.
+\end{enumerate}
+
+\section{Lưu ý khi sử dụng phụ lục}
+
+Trong triển khai thực tế, các biểu mẫu trên có thể được thể hiện dưới dạng tài liệu riêng, bảng tính, issue tracker hoặc wiki nội bộ. Điều quan trọng không nằm ở hình thức, mà ở việc mỗi quyết định quản trị phải có bằng chứng, người chịu trách nhiệm và khả năng truy vết khi cần rà soát hoặc nghiệm thu.
+\fi
+
+\section{Biên bản thực tế của Nhóm 2}
+
+Phụ lục bản nộp chính thức chỉ đính kèm ba hồ sơ đã điền và được xác nhận: biên bản kick-off, biên bản phê duyệt thay đổi Cost Baseline và biên bản nghiệm thu dự án. Tại thời điểm lập kế hoạch rút gọn, nhóm chưa cung cấp bản có chữ ký nên báo cáo không tự tạo chữ ký hoặc quyết định phê duyệt thay thế. Các hồ sơ này được bổ sung vào bản nộp sau khi người có thẩm quyền xác nhận.

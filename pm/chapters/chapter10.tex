@@ -1,0 +1,219 @@
+\chapter{QUẢN LÝ MUA SẮM}
+
+FundChain tự phát triển logic nghiệp vụ nhưng thuê dùng RPC, IPFS pinning, database, queue và hosting. Chương này chỉ trình bày quyết định make-or-buy, quota/chi phí cần theo dõi và phương án giảm phụ thuộc nhà cung cấp; không lặp lại lý thuyết mua sắm chung.
+
+\iffalse
+\section{Tầm quan trọng của quản lý mua sắm}
+
+\subsection{Vai trò của mua sắm trong dự án}
+
+Quản lý mua sắm giúp dự án trả lời các câu hỏi quan trọng:
+
+\begin{itemize}
+  \item thành phần nào nhóm nên tự phát triển và thành phần nào nên sử dụng dịch vụ ngoài;
+  \item nhà cung cấp nào phù hợp với nhu cầu kỹ thuật, chi phí và rủi ro của dự án;
+  \item nghĩa vụ, quyền truy cập, quota và SLA của các dịch vụ cần được theo dõi ra sao;
+  \item khi thay đổi nhà cung cấp, dự án cần quy trình gì để hạn chế gián đoạn.
+\end{itemize}
+
+Đối với FundChain, quản lý mua sắm đặc biệt quan trọng vì dự án dù ở quy mô học thuật vẫn phụ thuộc vào hạ tầng ngoài nhóm. Free tier có thể phù hợp cho prototype, nhưng không đồng nghĩa với việc rủi ro vận hành bằng không. Nếu không theo dõi quota, retention, lock-in hoặc cách export dữ liệu, nhóm có thể gặp khó khăn ngay ở giai đoạn demo và bàn giao.
+
+\subsection{Mục tiêu quản lý mua sắm}
+
+Dự án đặt ra các mục tiêu sau:
+
+\begin{enumerate}
+  \item 100\% dịch vụ ngoài có owner theo dõi và mục đích sử dụng rõ ràng.
+  \item Mọi lựa chọn nhà cung cấp phải có cơ sở make-or-buy và tiêu chí đánh giá.
+  \item Dịch vụ được chọn phải phù hợp với ngân sách giả định và nhu cầu của môi trường thử nghiệm.
+  \item Nhà cung cấp có rủi ro lock-in hoặc outage phải có phương án dự phòng hoặc exit plan.
+  \item Thay đổi gói dịch vụ, quota hoặc nhà cung cấp phải qua impact analysis.
+\end{enumerate}
+
+\fi
+\section{Lập kế hoạch mua sắm}
+
+\subsection{Make-or-buy analysis}
+
+Phân tích make-or-buy của FundChain được xây trên nguyên tắc: nhóm chỉ tự phát triển những thành phần tạo ra giá trị cốt lõi hoặc liên quan trực tiếp đến logic nghiệp vụ của dự án; các thành phần hạ tầng phổ biến nên sử dụng dịch vụ ngoài để giảm chi phí và thời gian triển khai.
+
+\begin{table}[H]
+\centering
+\caption{Phân tích make-or-buy của dự án}
+\label{tab:make-or-buy}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.3cm}p{2.5cm}X}
+\toprule
+Hạng mục & Quyết định & Lý do quản trị \\
+\midrule
+Business logic và smart contract & Make & Là giá trị cốt lõi, cần kiểm soát trực tiếp \\
+Frontend/backend integration & Make & Phản ánh nghiệp vụ và luồng người dùng của dự án \\
+RPC provider & Buy & Dịch vụ hạ tầng chuẩn, tự vận hành không hiệu quả ở quy mô đề tài \\
+IPFS pinning & Buy & Tối ưu thời gian và công sức vận hành lưu trữ \\
+MongoDB/Redis/hosting & Buy & Tiện cho prototype và demo, dễ triển khai \\
+Audit bảo mật chuyên sâu & Buy nếu có ngân sách & Là năng lực chuyên biệt ngoài phạm vi nhóm học thuật \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\iffalse
+\subsection{Procurement Statement of Work}
+
+Đối với từng dịch vụ ngoài, dự án cần mô tả ngắn gọn Procurement Statement of Work, bao gồm:
+
+\begin{itemize}
+  \item mục đích sử dụng;
+  \item nhu cầu dung lượng, tần suất truy cập hoặc tải dự kiến;
+  \item yêu cầu về tính sẵn sàng, bảo mật và hỗ trợ;
+  \item cơ chế backup/export và điều kiện rời dịch vụ;
+  \item owner chịu trách nhiệm và chi phí dự kiến.
+\end{itemize}
+
+\subsection{Loại hợp đồng hoặc cam kết sử dụng}
+
+Vì đây là dự án quy mô nhỏ, hình thức cam kết phổ biến gồm:
+
+\begin{itemize}
+  \item subscription theo tháng hoặc gói ngắn hạn;
+  \item pay-as-you-go với dịch vụ biến động theo usage;
+  \item fixed price nếu có thuê ngoài review hoặc audit theo phạm vi xác định.
+\end{itemize}
+
+\figureplaceholder{ch10-procurement-flow.png}{Sơ đồ quy trình mua sắm gồm: xác định nhu cầu, make-or-buy analysis, shortlist nhà cung cấp, đánh giá kỹ thuật -- thương mại, PoC, phê duyệt, triển khai và theo dõi SLA/usage; có nhánh thay đổi nhà cung cấp khi không đạt yêu cầu.}{Quy trình quản lý mua sắm của dự án}{fig:procurement-flow}
+
+\fi
+\section{Tiến hành mua sắm}
+\iffalse
+
+\subsection{Quy trình lựa chọn nhà cung cấp}
+
+Quy trình lựa chọn của dự án gồm các bước:
+
+\begin{enumerate}
+  \item xác định nhu cầu và tiêu chí lựa chọn;
+  \item lập shortlist nhà cung cấp phù hợp;
+  \item thu thập báo giá, tài liệu kỹ thuật hoặc thông tin gói dịch vụ;
+  \item đánh giá kỹ thuật và thương mại;
+  \item kiểm thử proof of concept khi cần;
+  \item phê duyệt và đăng ký tài khoản hoặc hợp đồng;
+  \item ghi nhận owner, ngày gia hạn, giới hạn quota và cách hỗ trợ.
+\end{enumerate}
+
+\subsection{Tiêu chí lựa chọn}
+
+\begin{table}[H]
+\centering
+\caption{Tiêu chí lựa chọn nhà cung cấp}
+\label{tab:vendor-selection-criteria}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
+\toprule
+Tiêu chí & Nội dung đánh giá \\
+\midrule
+Chi phí tổng sở hữu & Không chỉ giá niêm yết mà cả chi phí vận hành, nâng gói và di chuyển \\
+Tính sẵn sàng/SLA & Mức ổn định cần thiết cho môi trường thử nghiệm và demo \\
+Bảo mật & Cơ chế quản lý key, truy cập, backup và nhật ký \\
+Khả năng mở rộng & Có đáp ứng được tăng tải ở mức hợp lý nếu cần mở rộng đề tài \\
+Tài liệu và hỗ trợ & Mức rõ ràng của documentation và khả năng xử lý sự cố \\
+Data portability & Khả năng export dữ liệu, giảm vendor lock-in \\
+Tương thích công nghệ & Phù hợp với stack hiện tại của dự án \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\fi
+\section{Kiểm soát mua sắm}
+
+\subsection{Theo dõi usage, chi phí và SLA}
+
+Sau khi dịch vụ được chọn, quản lý mua sắm không dừng lại. Dự án cần theo dõi:
+
+\begin{itemize}
+  \item usage thực tế so với quota hoặc gói đăng ký;
+  \item biến động chi phí hoặc cảnh báo vượt free tier;
+  \item incident, outage hoặc ticket hỗ trợ;
+  \item cách lưu credential, quyền truy cập và owner hiện hành;
+  \item mức độ phụ thuộc vào một nhà cung cấp duy nhất.
+\end{itemize}
+
+\subsection{Danh sách hạng mục mua sắm của dự án}
+
+Bảng~\ref{tab:procurement-items} mô tả các hạng mục chính cần quản lý.
+
+\begin{longtable}{p{2.6cm}p{3cm}p{3cm}p{4.2cm}}
+\caption{Danh sách hạng mục mua sắm của dự án}\label{tab:procurement-items}\\
+\toprule
+\textbf{Hạng mục} & \textbf{Nhu cầu} & \textbf{Phương án hiện tại} & \textbf{Dữ liệu cần xác nhận} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Hạng mục} & \textbf{Nhu cầu} & \textbf{Phương án hiện tại} & \textbf{Dữ liệu cần xác nhận} \\
+\midrule
+\endhead
+RPC provider & Kết nối Sepolia, đọc event & Provider qua RPC URL & Quota, giá, SLA, giới hạn request \\
+IPFS pinning & Pin file, JSON, evidence & Pinata hoặc tương đương & Dung lượng, retention, redundancy \\
+MongoDB & Notification, log, stats & MongoDB service & Storage, backup, giới hạn kết nối \\
+Redis/Queue & Queue, retry, pub/sub & Redis service & Memory, persistence, failover \\
+Backend hosting & Chạy API, worker, sidecar & VPS/cloud test & CPU/RAM, uptime, access policy \\
+Frontend hosting & Static app, demo & Hosting phù hợp & Bandwidth, domain mapping, SSL \\
+Audit bảo mật & Review chuyên sâu nếu có & Chưa xác nhận & Phạm vi, báo giá, thời gian thực hiện \\
+\bottomrule
+\end{longtable}
+
+\iffalse
+\subsection{Quy trình thay đổi nhà cung cấp}
+
+Nếu nhà cung cấp không còn phù hợp, dự án phải thực hiện quy trình thay đổi có kiểm soát:
+
+\begin{enumerate}
+  \item tạo vendor change request;
+  \item phân tích tác động tới chi phí, lịch biểu, dữ liệu và cấu hình;
+  \item thực hiện proof of concept với phương án thay thế;
+  \item phê duyệt thay đổi;
+  \item chuyển đổi từng bước và giữ rollback window;
+  \item cập nhật tài liệu, owner và secret tương ứng.
+\end{enumerate}
+
+\subsection{Rủi ro mua sắm}
+
+\begin{table}[H]
+\centering
+\caption{Rủi ro mua sắm chính của dự án}
+\label{tab:procurement-risks}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}X}
+\toprule
+Rủi ro & Tác động quản trị \\
+\midrule
+Hết free tier hoặc tăng giá & Làm lệch cost estimate và cần nâng gói đột xuất \\
+Outage của nhà cung cấp & Ảnh hưởng môi trường test, demo hoặc UAT \\
+Vendor lock-in & Khó export dữ liệu hoặc chuyển dịch vụ khi cần \\
+Thay đổi API/chính sách & Tăng effort tích hợp và bảo trì \\
+Lộ credential hoặc quyền truy cập quá rộng & Tăng rủi ro bảo mật và vận hành \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Về EOQ}
+
+EOQ là mô hình phù hợp với tồn kho vật lý, trong khi FundChain chủ yếu quản lý dịch vụ số và subscription. Vì vậy, EOQ không được áp dụng trực tiếp trong chương này. Nếu cần liên hệ học thuật, nội dung tương đương phù hợp hơn là planning về capacity, quota và subscription usage.
+
+\fi
+\section{Kết thúc mua sắm}
+\iffalse
+
+\subsection{Hoạt động kết thúc}
+
+Khi đóng dự án hoặc kết thúc một giai đoạn sử dụng dịch vụ, nhóm cần:
+
+\begin{itemize}
+  \item xác nhận nghĩa vụ với nhà cung cấp đã hoàn tất;
+  \item export hoặc backup dữ liệu cần lưu;
+  \item thu hồi key và quyền truy cập không còn cần thiết;
+  \item đánh giá hiệu suất nhà cung cấp;
+  \item cập nhật lessons learned về lựa chọn và vận hành dịch vụ.
+\end{itemize}
+
+\fi
+\section{Kết luận chương}
+
+Chương X đã xây dựng kế hoạch quản lý mua sắm cho FundChain với trọng tâm là make-or-buy analysis, tiêu chí lựa chọn nhà cung cấp, theo dõi usage/SLA, quản lý thay đổi vendor và kiểm soát rủi ro mua sắm. Nội dung này phù hợp với quy mô một dự án học thuật nhưng vẫn giữ được cấu trúc quản trị dự án đầy đủ.
+
+Đối với FundChain, ý nghĩa lớn nhất của quản lý mua sắm là giúp dự án không bị lệ thuộc một cách bị động vào các dịch vụ ngoài nhóm. Khi mua sắm được quản lý tốt, dự án kiểm soát tốt hơn chi phí, tính sẵn sàng và khả năng bàn giao, đồng thời giảm áp lực tích hợp ở giai đoạn cuối.

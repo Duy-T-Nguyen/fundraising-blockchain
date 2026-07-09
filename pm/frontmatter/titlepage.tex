@@ -1,0 +1,59 @@
+\begin{titlepage}
+  \newgeometry{top=1.25cm,bottom=1.25cm,left=1.35cm,right=1.35cm}
+  \thispagestyle{empty}
+  \setlength{\parindent}{0pt}
+  \definecolor{coverblue}{RGB}{0,0,120}
+
+  \begin{center}
+    \setlength{\fboxsep}{3mm}
+    \setlength{\fboxrule}{1.2pt}
+    \fcolorbox{coverblue}{white}{%
+      \setlength{\fboxsep}{2mm}%
+      \setlength{\fboxrule}{0.45pt}%
+      \fcolorbox{black}{white}{%
+        \begin{minipage}[c][25.35cm][t]{16.9cm}
+          \centering
+          \vspace*{0.75cm}
+
+          {\fontsize{13}{17}\selectfont\bfseries
+            VIỆN CÔNG NGHỆ THÔNG TIN\par
+            \MakeUppercase{\university}\par
+          }
+
+          \vspace{0.75cm}
+          \includegraphics[width=9cm,height=3.3cm,keepaspectratio]{logo-uth-clean.png}
+
+          \vspace{1.0cm}
+          {\fontsize{18}{22}\selectfont\bfseries TIỂU LUẬN\par}
+          \vspace{0.35cm}
+          {\fontsize{17}{22}\selectfont\bfseries\MakeUppercase{\projecttitle}\par}
+
+          \vspace{0.8cm}
+          \begin{tabular}{@{}>{\bfseries}p{4.4cm}p{8.1cm}@{}}
+            Môn học: & \coursename \\
+            Giảng viên hướng dẫn: & ThS. \supervisor \\
+            Nhóm thực hiện: & \groupname \\
+          \end{tabular}
+
+          \vspace{0.75cm}
+          {\bfseries DANH SÁCH THÀNH VIÊN\par}
+          \vspace{0.25cm}
+          \begin{tabular}{@{}c p{7cm} p{3.5cm}@{}}
+            \toprule
+            \textbf{STT} & \textbf{Họ và tên} & \textbf{Mã số sinh viên} \\
+            \midrule
+            1 & Nguyễn Thành Long & 022205011246 \\
+            2 & Đỗ Nguyễn Phương Thảo & 036305010922 \\
+            3 & Hoàng Lê Việt Hà & 044305005437 \\
+            \bottomrule
+          \end{tabular}
+
+          \vfill
+          {\bfseries Thành phố Hồ Chí Minh, tháng 6 năm 2026\par}
+          \vspace*{0.65cm}
+        \end{minipage}%
+      }%
+    }
+  \end{center}
+  \restoregeometry
+\end{titlepage}

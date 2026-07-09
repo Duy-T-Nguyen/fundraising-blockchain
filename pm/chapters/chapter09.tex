@@ -1,0 +1,295 @@
+\chapter{QUẢN LÝ RỦI RO}
+
+Rủi ro là phần không thể tách rời của mọi dự án, đặc biệt với những dự án có nhiều phụ thuộc kỹ thuật, tài chính và tổ chức như FundChain. Trong bối cảnh một tiểu luận quản trị dự án kéo dài ba tháng, rủi ro không chỉ đến từ công nghệ blockchain mà còn đến từ phạm vi thay đổi, thiếu nguồn lực, lịch biểu nén, lỗi tích hợp, phụ thuộc dịch vụ ngoài và chất lượng tài liệu bàn giao. Nếu dự án không nhận diện và kiểm soát các bất định này từ sớm, mọi baseline đã lập ở các chương trước đều có thể bị phá vỡ.
+
+Vì vậy, chương này tiếp cận quản lý rủi ro theo chuẩn quản trị dự án: lập kế hoạch, nhận diện, phân tích, hoạch định phản hồi, triển khai phản hồi và giám sát liên tục. Trọng tâm không phải là liệt kê thật nhiều rủi ro kỹ thuật, mà là xây dựng một cơ chế để nhóm biết rủi ro nào đáng ưu tiên, ai là owner, khi nào kích hoạt phản hồi và phản hồi đó ảnh hưởng thế nào đến phạm vi, lịch biểu, chi phí và chất lượng.
+
+\iffalse
+\section{Tổng quan về quản lý rủi ro}
+
+\subsection{Tầm quan trọng của quản lý rủi ro}
+
+Quản lý rủi ro giúp dự án chuyển từ trạng thái phản ứng bị động sang chủ động chuẩn bị. Thay vì đợi sự cố xảy ra rồi mới xử lý, nhóm có thể xác định trước các tình huống có khả năng gây thiệt hại lớn, từ đó bố trí reserve, xây quality gate, phân công backup và chuẩn bị phương án ứng phó.
+
+Với FundChain, tính chất quan trọng của quản lý rủi ro thể hiện ở ba điểm:
+
+\begin{itemize}
+  \item dự án có nhiều phụ thuộc chéo giữa contract, backend, frontend, dữ liệu và deployment;
+  \item một số lỗi có thể ảnh hưởng trực tiếp đến luồng tài chính hoặc uy tín của hệ thống;
+  \item thời lượng ba tháng khiến khả năng phục hồi sau khi rủi ro xảy ra bị giới hạn.
+\end{itemize}
+
+\subsection{Khái niệm và phân loại rủi ro}
+
+Rủi ro được hiểu là một sự kiện hoặc điều kiện không chắc chắn, nếu xảy ra sẽ tác động tích cực hoặc tiêu cực đến mục tiêu dự án. Trong tiểu luận này, trọng tâm chủ yếu là rủi ro tiêu cực vì chúng ảnh hưởng trực tiếp đến khả năng hoàn thành dự án đúng phạm vi, thời gian, chi phí và chất lượng.
+
+Rủi ro của FundChain được phân theo các nhóm lớn:
+
+\begin{itemize}
+  \item rủi ro quản trị và phạm vi;
+  \item rủi ro lịch biểu và nguồn lực;
+  \item rủi ro chi phí;
+  \item rủi ro blockchain/smart contract;
+  \item rủi ro backend, dữ liệu và hạ tầng;
+  \item rủi ro frontend và trải nghiệm người dùng;
+  \item rủi ro bảo mật và tuân thủ;
+  \item rủi ro nhà cung cấp và vận hành.
+\end{itemize}
+
+\subsection{Quy trình quản lý rủi ro}
+
+Quy trình quản lý rủi ro của dự án gồm bảy bước:
+
+\begin{enumerate}
+  \item Lập kế hoạch quản lý rủi ro.
+  \item Nhận diện rủi ro.
+  \item Phân tích định tính.
+  \item Phân tích định lượng khi phù hợp.
+  \item Hoạch định phản hồi rủi ro.
+  \item Triển khai phản hồi.
+  \item Giám sát và kiểm soát rủi ro.
+\end{enumerate}
+
+\figureplaceholder{ch09-risk-management-process.png}{Sơ đồ quy trình quản lý rủi ro gồm Plan Risk Management, Identify Risks, Perform Qualitative Analysis, Perform Quantitative Analysis, Plan Risk Responses, Implement Risk Responses và Monitor Risks; có vòng phản hồi về Risk Register và reserve.}{Quy trình quản lý rủi ro của dự án}{fig:risk-process}
+
+\fi
+\section{Kế hoạch quản lý rủi ro}
+
+\iffalse
+\subsection{Vai trò và trách nhiệm}
+
+PM là người duy trì Risk Register, tổ chức review định kỳ và bảo đảm rủi ro được gắn với owner cụ thể. Risk Owner chịu trách nhiệm theo dõi trigger, triển khai hành động phản hồi và cập nhật trạng thái. Toàn nhóm có trách nhiệm nhận diện rủi ro mới, đặc biệt khi phát hiện assumption không còn đúng hoặc khi thay đổi làm tăng mức bất định.
+
+Mỗi rủi ro cần một owner chịu trách nhiệm chính; các vai trò còn lại có thể là action owner cho từng hành động phản hồi. Cách ghi ghép như ``PM/TL'' trong bảng dưới đây thể hiện hai vai trò phối hợp và phải được ánh xạ thành một risk owner duy nhất khi phân công cá nhân.
+
+\fi
+\subsection{Thang đo và cách ưu tiên}
+
+Dự án sử dụng thang xác suất và tác động từ 1 đến 5:
+
+\begin{itemize}
+  \item Xác suất 1 là rất thấp, 5 là rất cao.
+  \item Tác động 1 là không đáng kể, 5 là rất nghiêm trọng.
+  \item Điểm rủi ro = Probability $\times$ Impact.
+\end{itemize}
+
+Theo đó, rủi ro được phân loại:
+
+\begin{itemize}
+  \item Low: 1--5
+  \item Medium: 6--10
+  \item High: 11--15
+  \item Critical: 16--25
+\end{itemize}
+
+\subsection{Tần suất rà soát}
+
+Risk Register được rà soát:
+
+\begin{itemize}
+  \item hằng tuần ở mức ngắn trong status review;
+  \item cuối mỗi sprint để cập nhật xu hướng và residual risk;
+  \item trước các mốc deployment, UAT hoặc thay đổi lớn;
+  \item ngay khi xảy ra incident hoặc phát sinh rủi ro mới trọng yếu.
+\end{itemize}
+
+\section{Nhận diện rủi ro}
+
+\iffalse
+\subsection{Phương pháp nhận diện}
+
+Nhóm sử dụng kết hợp nhiều phương pháp:
+
+\begin{itemize}
+  \item brainstorming giữa PM, BA, Technical Lead và QA;
+  \item checklist bảo mật và checklist triển khai;
+  \item phân tích assumption/constraint;
+  \item review kiến trúc, source và test evidence;
+  \item tham chiếu lessons learned từ các milestone trước.
+\end{itemize}
+
+\fi
+\subsection{Risk Breakdown Structure}
+
+Để bảo đảm nhận diện có hệ thống, dự án sử dụng Risk Breakdown Structure như Bảng~\ref{tab:rbs}.
+
+\begin{table}[H]
+\centering
+\caption{Risk Breakdown Structure của dự án}
+\label{tab:rbs}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.2cm}X}
+\toprule
+Nhóm & Nội dung rủi ro \\
+\midrule
+1 & Quản trị dự án và phạm vi \\
+2 & Lịch biểu và nguồn lực \\
+3 & Chi phí và reserve \\
+4 & Blockchain và smart contract \\
+5 & Backend, dữ liệu và hạ tầng \\
+6 & Frontend và trải nghiệm người dùng \\
+7 & Bảo mật, quyền truy cập và tuân thủ \\
+8 & Nhà cung cấp và vận hành \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Risk Register trọng yếu}
+
+Bảng~\ref{tab:risk-register} trình bày các rủi ro trọng yếu nhất của dự án ở mức quản trị.
+
+\begin{longtable}{p{1.1cm}p{3.3cm}p{1cm}p{1cm}p{1.2cm}p{2.2cm}p{3.2cm}}
+\caption{Risk Register trọng yếu của dự án}\label{tab:risk-register}\\
+\toprule
+\textbf{ID} & \textbf{Rủi ro} & \textbf{P} & \textbf{I} & \textbf{Điểm} & \textbf{Owner} & \textbf{Phản hồi chính} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Rủi ro} & \textbf{P} & \textbf{I} & \textbf{Điểm} & \textbf{Owner} & \textbf{Phản hồi chính} \\
+\midrule
+\endhead
+R01 & Scope creep sát hạn & 4 & 4 & 16 & PM/BA & Giữ baseline và kiểm soát thay đổi qua CCB \\
+R02 & Thiếu key person ở module quan trọng & 3 & 4 & 12 & PM/TL & Review chéo, backup person, tài liệu hóa \\
+R03 & Vulnerability trong contract & 3 & 5 & 15 & TL/BC & Test, review, checklist bảo mật, thư viện chuẩn \\
+R04 & Deploy sai contract hoặc address & 3 & 4 & 12 & TL/DevOps & Checklist deploy, verify, smoke test \\
+R05 & ABI hoặc config không đồng bộ & 4 & 4 & 16 & TL/FE/BE & Versioning, integration gate, config audit \\
+R06 & Secret bị lộ & 2 & 5 & 10 & DevOps/PM & Không commit secret, rotate key, kiểm tra quyền truy cập \\
+R07 & Gas tăng hoặc redeploy nhiều lần & 3 & 3 & 9 & PM/TL & Reserve, tối ưu số lần deploy, theo dõi usage \\
+R08 & IPFS/RPC gián đoạn & 3 & 4 & 12 & BE/DevOps & Fallback, retry, alternate provider, status notice \\
+R09 & Test không đủ, defect lọt sang UAT & 4 & 4 & 16 & QA/PM & RTM, negative test, E2E, quality gate rõ ràng \\
+R10 & Không kịp hạn báo cáo và bàn giao & 3 & 4 & 12 & Nhóm 2/PM & Viết song song, buffer cuối kỳ, milestone tài liệu \\
+\bottomrule
+\end{longtable}
+
+\figureplaceholder{ch09-probability-impact-matrix.png}{Ma trận Probability--Impact 5x5, tô nổi các vùng Low, Medium, High và Critical; đánh dấu các rủi ro R01, R03, R05 và R09 ở vùng ưu tiên cao.}{Ma trận xác suất -- tác động của rủi ro}{fig:pi-matrix}
+
+\section{Phân tích rủi ro}
+
+\subsection{Phân tích định tính}
+
+Phân tích định tính là bước ưu tiên đầu tiên, giúp PM và nhóm xác định rủi ro nào cần tập trung quản trị ngay. Đối với FundChain, các rủi ro được ưu tiên cao nhất là:
+
+\begin{itemize}
+  \item rủi ro làm thay đổi baseline như scope creep hoặc chậm tích hợp;
+  \item rủi ro ảnh hưởng trực tiếp đến luồng tài chính và quyền truy cập;
+  \item rủi ro làm lệch cấu hình giữa các lớp hệ thống;
+  \item rủi ro chất lượng khiến defect phát hiện quá muộn.
+\end{itemize}
+
+\subsection{Phân tích định lượng khi phù hợp}
+
+Trong phạm vi tiểu luận, dự án không cần một mô hình định lượng quá phức tạp cho mọi rủi ro. Tuy nhiên, một số rủi ro có thể lượng hóa tương đối bằng:
+
+\begin{itemize}
+  \item \textbf{EMV} đối với redeploy, cloud overrun hoặc nhu cầu công cụ ngoài kế hoạch;
+  \item \textbf{three-point estimate} cho gas, effort rework hoặc trễ lịch do tích hợp;
+  \item \textbf{sensitivity analysis} cho các biến như effort, gas hoặc reserve.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ phân tích EMV cho một số rủi ro chi phí}
+\label{tab:emv-sample}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}p{2.2cm}p{3cm}X}
+\toprule
+Rủi ro & Xác suất & Tác động tiền tệ giả định & EMV \\
+\midrule
+Redeploy contract nhiều lần & 30\% & 1.000.000 VNĐ & 300.000 VNĐ \\
+Vượt free tier hạ tầng & 25\% & 1.200.000 VNĐ & 300.000 VNĐ \\
+Rework do defect trọng yếu & 20\% & 2.000.000 VNĐ & 400.000 VNĐ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Hoạch định và triển khai phản hồi rủi ro}
+
+\iffalse
+\subsection{Chiến lược phản hồi}
+
+Dự án sử dụng bốn chiến lược chính đối với rủi ro tiêu cực:
+
+\begin{itemize}
+  \item \textbf{Avoid:} loại bỏ hoặc không đưa vào phạm vi những tính năng có rủi ro cao nhưng không thiết yếu.
+  \item \textbf{Mitigate:} giảm xác suất hoặc tác động bằng test, review, reserve, fallback và tài liệu.
+  \item \textbf{Transfer:} chuyển một phần rủi ro sang nhà cung cấp hoặc dịch vụ ngoài khi phù hợp.
+  \item \textbf{Accept:} chấp nhận có điều kiện, kèm reserve và contingency plan rõ ràng.
+\end{itemize}
+
+Risk Register cũng phải ghi nhận cơ hội, không chỉ mối đe dọa. Với cơ hội, nhóm có thể dùng các chiến lược exploit, enhance, share hoặc accept; ví dụ tận dụng free tier ổn định để giảm chi phí, tái sử dụng component đã kiểm thử để rút ngắn lịch, hoặc chia sẻ PoC với nhà cung cấp để nhận hỗ trợ kỹ thuật.
+
+\fi
+\subsection{Kế hoạch phản hồi cho rủi ro ưu tiên cao}
+
+\begin{table}[H]
+\centering
+\caption{Kế hoạch phản hồi cho các rủi ro ưu tiên cao}
+\label{tab:risk-response-plan}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{3.6cm}p{3cm}X}
+\toprule
+ID & Rủi ro & Trigger & Phản hồi quản trị \\
+\midrule
+R01 & Scope creep sát hạn & Yêu cầu mới ảnh hưởng WBS/milestone & Chặn thay đổi ngoài baseline, phân tích tác động và đưa qua CCB \\
+R03 & Vulnerability trong contract & Review/test phát hiện logic nhạy cảm & Tăng review chéo, thêm test và không qua gate nếu chưa đóng issue \\
+R05 & ABI hoặc config không đồng bộ & Có thay đổi contract/deploy & Kích hoạt integration gate, cập nhật config và test lại E2E \\
+R09 & Defect lọt sang UAT & Test coverage thấp hoặc defect leakage tăng & Tăng kiểm thử hồi quy, ưu tiên fix trọng yếu, không chốt milestone hình thức \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Triển khai phản hồi}
+
+Khi trigger xuất hiện, Risk Owner phải:
+
+\begin{enumerate}
+  \item xác nhận rủi ro đã chuyển thành issue hay incident chưa;
+  \item triển khai hành động đã định trong Risk Register;
+  \item cập nhật PM về tác động mới tới schedule, cost hoặc quality;
+  \item ghi lại residual risk hoặc secondary risk phát sinh.
+\end{enumerate}
+
+\section{Giám sát và kiểm soát rủi ro}
+
+\subsection{Theo dõi trigger và residual risk}
+
+Rủi ro không kết thúc khi đã có response plan. PM cần theo dõi:
+
+\begin{itemize}
+  \item trigger có xuất hiện hay không;
+  \item response có hiệu quả không;
+  \item residual risk còn ở mức chấp nhận được không;
+  \item có secondary risk nào phát sinh do hành động phản hồi hay không.
+\end{itemize}
+
+\subsection{Chỉ số và ngưỡng theo dõi}
+
+\begin{table}[H]
+\centering
+\caption{Ngưỡng giám sát rủi ro}
+\label{tab:risk-thresholds}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.2cm}X}
+\toprule
+Mức & Điều kiện & Hành động quản trị \\
+\midrule
+Xanh & Không có rủi ro High/Critical mới, trigger trong kiểm soát & Theo dõi định kỳ \\
+Vàng & Có rủi ro High mới hoặc residual risk tăng & PM rà lại response và reserve \\
+Đỏ & Rủi ro Critical xảy ra hoặc ảnh hưởng trực tiếp milestone/budget & Escalation, cập nhật kế hoạch và xem xét change control \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Top 5 rủi ro ưu tiên}
+
+Ở thời điểm lập kế hoạch, năm rủi ro được ưu tiên cao nhất là:
+
+\begin{enumerate}
+  \item scope creep sát hạn;
+  \item vulnerability trong contract hoặc logic tài chính;
+  \item ABI/config không đồng bộ giữa các lớp hệ thống;
+  \item defect lọt sang UAT;
+  \item thiếu key person ở module trọng yếu.
+\end{enumerate}
+
+\section{Kết luận chương}
+
+Chương IX đã thiết lập khung quản lý rủi ro đầy đủ cho FundChain, từ kế hoạch, Risk Breakdown Structure, Risk Register, phân tích định tính/định lượng đến phản hồi và giám sát liên tục. Nhờ đó, rủi ro được xem như một biến quản trị có thể theo dõi và điều chỉnh, thay vì chỉ là danh sách sự cố tiềm năng.
+
+Đối với FundChain, giá trị lớn nhất của quản lý rủi ro là giúp nhóm biết rủi ro nào cần ưu tiên, ai chịu trách nhiệm và phản hồi nào phải được kích hoạt trước khi các baseline bị phá vỡ. Điều này tạo nền tảng quan trọng cho quản lý mua sắm, tích hợp và kết thúc dự án ở các chương sau.

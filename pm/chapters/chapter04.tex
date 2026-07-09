@@ -1,0 +1,470 @@
+\chapter{QUẢN LÝ TIẾN ĐỘ}
+
+Quản lý thời gian là một trong những nội dung trọng tâm nhất của quản trị dự án vì mọi quyết định về phạm vi, nguồn lực, chất lượng và rủi ro cuối cùng đều phải quy đổi thành thời lượng thực hiện. Đối với FundChain, áp lực thời gian càng rõ hơn vì dự án có nhiều hợp phần phụ thuộc lẫn nhau: thay đổi ở smart contract có thể kéo theo cập nhật backend listener, ABI, relayer và frontend; chậm ở giai đoạn tích hợp dễ làm sụt giảm thời gian dành cho UAT, tài liệu và bàn giao.
+
+Do đó, chương này tập trung xây dựng kế hoạch quản lý lịch biểu theo hướng phù hợp với môn học Quản trị dự án. Nội dung chính gồm phương pháp lập lịch, xác định hoạt động, sắp xếp phụ thuộc, ước lượng thời gian và nguồn lực, phát triển Schedule Baseline, phân tích đường găng và kiểm soát lịch biểu trong suốt vòng đời dự án.
+
+\iffalse
+\section{Tầm quan trọng của quản lý thời gian}
+
+\subsection{Vai trò của lịch biểu trong dự án}
+
+Lịch biểu là công cụ biến Scope Baseline thành trình tự công việc có thể thực thi. Nếu WBS trả lời câu hỏi “dự án phải làm những gì”, thì lịch biểu trả lời câu hỏi “khi nào từng công việc được thực hiện, trong quan hệ nào với các công việc khác, và mốc nào dùng để kiểm soát tiến độ”.
+
+Đối với FundChain, quản lý thời gian có bốn vai trò nổi bật:
+
+\begin{enumerate}
+  \item Kết nối các work package thành chuỗi thực hiện có thứ tự ưu tiên rõ ràng.
+  \item Làm cơ sở phân bổ nguồn lực và so sánh planned effort với actual effort.
+  \item Tạo milestone để kiểm soát chất lượng và điều kiện chuyển giai đoạn.
+  \item Cảnh báo sớm khi dự án có dấu hiệu trễ ở các hạng mục nằm gần đường găng.
+\end{enumerate}
+
+\subsection{Đặc thù thời gian của dự án}
+
+Khác với dự án một hợp phần, lịch biểu của FundChain chịu tác động mạnh từ dependency kỹ thuật và dependency quản trị. Chẳng hạn, contract interface cần ổn định trước khi frontend và listener hoàn tất tích hợp; quality gate của contract cần đạt trước khi triển khai regression end-to-end; tài liệu bàn giao chỉ có giá trị khi cấu hình, địa chỉ triển khai và kịch bản demo đã được chốt.
+
+Bên cạnh đó, đây là dự án học thuật có nhân sự bán thời gian. Vì vậy, việc lập lịch không thể dựa trên giả định làm việc toàn thời gian liên tục. Lịch biểu phải dành chỗ cho hoạt động review, sửa lỗi, buffer tích hợp và những biến động do lịch học hoặc các nghĩa vụ học tập khác.
+
+\fi
+\section{Lập kế hoạch quản lý lịch biểu}
+
+\subsection{Phương pháp quản lý lịch biểu}
+
+Dự án áp dụng cách tiếp cận \textbf{hybrid Agile--PMBOK}. Ở cấp quản trị, dự án sử dụng milestone, baseline, network logic và cơ chế kiểm soát thay đổi để bảo đảm khả năng theo dõi. Ở cấp thực thi, các công việc phát triển có thể được triển khai theo nhịp sprint ngắn để tạo increment, lấy phản hồi sớm và xử lý blocker nhanh hơn.
+
+Ước lượng thời gian sử dụng kết hợp ba kỹ thuật:
+
+\begin{itemize}
+  \item \textbf{Expert judgment:} dùng khi công việc đã có hiện trạng source hoặc kinh nghiệm tương tự.
+  \item \textbf{Analogous estimation:} dùng để so sánh với các hạng mục cùng loại đã từng triển khai.
+  \item \textbf{Three-point estimation:} dùng cho các công việc rủi ro cao hoặc có biến động lớn.
+\end{itemize}
+
+\subsection{Đơn vị và lịch làm việc}
+
+Để bảo đảm thống nhất giữa lịch biểu và chi phí, dự án sử dụng các quy ước sau:
+
+\begin{itemize}
+  \item Effort được đo bằng giờ công và ngày công quy đổi.
+  \item Duration được đo bằng ngày làm việc.
+  \item Một ngày công được quy đổi bằng 8 giờ.
+  \item Lịch dự án dùng 5 ngày làm việc/tuần để tính duration baseline.
+  \item Thời gian môn học được giả định kéo dài từ ngày 01/04/2026 đến 30/06/2026.
+\end{itemize}
+
+Nhóm có thể làm thêm ngoài giờ trong thực tế, nhưng thời gian ngoài giờ không được dùng làm cơ sở để ép ngắn baseline. Nguyên tắc này giúp lịch biểu phản ánh năng lực thực hiện bền vững thay vì dựa vào giả định làm việc quá tải.
+
+\subsection{Ngưỡng kiểm soát lịch biểu}
+
+Dự án thiết lập ba mức theo dõi:
+
+\begin{itemize}
+  \item \textbf{Bình thường:} activity và milestone đang bám baseline.
+  \item \textbf{Cảnh báo vàng:} task chậm trên 1 ngày hoặc sprint hoàn thành dưới 90\% kế hoạch.
+  \item \textbf{Cảnh báo đỏ:} task trên đường găng chậm từ 2 ngày, milestone chậm từ 3 ngày hoặc SPI dưới 0,90.
+\end{itemize}
+
+Ở mức đỏ, PM phải tổ chức phân tích nguyên nhân và lập hành động khắc phục. Nếu việc điều chỉnh làm thay đổi milestone hoặc ngày kết thúc dự án, nhóm phải kích hoạt Change Request thay vì tự ý cập nhật Schedule Baseline.
+
+\figureplaceholder{ch04-schedule-management-process.png}{Sơ đồ quy trình gồm Plan Schedule Management, Define Activities, Sequence Activities, Estimate Durations, Develop Schedule và Control Schedule. Có luồng phản hồi từ Control Schedule về baseline và Change Control.}{Quy trình quản lý thời gian của dự án}{fig:schedule-process}
+
+\section{Xác định hoạt động}
+
+\subsection{Nguyên tắc xác định activity}
+
+Activity được hình thành bằng cách chuyển các work package trong WBS thành đơn vị công việc có thể lập lịch và theo dõi. Mỗi activity phải có:
+
+\begin{itemize}
+  \item mã định danh;
+  \item mô tả rõ ràng;
+  \item owner hoặc vai trò phụ trách;
+  \item predecessor/successor;
+  \item duration và effort ước lượng;
+  \item đầu ra hoặc điều kiện hoàn thành.
+\end{itemize}
+
+Dự án không tạo activity quá nhỏ đến mức làm lịch biểu trở nên rối, cũng không tạo activity quá lớn đến mức mất khả năng kiểm soát. Mức chi tiết được chọn là “đủ để theo dõi và can thiệp”.
+
+\subsection{Danh mục hoạt động cấp giai đoạn}
+
+\begin{longtable}{p{0.9cm}p{4.5cm}p{2.3cm}p{1.5cm}p{3.1cm}}
+\caption{Danh mục hoạt động cấp giai đoạn của dự án}\label{tab:schedule-activities}\\
+\toprule
+\textbf{ID} & \textbf{Hoạt động} & \textbf{Thời gian} & \textbf{Tuần} & \textbf{Đầu ra chính} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Hoạt động} & \textbf{Thời gian} & \textbf{Tuần} & \textbf{Đầu ra chính} \\
+\midrule
+\endhead
+A1 & Khởi tạo, stakeholder và charter & 01/04--07/04 & 1 & Charter, stakeholder register \\
+A2 & Yêu cầu, phạm vi và WBS & 08/04--21/04 & 2--3 & Scope Baseline, RTM, WBS \\
+A3 & Thiết kế kiến trúc, contract, API và UI & 22/04--05/05 & 4--5 & Design baseline \\
+A4 & Phát triển smart contract cốt lõi & 06/05--26/05 & 6--8 & Contract core và test \\
+A5 & Backend, IPFS, relayer, AI và notification & 06/05--26/05 & 6--8 & API/services tích hợp \\
+A6 & Frontend và dashboard theo vai trò & 06/05--26/05 & 6--8 & Các luồng UI chính \\
+A7 & Tích hợp, hardening và regression & 27/05--11/06 & 9--11 & End-to-end flow và defect fixes \\
+A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06--25/06 & 11--13 & Release candidate và UAT \\
+A9 & Tài liệu, bàn giao và closure & 26/06--30/06 & 13 & Báo cáo, demo, closure \\
+\bottomrule
+\end{longtable}
+
+\section{Sắp xếp hoạt động và ước lượng thời gian}
+
+\subsection{Quan hệ phụ thuộc chính}
+
+Việc sắp xếp hoạt động được xây dựng dựa trên logic phụ thuộc thực tế của sản phẩm và cách quản trị tiến độ. Các quan hệ phụ thuộc quan trọng gồm:
+
+\begin{itemize}
+  \item Yêu cầu và phạm vi phải rõ trước khi chốt kiến trúc và baseline thiết kế.
+  \item Thiết kế contract và interface là đầu vào của frontend, listener và relayer.
+  \item Event design phải ổn định trước khi hoàn thiện notification và đồng bộ trạng thái.
+  \item Unit test là điều kiện đi trước integration test; integration test là điều kiện đi trước UAT.
+  \item Deploy thử nghiệm phải đi trước buổi demo, bàn giao và closure.
+\end{itemize}
+
+Trong thực tế, một số activity được phép chồng lấn có kiểm soát, ví dụ backend và frontend có thể khởi động song song khi interface baseline đã đủ ổn định. Tuy nhiên, sự chồng lấn này chỉ nhằm rút ngắn thời gian hợp lý chứ không được làm giảm chất lượng kiểm soát.
+
+\subsection{Three-point estimation}
+
+Đối với các hoạt động rủi ro cao như contract core, relayer, tích hợp và deployment, dự án áp dụng kỹ thuật ba điểm:
+
+\[
+E = \frac{O + 4M + P}{6}
+\]
+
+Trong đó:
+
+\begin{itemize}
+  \item $O$ là thời lượng lạc quan;
+  \item $M$ là thời lượng khả dĩ nhất;
+  \item $P$ là thời lượng bi quan;
+  \item $E$ là thời lượng kỳ vọng theo PERT.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ví dụ ước lượng ba điểm cho các hoạt động rủi ro cao}
+\label{tab:three-point-estimation}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}c c c c X}
+\toprule
+Hoạt động & O & M & P & E & Ghi chú \\
+\midrule
+Contract core & 8 & 10 & 14 & 10,33 & Rủi ro do logic quỹ, quyền và regression \\
+Relayer và meta-transaction & 5 & 7 & 11 & 7,33 & Phụ thuộc queue, gas và fallback \\
+Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & Rủi ro do interface và dữ liệu liên hợp \\
+Deploy/UAT & 3 & 5 & 8 & 5,17 & Rủi ro do cấu hình và môi trường testnet \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ngoài thời lượng kỳ vọng, nhóm tính thêm độ bất định của PERT theo công thức $\sigma=(P-O)/6$ và $Var=\sigma^2$. Các activity có variance cao được đưa vào danh sách theo dõi sát vì chỉ cần một lỗi muộn ở contract, ABI hoặc tích hợp cũng có thể kéo theo rework ở nhiều hợp phần.
+
+\begin{table}[H]
+\centering
+\caption{Phân tích PERT mở rộng cho các hoạt động rủi ro cao}
+\label{tab:pert-variance}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}c c c c c X}
+\toprule
+Hoạt động & O & M & P & E & Var & Ý nghĩa kiểm soát \\
+\midrule
+Contract core & 8 & 10 & 14 & 10,33 & 1,00 & Cần review quyền truy cập và test hoàn tiền trước khi khóa ABI \\
+Relayer/meta-tx & 5 & 7 & 11 & 7,33 & 1,00 & Theo dõi queue, gas policy và fallback khi RPC chậm \\
+Frontend tích hợp & 7 & 10 & 16 & 10,50 & 2,25 & Rủi ro cao nhất vì phụ thuộc ABI/address và dữ liệu backend \\
+Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & 1,78 & Chỉ ghi hoàn thành khi qua integration gate, không dựa vào phần trăm cảm tính \\
+Deploy/UAT & 3 & 5 & 8 & 5,17 & 0,69 & Cần runbook, env template và demo fallback để giảm biến động cuối kỳ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ước lượng ba điểm không thay thế hoàn toàn expert judgment mà được dùng để làm rõ độ bất định, từ đó giúp PM quyết định lượng buffer hợp lý cho các giai đoạn gần đường găng. Trong thực nghiệm, nhóm ưu tiên theo dõi frontend tích hợp và end-to-end test vì đây là nơi nhiều dependency hội tụ.
+
+\iffalse
+\section{Ước lượng nguồn lực hoạt động}
+
+\subsection{Nguồn lực nhân sự}
+
+Mỗi hoạt động được gắn với nhóm năng lực chủ đạo thay vì gắn cứng vào tên cá nhân. Cách tiếp cận này phù hợp với bản chất tiểu luận môn học, trong đó báo cáo tập trung vào logic quản trị hơn là sơ đồ chấm công chi tiết của từng người.
+
+\begin{table}[H]
+\centering
+\caption{Nguồn lực chủ đạo theo hoạt động cấp giai đoạn}
+\label{tab:activity-resources}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{4.1cm}X}
+\toprule
+ID & Hoạt động & Nguồn lực chủ đạo \\
+\midrule
+A1 & Khởi tạo và charter & PM, BA, giảng viên/người nghiệm thu \\
+A2 & Yêu cầu, phạm vi và WBS & PM, BA, QA, Technical Lead \\
+A3 & Thiết kế & Technical Lead, BC, BE, FE, BA \\
+A4 & Contract core & BC, TL, QA \\
+A5 & Backend, IPFS, relayer & BE, TL, QA \\
+A6 & Frontend và dashboard & FE, BA, QA \\
+A7 & Tích hợp và hardening & TL, BC, BE, FE, QA \\
+A8 & Deploy và UAT & DevOps, QA, PM, toàn nhóm hỗ trợ \\
+A9 & Tài liệu, bàn giao và dự phòng & PM, BA, QA, toàn nhóm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Nguồn lực công cụ và môi trường}
+
+Ngoài nhân sự, lịch biểu còn phụ thuộc vào nguồn lực phi nhân sự:
+
+\begin{itemize}
+  \item testnet Sepolia, RPC và block explorer;
+  \item IPFS/Pinata cho metadata và bằng chứng;
+  \item MongoDB, Redis và môi trường backend;
+  \item repository, issue board, công cụ review và tài liệu chung;
+  \item môi trường build, test và demo.
+\end{itemize}
+
+Những nguồn lực này không quyết định lịch biểu theo nghĩa truyền thống như nhân lực, nhưng nếu không sẵn sàng đúng thời điểm thì vẫn có thể chặn activity trên đường găng.
+
+\fi
+\section{Phát triển lịch biểu}
+
+\subsection{Các giai đoạn thực hiện}
+
+Từ danh mục activity và dependency, lịch biểu của dự án được phát triển thành tám giai đoạn lớn:
+
+\begin{enumerate}
+  \item Khởi tạo và phân tích.
+  \item Thiết kế.
+  \item Phát triển contract nền tảng.
+  \item Phát triển backend/IPFS/relayer.
+  \item Phát triển frontend.
+  \item Tích hợp và hardening.
+  \item Deploy, UAT và tài liệu.
+  \item Nghiệm thu và kết thúc.
+\end{enumerate}
+
+Cách chia giai đoạn này giúp lịch biểu vừa có tính quản trị cấp cao để theo dõi milestone, vừa đủ linh hoạt để bên trong mỗi giai đoạn có thể triển khai các task nhỏ theo sprint.
+
+\subsection{Milestone của dự án}
+
+\begin{table}[H]
+\centering
+\caption{Milestone chính của dự án}
+\label{tab:project-milestones}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{7cm}X}
+\toprule
+Mốc & Nội dung & Ngày baseline \\
+\midrule
+M1 & Project Charter được sponsor/giảng viên phê duyệt & 07/04/2026 \\
+M2 & Scope, yêu cầu và WBS baseline được duyệt & 21/04/2026 \\
+M3 & Thiết kế kiến trúc, contract, API và UI được duyệt & 05/05/2026 \\
+M4 & Smart contract core hoàn thành và vượt unit test & 26/05/2026 \\
+M5 & Backend/IPFS/relayer hoạt động ổn định & 26/05/2026 \\
+M6 & Dashboard frontend hoàn thành & 26/05/2026 \\
+M7 & End-to-end flow và regression hoàn tất & 11/06/2026 \\
+M8 & Deploy Sepolia, UAT và sửa lỗi hoàn tất & 25/06/2026 \\
+M9 & Báo cáo và sản phẩm được bàn giao & 30/06/2026 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Milestone không chỉ đánh dấu ngày hoàn thành mà còn là điểm kiểm soát. Một mốc chỉ được xem là đạt khi deliverable tương ứng vượt quality gate tối thiểu chứ không chỉ khi “đã có code”.
+
+\subsection{Phân tích đường găng}
+
+Để kiểm chứng chuỗi cấp giai đoạn, nhóm phân rã lịch thành 24 activity và thực hiện CPM theo đơn vị ngày làm việc. Mốc thời gian 0 là đầu ngày 01/04/2026; quan hệ mặc định là Finish--to--Start, không có lag. Phép duyệt xuôi và duyệt ngược sử dụng:
+
+\[
+EF_i=ES_i+d_i,\qquad ES_i=\max(EF_{pred})
+\]
+\[
+LS_i=LF_i-d_i,\qquad LF_i=\min(LS_{succ}),\qquad TF_i=LS_i-ES_i
+\]
+
+Free Float được tính bằng $FF_i=\min(ES_{succ})-EF_i$. Bảng~\ref{tab:cpm-calculation} công bố toàn bộ dữ liệu đầu vào và kết quả, nhờ đó đường găng có thể được kiểm tra lại thay vì chỉ suy ra từ biểu đồ Gantt.
+
+\begin{landscape}
+\begin{longtable}{p{1.1cm}p{5.2cm}r p{2.2cm}rrrrrr}
+\caption{Kết quả tính CPM chi tiết theo ngày làm việc}\label{tab:cpm-calculation}\\
+\toprule
+\textbf{ID} & \textbf{Hoạt động} & \textbf{$d$} & \textbf{Predecessor} & \textbf{ES} & \textbf{EF} & \textbf{LS} & \textbf{LF} & \textbf{TF} & \textbf{FF} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Hoạt động} & \textbf{$d$} & \textbf{Predecessor} & \textbf{ES} & \textbf{EF} & \textbf{LS} & \textbf{LF} & \textbf{TF} & \textbf{FF} \\
+\midrule
+\endhead
+T01 & Lập và phê duyệt Project Charter & 3 & -- & 0 & 3 & 0 & 3 & 0 & 0 \\
+T02 & Stakeholder register và governance & 2 & T01 & 3 & 5 & 3 & 5 & 0 & 0 \\
+T03 & Thu thập và baseline yêu cầu & 5 & T02 & 5 & 10 & 5 & 10 & 0 & 0 \\
+T04 & Scope Statement, WBS và RTM & 5 & T03 & 10 & 15 & 10 & 15 & 0 & 0 \\
+T05 & Thiết kế kiến trúc tổng thể & 5 & T04 & 15 & 20 & 15 & 20 & 0 & 0 \\
+T06 & Chốt contract, API và UI interface & 5 & T05 & 20 & 25 & 20 & 25 & 0 & 0 \\
+T07 & Phát triển smart contract core & 10 & T06 & 25 & 35 & 25 & 35 & 0 & 0 \\
+T08 & Unit/security test cho contract & 5 & T07 & 35 & 40 & 35 & 40 & 0 & 0 \\
+T09 & Phát triển backend core & 8 & T06 & 25 & 33 & 25 & 33 & 0 & 0 \\
+T10 & IPFS, relayer, listener và AI sidecar & 7 & T09 & 33 & 40 & 33 & 40 & 0 & 0 \\
+T11 & Frontend foundation và wallet flow & 7 & T06 & 25 & 32 & 25 & 32 & 0 & 0 \\
+T12 & Dashboard và luồng theo vai trò & 8 & T11 & 32 & 40 & 32 & 40 & 0 & 0 \\
+T13 & Đồng bộ ABI, address và cấu hình & 3 & T08,T10,T12 & 40 & 43 & 40 & 43 & 0 & 0 \\
+T14 & Kiểm thử tích hợp end-to-end & 5 & T13,T21 & 43 & 48 & 43 & 48 & 0 & 0 \\
+T15 & Hardening, regression và sửa lỗi & 4 & T14 & 48 & 52 & 48 & 52 & 0 & 0 \\
+T16 & Chuẩn bị release và môi trường & 2 & T15,T24 & 52 & 54 & 52 & 54 & 0 & 0 \\
+T17 & Deploy và verify trên Sepolia & 2 & T16 & 54 & 56 & 54 & 56 & 0 & 0 \\
+T18 & Thực hiện UAT & 3 & T17,T22 & 56 & 59 & 56 & 59 & 0 & 0 \\
+T19 & Sửa lỗi sau UAT và xác nhận lại & 3 & T18 & 59 & 62 & 59 & 62 & 0 & 0 \\
+T20 & Hoàn thiện báo cáo, bàn giao, closure & 3 & T19,T23 & 62 & 65 & 62 & 65 & 0 & 0 \\
+T21 & Lập test plan và test case & 4 & T04 & 15 & 19 & 39 & 43 & 24 & 24 \\
+T22 & Chuẩn bị UAT plan và dữ liệu UAT & 3 & T05 & 20 & 23 & 53 & 56 & 33 & 33 \\
+T23 & Soạn tài liệu và runbook bản nháp & 8 & T06 & 25 & 33 & 54 & 62 & 29 & 29 \\
+T24 & Cấp phát RPC, IPFS và môi trường & 4 & T06 & 25 & 29 & 48 & 52 & 23 & 23 \\
+\bottomrule
+\end{longtable}
+\end{landscape}
+
+Kết quả cho duration dự án là \textbf{65 ngày làm việc}. Có ba nhánh kỹ thuật cùng có Total Float bằng 0, vì vậy dự án có ba đường găng đồng thời:
+
+\begin{enumerate}
+  \item T01--T06 $\rightarrow$ T07--T08 $\rightarrow$ T13--T20;
+  \item T01--T06 $\rightarrow$ T09--T10 $\rightarrow$ T13--T20;
+  \item T01--T06 $\rightarrow$ T11--T12 $\rightarrow$ T13--T20.
+\end{enumerate}
+
+Như vậy, contract, backend và frontend đều phải hoàn thành vào ngày làm việc thứ 40 để không làm trễ tích hợp. T21--T24 có dự trữ nhưng PM không được tự động dùng hết float; khi tiêu thụ quá 50\% Total Float, owner phải báo cáo trong weekly status. Kết quả chi tiết này thay thế nhận định trước đây rằng chỉ chuỗi A1--A4--A7--A9 là đường găng.
+
+\figureplaceholder{ch04-network-diagram.png}{Sơ đồ mạng tổng quan thể hiện ba nhánh contract, backend và frontend hội tụ tại tích hợp. Bảng CPM chi tiết là nguồn dữ liệu có thẩm quyền khi xác định float và đường găng.}{Sơ đồ mạng tổng quan của dự án}{fig:network-diagram}
+
+\subsection{Gantt Chart và Schedule Baseline}
+
+Schedule Baseline của dự án được cố định với ngày bắt đầu là 01/04/2026 và ngày kết thúc là 30/06/2026. Các khoảng ngày trong bảng là cửa sổ theo lịch (elapsed date range), có thể chứa cuối tuần; effort và duration vẫn chỉ được tính trên lịch làm việc 5 ngày/tuần đã công bố. Các giai đoạn A4, A5 và A6 được phép chồng lấn có kiểm soát sau khi interface baseline được duyệt; tuy nhiên, mốc tích hợp và UAT vẫn giữ vai trò chặn trước khi đóng dự án.
+
+\begin{table}[H]
+\centering
+\caption{Schedule Baseline cấp cao của dự án}
+\label{tab:schedule-baseline}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{5.5cm}p{2.6cm}p{2.6cm}X}
+\toprule
+ID & Hoạt động & Bắt đầu & Kết thúc & Ghi chú \\
+\midrule
+A1 & Khởi tạo, stakeholder và charter & 01/04/2026 & 07/04/2026 & Milestone M1 \\
+A2 & Yêu cầu, phạm vi và WBS & 08/04/2026 & 21/04/2026 & Milestone M2 \\
+A3 & Thiết kế kiến trúc, contract, API và UI & 22/04/2026 & 05/05/2026 & Milestone M3 \\
+A4 & Phát triển smart contract cốt lõi & 06/05/2026 & 26/05/2026 & Milestone M4 \\
+A5 & Backend, IPFS, relayer, AI và notification & 06/05/2026 & 26/05/2026 & Milestone M5; chạy song song A4/A6 \\
+A6 & Frontend và dashboard theo vai trò & 06/05/2026 & 26/05/2026 & Milestone M6 \\
+A7 & Tích hợp, hardening và regression & 27/05/2026 & 11/06/2026 & Milestone M7 \\
+A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06/2026 & 25/06/2026 & Milestone M8 \\
+A9 & Tài liệu, bàn giao và closure & 26/06/2026 & 30/06/2026 & Milestone M9 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figureplaceholder{ch04-gantt-overview.png}{Biểu đồ Gantt cấp cao thể hiện A1 đến A9, ba nhánh A4--A6 chạy song song và hội tụ trước A7, cùng các milestone M1--M9. Bảng CPM là nguồn có thẩm quyền nếu hình tổng quan khác mức chi tiết.}{Biểu đồ Gantt tổng quan của dự án}{fig:gantt-overview}
+
+\section{Kiểm soát lịch biểu}
+
+\subsection{Cơ chế cập nhật tiến độ}
+
+Kiểm soát lịch biểu được thực hiện theo ba lớp:
+
+\begin{itemize}
+  \item cập nhật ngắn hằng ngày hoặc bất đồng bộ để phát hiện blocker;
+  \item rà soát tiến độ hai lần mỗi tuần để kiểm tra dependency và mức hoàn thành;
+  \item đánh giá cuối sprint hoặc milestone để so planned với actual.
+\end{itemize}
+
+Mỗi activity khi cập nhật cần thể hiện tối thiểu ba thông tin: phần đã hoàn thành, effort còn lại ước tính và blocker hiện tại. Cách làm này giúp PM dự báo rủi ro trễ trước khi nó chuyển thành chậm milestone.
+
+\subsection{Chỉ số và ngưỡng theo dõi}
+
+Dự án sử dụng kết hợp theo dõi định tính và định lượng:
+
+\begin{itemize}
+  \item số ngày lệch so với baseline ở cấp activity;
+  \item tỷ lệ hoàn thành sprint;
+  \item milestone achieved/not achieved;
+  \item SPI khi áp dụng Earned Value ở cấp dự án;
+  \item số blocker đang mở và thời gian chờ dependency.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ngưỡng kiểm soát lịch biểu}
+\label{tab:schedule-thresholds}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.4cm}X}
+\toprule
+Mức & Điều kiện & Hành động quản trị \\
+\midrule
+Xanh & Đúng baseline hoặc lệch không đáng kể & Theo dõi bình thường \\
+Vàng & Task chậm trên 1 ngày hoặc sprint hoàn thành dưới 90\% kế hoạch & PM rà nguyên nhân, điều chỉnh nội bộ \\
+Đỏ & Task đường găng chậm từ 2 ngày, milestone chậm từ 3 ngày hoặc SPI dưới 0,90 & Phân tích tác động, lập kế hoạch khắc phục, xem xét Change Request \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Biện pháp điều chỉnh lịch biểu}
+
+Khi xuất hiện nguy cơ trễ tiến độ, PM có thể áp dụng các biện pháp sau:
+
+\begin{enumerate}
+  \item điều chỉnh thứ tự công việc trong phạm vi float cho phép;
+  \item tăng cường review sớm để giảm rework ở giai đoạn cuối;
+  \item fast tracking có kiểm soát đối với các activity không phụ thuộc tuyệt đối;
+  \item crashing ở mức hợp lý bằng cách tăng hỗ trợ hoặc ưu tiên nguồn lực cho hạng mục đường găng;
+  \item giảm hoặc trì hoãn các hạng mục Should/Could Have thông qua Change Control.
+\end{enumerate}
+
+Các biện pháp rút ngắn lịch biểu luôn phải đi kèm phân tích rủi ro. Ví dụ, fast tracking có thể rút ngắn thời gian nhưng cũng làm tăng xác suất rework nếu interface chưa đủ ổn định; crashing có thể tăng tốc tạm thời nhưng lại làm tăng chi phí phối hợp và nguy cơ sai sót.
+
+\begin{table}[H]
+\centering
+\caption{Phân tích rút ngắn tiến độ có kiểm soát}
+\label{tab:schedule-crashing-options}
+\small
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.7cm}p{2.6cm}c c c X}
+\toprule
+Phương án & Activity tác động & Ngày rút & Chi phí tăng & Cost slope & Rủi ro/điều kiện áp dụng \\
+\midrule
+Review contract sớm & Contract core/test & 1 & 800.000 & 800.000/ngày & Cần reviewer độc lập, không bỏ qua security checklist \\
+Mock ABI song song & Backend và frontend & 2 & 1.200.000 & 600.000/ngày & Chỉ dùng khi interface baseline đủ ổn định; có nguy cơ rework nếu ABI đổi \\
+QA regression tăng cường & Integration/UAT & 1 & 700.000 & 700.000/ngày & Cần test case ưu tiên cho donate, release, refund và access control \\
+Defer nice-to-have UI & Frontend polish & 1 & 0 & 0/ngày & Giảm độ hoàn thiện UX nhưng không ảnh hưởng deliverable bắt buộc \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Phương án ưu tiên của nhóm là rút 2--3 ngày bằng mock ABI có kiểm soát và QA regression tăng cường, thay vì crash sâu vào smart contract. Lý do là smart contract nằm gần lõi tài chính; tăng tốc quá mức ở phần này có thể làm chi phí lỗi và rủi ro bảo mật lớn hơn lợi ích tiến độ.
+
+\iffalse
+\section{Phân tích rủi ro thời gian}
+
+\subsection{Nguồn rủi ro chính}
+
+Các rủi ro thời gian nổi bật của dự án gồm:
+
+\begin{itemize}
+  \item chậm do contract bug hoặc phải redeploy;
+  \item chậm do thay đổi ABI/address ảnh hưởng chuỗi tích hợp;
+  \item chậm do dịch vụ testnet, RPC hoặc IPFS không ổn định;
+  \item thành viên bận học, thi hoặc giảm availability;
+  \item scope change xuất hiện gần giai đoạn nghiệm thu;
+  \item thiếu buffer cho regression và tài liệu.
+\end{itemize}
+
+\subsection{Biện pháp ứng phó}
+
+Để giảm rủi ro trễ tiến độ, lịch biểu được thiết kế với một số nguyên tắc:
+
+\begin{itemize}
+  \item chốt phạm vi và interface sớm hơn giai đoạn tích hợp;
+  \item duy trì quality gate ở từng milestone thay vì dồn kiểm tra về cuối;
+  \item dùng overlap có kiểm soát thay vì chồng lấn tùy tiện;
+  \item dành buffer ở giai đoạn cuối cho integration, UAT và tài liệu;
+  \item theo dõi activity trên đường găng với tần suất cao hơn activity có float.
+\end{itemize}
+
+Những nguyên tắc này cho thấy quản lý thời gian không chỉ là lập bảng ngày tháng mà còn là tổ chức thứ tự kiểm soát để hấp thụ biến động trong quá trình thực hiện.
+
+\fi
+\section{Kết luận chương}
+
+Chương IV đã xây dựng kế hoạch quản lý tiến độ cho dự án FundChain trên cơ sở Scope Baseline và phương án đầu tư đã lựa chọn. Lịch biểu được phát triển theo hướng hybrid Agile--PMBOK, sử dụng activity cấp giai đoạn, milestone, dependency logic, ước lượng ba điểm và Schedule Baseline cố định từ 01/04/2026 đến 30/06/2026. Phép tính CPM ở 24 activity xác nhận duration 65 ngày làm việc và ba đường găng đồng thời qua các nhánh contract, backend và frontend trước khi hội tụ tại tích hợp.
+
+Điểm quan trọng nhất của chương là xác định rõ đường găng và cơ chế kiểm soát tiến độ. Đối với dự án nhiều hợp phần như FundChain, chậm tiến độ hiếm khi đến từ một task riêng lẻ mà thường đến từ chuỗi phụ thuộc kéo dài sang giai đoạn tích hợp và UAT. Vì vậy, quản lý thời gian của dự án phải gắn chặt với quản lý thay đổi, chất lượng, rủi ro và nguồn lực. Đây cũng là cơ sở để Chương V tiếp tục lượng hóa tác động của các quyết định quản trị sang chi phí dự án.

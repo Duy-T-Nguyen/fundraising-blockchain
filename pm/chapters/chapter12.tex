@@ -1,0 +1,235 @@
+\chapter{KẾT THÚC DỰ ÁN}
+
+Kết thúc dự án không chỉ là thời điểm hoàn thành phần việc cuối cùng, mà là giai đoạn xác nhận rằng dự án đã đạt được mục tiêu trong phạm vi cho phép, các deliverable đã được bàn giao, nghĩa vụ còn lại đã có owner và tri thức thu được đã được lưu giữ cho tương lai. Nếu dự án chỉ dừng lại ở việc ``xong sản phẩm'' mà không hoàn tất hoạt động closure, nhiều giá trị quản trị quan trọng sẽ bị mất: bài học kinh nghiệm không được ghi nhận, tài liệu không đồng bộ, tài khoản hoặc quyền truy cập chưa được thu hồi, và trạng thái chấp nhận cuối cùng của deliverable vẫn mơ hồ.
+
+Đối với FundChain, giai đoạn kết thúc càng quan trọng vì dự án có cả đầu ra học thuật và đầu ra kỹ thuật. Nhóm không chỉ cần hoàn thiện báo cáo môn học, mà còn phải tổng hợp minh chứng, kiểm tra khả năng bàn giao của mã nguồn, tài liệu, cấu hình triển khai, known issues và các tài sản tri thức liên quan. Vì vậy, chương này trình bày closure như một quy trình quản trị có kế hoạch, thay vì chỉ là phần tổng kết hình thức ở cuối báo cáo.
+
+\iffalse
+\section{Mục tiêu của giai đoạn kết thúc}
+
+Giai đoạn kết thúc của FundChain hướng tới các mục tiêu sau:
+
+\begin{enumerate}
+  \item xác nhận phạm vi đã hoàn thành ở mức chấp nhận được;
+  \item bàn giao đầy đủ deliverable, tài liệu và tri thức liên quan;
+  \item đóng các nghĩa vụ còn tồn đọng hoặc chuyển giao owner rõ ràng;
+  \item đánh giá kết quả dự án so với baseline;
+  \item lưu giữ lessons learned và tài sản có thể tái sử dụng;
+  \item thu hồi hoặc bàn giao quyền truy cập, cấu hình và công cụ cần thiết.
+\end{enumerate}
+
+\fi
+\section{Các hoạt động chính trong giai đoạn kết thúc}
+
+\subsection{Đánh giá nghiệm thu}
+
+Hoạt động đầu tiên của closure là đối chiếu kết quả thực tế với Scope Baseline và các tiêu chí chấp nhận đã xác định. Việc đánh giá nghiệm thu cần dựa trên bằng chứng, không chỉ dựa vào cảm nhận rằng ``hệ thống đã chạy được''.
+
+Thứ tự kiểm soát bắt buộc là: \textbf{hoàn tất kiểm tra và UAT $\rightarrow$ chủ đầu tư/giảng viên nghiệm thu $\rightarrow$ phát hành Final Project Report $\rightarrow$ tổ chức hậu phân tích $\rightarrow$ archive và đóng dự án}. Nếu chưa có acceptance record, báo cáo cuối chỉ mang trạng thái dự thảo và dự án chưa được tuyên bố đóng.
+
+Các bước chính gồm:
+
+\begin{itemize}
+  \item đối chiếu RTM với deliverable hiện có;
+  \item kiểm tra kết quả build, test, deployment và UAT;
+  \item rà soát known issues, deferred items và hạn chế còn tồn tại;
+  \item xác nhận deliverable nào được chấp nhận, deliverable nào cần ghi chú ngoại lệ;
+  \item lập biên bản nghiệm thu hoặc xác nhận tương đương theo quy định môn học.
+\end{itemize}
+
+\subsection{Chuyển giao sản phẩm}
+
+Chuyển giao trong FundChain không chỉ là gửi một repository, mà là bàn giao một bộ tài sản đủ để người khác hiểu, kiểm tra và tái sử dụng ở mức phù hợp. Bộ bàn giao gồm:
+
+\begin{itemize}
+  \item source code và release/tag cuối cùng;
+  \item smart contract source, ABI, network và address;
+  \item deployment scripts, environment template và runbook;
+  \item backend, frontend và cấu hình triển khai liên quan;
+  \item tài liệu API, hướng dẫn sử dụng, test report và known limitations;
+  \item hồ sơ quản trị dự án, biên bản, lessons learned và báo cáo tổng kết.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Danh mục bàn giao cuối dự án}
+\label{tab:handover-items}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}X}
+\toprule
+Nhóm bàn giao & Nội dung \\
+\midrule
+Mã nguồn và release & Repository, tag cuối, commit tham chiếu, hướng dẫn build \\
+Contract artifact & Source, ABI, address, verify link, network information \\
+Triển khai và cấu hình & Deployment script, `.env.example`, runbook, smoke test steps \\
+Backend/frontend & API doc, config cần thiết, hướng dẫn chạy môi trường demo \\
+Chất lượng & Test report, quality checklist, known issues, limitation note \\
+Hồ sơ quản trị & Baseline, status report, risk/change/issue log, lessons learned \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Cập nhật tài sản tổ chức và tri thức}
+
+Một closure tốt phải biến kinh nghiệm dự án thành tài sản có thể dùng lại. Với FundChain, các tài sản tri thức cần được cập nhật gồm:
+
+\begin{itemize}
+  \item template báo cáo, checklist, biểu mẫu status report;
+  \item sơ đồ kiến trúc, sequence, quality gate và quy trình;
+  \item test case tiêu biểu và hướng dẫn triển khai;
+  \item lessons learned register;
+  \item risk, issue, change và decision log đã chốt.
+\end{itemize}
+
+\figureplaceholder{ch12-project-closure-flow.png}{Sơ đồ closure gồm các bước: final verification, acceptance, handover, archive documents, lessons learned, revoke access và close project. Có nhánh phản hồi nếu deliverable chưa đạt điều kiện nghiệm thu.}{Quy trình kết thúc dự án FundChain}{fig:closure-flow}
+
+\section{Đánh giá hiệu quả dự án}
+
+Vì đây là kế hoạch/tiểu luận được lập trước khi có đầy đủ số liệu kết thúc, phần dưới đây là \textbf{khung đánh giá closure}, không phải tuyên bố rằng dự án đã đạt các chỉ số. Khi đóng dự án thực tế, nhóm phải thay planned/placeholder bằng actual, chỉ rõ data date và đính kèm acceptance record; không suy diễn SPI, CPI hoặc mức hài lòng nếu chưa có dữ liệu đo.
+
+\subsection{Đánh giá theo baseline}
+
+Hiệu quả dự án được đánh giá bằng cách so planned với actual trên các chiều chính:
+
+\begin{itemize}
+  \item \textbf{Phạm vi:} mức độ hoàn thành deliverable và yêu cầu trọng yếu;
+  \item \textbf{Lịch biểu:} so sánh Schedule Baseline với kết quả thực tế, milestone đạt hay trượt;
+  \item \textbf{Chi phí:} đối chiếu Cost Baseline với actual cost quy đổi và reserve đã dùng;
+  \item \textbf{Chất lượng:} test, defect trend, UAT acceptance và known issues;
+  \item \textbf{Stakeholder satisfaction:} mức độ chấp nhận kết quả và tính rõ ràng của hồ sơ bàn giao.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Khung đánh giá hiệu quả dự án khi kết thúc}
+\label{tab:closure-evaluation}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{3.8cm}X}
+\toprule
+Chiều đánh giá & Chỉ số/tiêu chí & Nội dung đánh giá \\
+\midrule
+Scope & Deliverable achieved & Có hoàn thành các đầu ra cốt lõi đã baseline hay không \\
+Schedule & Milestone, SPI, độ lệch & Dự án có giữ được các mốc chính hay dùng nhiều buffer \\
+Cost & CPI, CV, reserve used & Chi phí quy đổi có nằm trong khung cho phép hay không \\
+Quality & Defect, UAT, acceptance & Mức ổn định và mức chấp nhận của deliverable \\
+Knowledge transfer & Handover completeness & Tài liệu và tri thức có đủ để bàn giao, tái sử dụng \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\iffalse
+\subsection{Vai trò của Project Manager trong closure}
+
+PM là người điều phối closure checklist, xác nhận không còn nghĩa vụ chưa có owner và bảo đảm rằng trạng thái kết thúc được ghi nhận rõ ràng. Cụ thể, PM cần:
+
+\begin{itemize}
+  \item tổ chức final acceptance;
+  \item rà soát hồ sơ bàn giao;
+  \item xác nhận closure checklist đã hoàn thành;
+  \item phát hành final project report;
+  \item chỉ định nơi lưu trữ tài liệu và người giữ trách nhiệm nếu cần.
+\end{itemize}
+
+\fi
+\section{Lessons learned và giải tán nhóm}
+
+\subsection{Hậu phân tích và bài học của Nhóm 2}
+
+Cuộc họp hậu phân tích được tổ chức sau nghiệm thu với toàn bộ nhóm dự án, PM, đại diện kỹ thuật, QA và các stakeholder nội bộ liên quan; khách hàng/người nghiệm thu không bắt buộc tham dự. Người điều phối mở đầu bằng nguyên tắc \textbf{không tìm thủ phạm}: thảo luận tập trung vào điều kiện, quy trình, tín hiệu bị bỏ sót và hành động cải tiến, không quy lỗi cá nhân. Mỗi bài học phải có bằng chứng và owner theo dõi.
+
+\begin{table}[H]
+\centering
+\caption{Bài học cần xác nhận trong cuộc họp hậu phân tích}
+\label{tab:student-lessons-learned}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{5.1cm}X}
+\toprule
+Thành viên & Bài học từ phạm vi phụ trách & Hành động cho dự án sau \\
+\midrule
+Nguyễn Thành Long & Baseline chỉ hữu ích khi status, change và bằng chứng được tích hợp cùng một nhịp & Chốt data date hằng tuần và không phát hành final report trước acceptance record \\
+Đỗ Nguyễn Phương Thảo & Yêu cầu và phản hồi stakeholder cần được chuyển ngay thành acceptance criteria có thể kiểm tra & Chuẩn bị RTM/UAT checklist trước demo và ghi owner cho mọi phản hồi \\
+Hoàng Lê Việt Hà & Sai lệch lịch--chi phí phải gắn với nguyên nhân như rework, redeploy hoặc dependency, không chỉ báo cáo chỉ số & Duy trì assumption/variance log và cập nhật CPM, EVM sau thay đổi được duyệt \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Bảng trên là nội dung chuẩn bị của Nhóm 2; biên bản chính thức chỉ được chốt sau khi người tham dự bổ sung quan sát, thống nhất hành động và xác nhận kết quả cuộc họp.
+
+\iffalse
+\subsection{Retrospective và giải tán nhóm}
+
+Closure cũng là thời điểm nhóm thực hiện retrospective theo hướng thực chất, tập trung vào:
+
+\begin{itemize}
+  \item điều gì nên tiếp tục duy trì;
+  \item điều gì nên dừng hoặc thay đổi;
+  \item quy trình nào tạo giá trị rõ rệt nhất;
+  \item rủi ro hoặc sai lệch nào lặp lại nhiều lần;
+  \item tài sản nào cần chuyển giao trước khi kết thúc hoàn toàn.
+\end{itemize}
+
+Sau retrospective, nhóm cần hoàn tất:
+
+\begin{itemize}
+  \item ghi nhận đóng góp;
+  \item bàn giao hoặc thu hồi quyền sở hữu tài khoản và tài nguyên;
+  \item archive tài liệu chính thức;
+  \item đóng các đầu việc mở hoặc gắn owner theo dõi sau closure nếu có.
+\end{itemize}
+
+\subsection{Thu hồi quyền và bảo vệ tài sản}
+
+Ở cuối dự án, tất cả quyền truy cập không còn cần thiết phải được rà soát. Điều này bao gồm:
+
+\begin{itemize}
+  \item tài khoản dịch vụ, API key, token hoặc secret;
+  \item quyền deploy hoặc quyền sửa cấu hình môi trường;
+  \item quyền chỉnh sửa tài liệu và dữ liệu đã archive;
+  \item owner của domain, hosting hoặc dịch vụ ngoài nếu có sử dụng.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Closure checklist cấp cao của dự án}
+\label{tab:closure-checklist}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.5cm}X}
+\toprule
+Nhóm việc & Nội dung cần hoàn tất \\
+\midrule
+Nghiệm thu & Đối chiếu RTM, test, UAT, biên bản chấp nhận \\
+Bàn giao & Source, tài liệu, runbook, report, known issues \\
+Hồ sơ quản trị & Archive baseline, log, lessons learned, final report \\
+Nhà cung cấp và tài khoản & Backup dữ liệu, thu hồi key, xác nhận owner cuối \\
+Closure tổ chức & Retrospective, ghi nhận đóng góp, giải tán nhóm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\fi
+\section{Hạn chế và hướng phát triển}
+
+\subsection{Hạn chế của dự án}
+
+Là một dự án học thuật trong thời gian ba tháng, FundChain còn các hạn chế sau:
+
+\begin{itemize}
+  \item phạm vi kiểm thử và review bảo mật chưa thể sâu như sản phẩm thương mại;
+  \item dữ liệu đánh giá tài chính và lợi ích vẫn mang tính giả định;
+  \item một số dịch vụ hạ tầng dùng ở mức thử nghiệm nên chưa phản ánh đầy đủ tình huống production;
+  \item phần closure thiên về giá trị quản trị và minh họa quy trình nhiều hơn là vận hành thực tế dài hạn.
+\end{itemize}
+
+\subsection{Hướng phát triển}
+
+Nếu dự án tiếp tục được mở rộng sau phạm vi môn học, các hướng phát triển khả thi gồm:
+
+\begin{itemize}
+  \item tăng cường review bảo mật độc lập;
+  \item hoàn thiện thêm dashboard quản trị và phân tích dữ liệu;
+  \item mở rộng cơ chế giám sát, logging và incident response;
+  \item chuẩn hóa quy trình release và môi trường gần production hơn;
+  \item bổ sung dữ liệu vận hành thực tế để đánh giá chính xác hơn hiệu quả đầu tư.
+\end{itemize}
+
+\section{Kết luận chương}
+
+Chương XII đã mô tả giai đoạn kết thúc dự án FundChain như một quy trình quản trị hoàn chỉnh gồm nghiệm thu, bàn giao, archive, retrospective, lessons learned và thu hồi quyền truy cập. Nội dung này cho thấy closure không phải bước phụ ở cuối báo cáo, mà là phần xác nhận rằng dự án đã được hoàn tất có kiểm soát và có trách nhiệm.
+
+Đối với FundChain, giá trị lớn nhất của closure nằm ở việc biến toàn bộ kết quả thực hiện thành deliverable có thể bàn giao và tri thức có thể tái sử dụng. Khi dự án được kết thúc đúng cách, nhóm không chỉ hoàn thành môn học mà còn để lại một bộ hồ sơ quản trị dự án hoàn chỉnh, nhất quán và có ý nghĩa thực tiễn.

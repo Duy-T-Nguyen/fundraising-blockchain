@@ -1,0 +1,380 @@
+\chapter{QUẢN LÝ CHI PHÍ}
+
+Chi phí là một trong ba baseline cốt lõi của quản trị dự án, cùng với phạm vi và tiến độ. Đối với FundChain, quản lý chi phí không chỉ là lập một bảng ngân sách tổng quát, mà còn là quá trình xác định đầy đủ nguồn lực cần dùng, lượng hóa nỗ lực thực hiện, dự phòng cho rủi ro và kiểm soát mức tiêu hao thực tế so với kế hoạch. Nếu nhóm chỉ tập trung vào hoàn thành chức năng mà không quản lý chi phí, dự án rất dễ rơi vào hai tình huống: hoặc đánh giá thấp nguồn lực cần thiết, hoặc phát sinh nhiều rework làm ngân sách quy đổi tăng cao vào cuối kỳ.
+
+Vì đây là tiểu luận môn Quản trị dự án, chương này tiếp cận chi phí theo góc nhìn quản trị, không nhằm mô tả chi tiêu thương mại thực tế. Nhiều dịch vụ trong môi trường học tập có thể dùng free tier và nhóm sinh viên không nhận lương thực trả; tuy nhiên, để quản lý dự án một cách bài bản, mọi nguồn lực vẫn cần được quy đổi thành chi phí cơ hội. Cách làm này giúp nhóm đánh giá tính khả thi, so sánh phương án đầu tư, kiểm soát hiệu quả sử dụng nguồn lực và bảo vệ Cost Baseline trong suốt vòng đời dự án.
+
+\iffalse
+\section{Tầm quan trọng của quản lý chi phí}
+
+\subsection{Vai trò của chi phí trong dự án}
+
+Quản lý chi phí giúp dự án trả lời bốn câu hỏi cơ bản: cần bao nhiêu ngân sách để hoàn thành, chi phí phát sinh ở những nhóm công việc nào, mức dự phòng cần thiết là bao nhiêu và làm thế nào để phát hiện sớm xu hướng vượt ngân sách. Nếu không trả lời rõ các câu hỏi này, tiến độ và phạm vi có thể vẫn được theo dõi, nhưng quyết định quản trị sẽ thiếu cơ sở định lượng.
+
+Trong FundChain, chi phí không chỉ bao gồm nỗ lực phát triển mà còn gắn với:
+
+\begin{itemize}
+  \item chi phí cơ hội của nhân sự tham gia quản trị, phân tích, phát triển, kiểm thử và bàn giao;
+  \item hạ tầng thử nghiệm như RPC, IPFS, cơ sở dữ liệu, queue, hosting và monitoring;
+  \item chi phí blockchain như deploy, verify contract và vận hành relayer;
+  \item chi phí kiểm thử, sửa lỗi, tài liệu, trình bày và dự phòng rủi ro.
+\end{itemize}
+
+Việc lượng hóa đầy đủ những nhóm chi phí này cho phép PM đánh giá đúng tổng mức đầu tư của dự án thay vì chỉ nhìn vào tiền mặt thực chi.
+
+\subsection{Mối liên hệ giữa chi phí với các baseline khác}
+
+Chi phí chịu tác động trực tiếp từ phạm vi và tiến độ. Khi phạm vi tăng, effort và hạ tầng có xu hướng tăng theo; khi tiến độ bị nén, chi phí phối hợp, rework và áp lực kiểm thử thường cao hơn. Ngược lại, việc cắt giảm chi phí thiếu kiểm soát cũng có thể gây ảnh hưởng ngược đến chất lượng và lịch biểu, ví dụ giảm thời gian kiểm thử hoặc bỏ bớt dự phòng cho deploy.
+
+Do đó, quản lý chi phí không thể tách rời:
+
+\begin{itemize}
+  \item Scope Baseline, vì cost estimate phải bám WBS và deliverable đã chốt;
+  \item Schedule Baseline, vì chi phí được phân bổ theo giai đoạn và milestone;
+  \item Quality Plan, vì chất lượng thấp làm tăng internal failure cost và external failure cost.
+\end{itemize}
+
+\subsection{Mục tiêu quản lý chi phí của dự án}
+
+Kế hoạch chi phí của FundChain đặt ra các mục tiêu sau:
+
+\begin{enumerate}
+  \item 100\% hạng mục chi phí chính có cơ sở tính, owner và nguồn dữ liệu rõ ràng.
+  \item Cost Baseline được thiết lập trước khi bắt đầu các work package phát triển lõi.
+  \item Mọi khoản dự phòng được tách bạch giữa contingency reserve và management reserve.
+  \item Chi phí được theo dõi theo tuần, sprint và milestone; không chờ đến cuối dự án mới tổng hợp.
+  \item Sai lệch chi phí vượt ngưỡng phải được phân tích nguyên nhân và có hành động quản trị tương ứng.
+  \item Dự án phân biệt rõ giữa ngân sách quy đổi phục vụ quản trị và dòng tiền thực chi ngoài đời thực.
+\end{enumerate}
+
+\section{Lập kế hoạch quản lý chi phí}
+
+\subsection{Phương pháp ước lượng chi phí}
+
+Dự án sử dụng kết hợp nhiều phương pháp để bảo đảm chi phí phản ánh sát thực tế hơn:
+
+\begin{itemize}
+  \item \textbf{Bottom-up estimating:} tổng hợp chi phí từ work package trong WBS lên cấp dự án.
+  \item \textbf{Parametric estimating:} dùng effort nhân công nhân với đơn giá quy đổi theo giờ.
+  \item \textbf{Vendor quotation:} áp dụng cho các dịch vụ hạ tầng, lưu trữ hoặc công cụ có bảng giá tương đối rõ.
+  \item \textbf{Three-point estimating:} dùng cho các khoản biến động như gas fee, relayer usage hoặc chi phí phát sinh do redeploy.
+\end{itemize}
+
+Việc kết hợp nhiều phương pháp giúp Cost Baseline vừa có cấu trúc quản trị rõ ràng, vừa tránh phụ thuộc vào một giả định đơn lẻ.
+
+\subsection{Đơn vị đo và giả định cơ sở}
+
+Các quy tắc lập chi phí của dự án được xác định như sau:
+
+\begin{itemize}
+  \item Đơn vị báo cáo chính là VNĐ để thuận tiện cho phân tích ngân sách trong môn học.
+  \item Các khoản blockchain có thể phát sinh theo ETH/Gwei được quy đổi về VNĐ tại ngày lập kế hoạch hoặc ngày giao dịch thực tế.
+  \item Đơn giá nhân công quy đổi học thuật được giả định là 50.000 VNĐ/giờ cho toàn bộ thành viên, nhằm tránh tạo chênh lệch lương giả giữa các sinh viên.
+  \item Tổng effort baseline là 960 giờ trong ba tháng; đây là chi phí cơ hội, không phải tiền lương thực nhận.
+  \item Dịch vụ free tier vẫn được ghi nhận chi phí quy đổi nếu việc thay thế bằng phương án trả phí là cần thiết để duy trì dự án ở bối cảnh khác.
+\end{itemize}
+
+\subsection{Mức chính xác và dự phòng}
+
+Ước lượng chi phí của dự án thuộc mức bán chi tiết, phù hợp với một tiểu luận quản trị dự án có sản phẩm minh họa thực tế. Do đó, nhóm không chỉ lập chi phí cơ sở mà còn phải đưa dự phòng vào kế hoạch.
+
+Hai lớp dự phòng được sử dụng:
+
+\begin{itemize}
+  \item \textbf{Contingency Reserve:} dành cho known risks như gas tăng, relayer phát sinh thêm batch, hết free tier, rework do defect hoặc cần redeploy một phần.
+  \item \textbf{Management Reserve:} dành cho unknown risks, không nằm trong Cost Baseline và chỉ được dùng khi có quyết định quản trị phù hợp.
+\end{itemize}
+
+\figureplaceholder{ch05-cost-estimation-approach.png}{Sơ đồ thể hiện đầu vào từ WBS, resource plan, schedule baseline, rate card và báo giá dịch vụ; đi qua các phương pháp bottom-up, parametric, vendor quotation và three-point estimating; đầu ra là cost estimate, contingency reserve, cost baseline và project budget.}{Phương pháp lập và tổng hợp ước lượng chi phí}{fig:cost-estimation-approach}
+
+\fi
+\section{Ước lượng chi phí của dự án}
+
+\subsection{Chi phí nhân sự quy đổi}
+
+Nhân sự là cấu phần lớn nhất trong tổng ngân sách của FundChain. Điều này phù hợp với đặc điểm của dự án phần mềm, nơi effort phân tích, thiết kế, phát triển, kiểm thử và tài liệu chiếm tỷ trọng cao hơn chi phí vật tư. Bảng~\ref{tab:labor-cost-estimate} trình bày ước lượng chi phí nhân sự quy đổi theo nhóm công việc.
+
+\begin{table}[H]
+\centering
+\caption{Ước lượng chi phí nhân sự quy đổi}
+\label{tab:labor-cost-estimate}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}r r X}
+\toprule
+Nhóm công việc & Giờ baseline & Thành tiền (VNĐ) & Ghi chú \\
+\midrule
+1.0 Khởi tạo và quản trị & 72 & 3.600.000 & Charter, governance, lập kế hoạch ban đầu \\
+2.0 Phân tích phạm vi & 96 & 4.800.000 & Yêu cầu, RTM, WBS, baseline \\
+3.0 Thiết kế & 96 & 4.800.000 & Kiến trúc, contract, API, UI, test approach \\
+4.0 Blockchain & 144 & 7.200.000 & Contract core, review, unit test, deploy support \\
+5.0 Backend/AI & 120 & 6.000.000 & API, dữ liệu, relayer, notification, sidecar \\
+6.0 Frontend & 120 & 6.000.000 & Wallet flow, dashboard, role-based UI \\
+7.0 Tích hợp & 96 & 4.800.000 & E2E, hardening, fix lỗi tương tác liên hệ thống \\
+8.0 Kiểm thử và chất lượng & 96 & 4.800.000 & Test plan, test execution, defect management \\
+9.0 Triển khai & 48 & 2.400.000 & Release, cấu hình, môi trường, smoke test \\
+10.0 Tài liệu và kết thúc & 72 & 3.600.000 & Báo cáo, demo, closure, handover \\
+\midrule
+\textbf{Tổng nhân công} & \textbf{960} & \textbf{48.000.000} & Đơn giá 50.000 VNĐ/giờ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Chi phí hạ tầng và dịch vụ}
+
+Ngoài nhân sự, dự án cần ngân sách cho các dịch vụ hỗ trợ triển khai thử nghiệm và trình diễn. Vì đây là dự án học thuật, phần lớn chi phí được giả định theo gói tối thiểu trong ba tháng, đủ để vận hành môi trường test và demo ổn định.
+
+\begin{table}[H]
+\centering
+\caption{Ước lượng chi phí hạ tầng và dịch vụ}
+\label{tab:infra-cost-estimate}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.5cm}p{4cm}r X}
+\toprule
+Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
+\midrule
+RPC provider & Gói thử nghiệm 3 tháng & 700.000 & Phục vụ đọc/ghi blockchain và relayer \\
+IPFS/Pinning & Gói lưu trữ thử nghiệm & 500.000 & Lưu metadata và bằng chứng \\
+MongoDB/Database & Gói dung lượng nhỏ & 500.000 & Dữ liệu ứng dụng và logging cơ bản \\
+Redis/Queue & Gói tối thiểu & 300.000 & Queue, cache, retry và batch processing \\
+Backend/AI hosting & VPS hoặc cloud test & 700.000 & Chạy API, worker, notification, sidecar \\
+Frontend hosting, domain, SSL & Gói demo/ngắn hạn & 300.000 & Phục vụ trình diễn và truy cập ổn định \\
+\midrule
+\textbf{Tổng hạ tầng và dịch vụ} &  & \textbf{3.000.000} &  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\iffalse
+\subsection{Chi phí blockchain và triển khai}
+
+Mặc dù môi trường testnet không phát sinh chi phí thương mại lớn như mainnet, dự án vẫn cần ngân sách quy đổi cho các hoạt động blockchain để phản ánh đúng mức tiêu hao tài nguyên và rủi ro biến động. Những khoản này gồm deploy các contract nền tảng, verify contract, chạy relayer test và dự phòng redeploy khi cần.
+
+\begin{table}[H]
+\centering
+\caption{Ước lượng chi phí blockchain và vận hành thử nghiệm}
+\label{tab:blockchain-cost-estimate}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.7cm}p{3.8cm}r X}
+\toprule
+Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
+\midrule
+Deploy và verify contract nền tảng & Ước lượng nhiều lần deploy test & 900.000 & Forwarder, Registry, Factory, implementation \\
+Relayer và batch transaction test & Quỹ biến động theo số lần chạy & 700.000 & Bao gồm signed intent và batch \\
+Quỹ dự phòng gas/redeploy & Three-point estimate & 400.000 & Dành cho known risks kỹ thuật \\
+\midrule
+\textbf{Tổng blockchain} &  & \textbf{2.000.000} &  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Lưu ý rằng anti-spam fee hoặc các dòng tiền nghiệp vụ trong sản phẩm không được tính là chi phí phát triển của dự án. Đây là điểm cần tách bạch để tránh nhầm giữa cost management và business flow của hệ thống.
+
+\subsection{Chi phí chất lượng, tài liệu và quản trị hỗ trợ}
+
+Chi phí chất lượng không chỉ nằm trong effort nhân công mà còn cần ngân sách cho hoạt động hỗ trợ như test tooling, môi trường demo, tài liệu, trình bày và dự phòng thiết bị. Bảng~\ref{tab:support-cost-estimate} tổng hợp các khoản này.
+
+\begin{table}[H]
+\centering
+\caption{Ước lượng chi phí hỗ trợ chất lượng và bàn giao}
+\label{tab:support-cost-estimate}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}p{4cm}r X}
+\toprule
+Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
+\midrule
+Kiểm thử, demo và trình bày & Thiết bị, dữ liệu, chuẩn bị demo & 800.000 & Bao gồm test bổ sung trước nghiệm thu \\
+Tài liệu, lưu trữ, in ấn & Hồ sơ báo cáo và minh chứng & 400.000 & Phục vụ bàn giao môn học \\
+Dự phòng phối hợp/thiết bị nhỏ & Họp, phụ trợ và contingency nhỏ & 300.000 & Hỗ trợ hoạt động closure \\
+\midrule
+\textbf{Tổng hỗ trợ} &  & \textbf{1.500.000} &  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\fi
+\section{Xác định ngân sách và Cost Baseline}
+
+\subsection{Ngân sách tổng hợp của dự án}
+
+Sau khi tổng hợp các nhóm ước lượng, ngân sách của FundChain được xác định như Bảng~\ref{tab:project-budget}. Đây là ngân sách giả định phục vụ quản trị dự án trong bối cảnh học thuật, nhưng vẫn đủ cấu trúc để theo dõi variance và đánh giá hiệu quả sử dụng nguồn lực.
+
+\begin{table}[H]
+\centering
+\caption{Ngân sách tổng hợp của dự án}
+\label{tab:project-budget}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{5.2cm}p{4.2cm}r}
+\toprule
+Nhóm chi phí & Cơ sở tính & Thành tiền (VNĐ) \\
+\midrule
+Nhân công quy đổi & 960 giờ $\times$ 50.000 & 48.000.000 \\
+Hạ tầng, lưu trữ và hosting & Gói thử nghiệm 3 tháng & 3.000.000 \\
+Blockchain và relayer test & Deploy, verify và quỹ gas dự phòng & 2.000.000 \\
+Chất lượng, tài liệu và demo & Hỗ trợ bàn giao và nghiệm thu & 1.500.000 \\
+\midrule
+\textbf{Ước lượng cơ sở} &  & \textbf{54.500.000} \\
+Contingency Reserve & Xấp xỉ 10\% chi phí cơ sở & 5.500.000 \\
+\midrule
+\textbf{Cost Baseline} &  & \textbf{60.000.000} \\
+Management Reserve & Xấp xỉ 4.000.000 cho unknown risks & 4.000.000 \\
+\midrule
+\textbf{Project Budget} &  & \textbf{64.000.000} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Trong bảng trên:
+
+\begin{itemize}
+  \item \textbf{Ước lượng cơ sở} là tổng chi phí trực tiếp theo kế hoạch hiện tại;
+  \item \textbf{Cost Baseline} bao gồm ước lượng cơ sở cộng contingency reserve và là chuẩn để đo variance;
+  \item \textbf{Project Budget} bao gồm thêm management reserve và phản ánh giới hạn ngân sách tối đa của dự án.
+\end{itemize}
+
+Contingency reserve thuộc Cost Baseline và được kiểm soát cho các rủi ro đã nhận diện; management reserve nằm ngoài Cost Baseline nhưng thuộc Project Budget. Việc sử dụng management reserve cần sponsor/cấp quản trị phê duyệt và sau đó cập nhật Cost Baseline thông qua change control; PM không tự ý dùng khoản này chỉ để che variance.
+
+\subsection{Phân bổ Cost Baseline theo thời gian}
+
+Để phục vụ theo dõi theo tiến độ, Cost Baseline được phân bổ theo tháng tương ứng với cấu trúc lịch biểu:
+
+\begin{table}[H]
+\centering
+\caption{Phân bổ Cost Baseline theo thời gian}
+\label{tab:cost-baseline-phasing}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3cm}r X}
+\toprule
+Giai đoạn thời gian & Giá trị (VNĐ) & Cơ sở phân bổ \\
+\midrule
+Tháng 4/2026 & 17.000.000 & Khởi tạo, phạm vi, thiết kế và phần đầu của phát triển lõi \\
+Tháng 5/2026 & 28.000.000 & Tập trung effort lớn nhất cho blockchain, backend, frontend và kiểm thử sớm \\
+Tháng 6/2026 & 15.000.000 & Tích hợp, UAT, tài liệu, closure và phần còn lại của reserve trong baseline \\
+\midrule
+\textbf{Tổng Cost Baseline} & \textbf{60.000.000} &  \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Phân bổ này cho thấy tháng 5 là giai đoạn tiêu tốn nguồn lực lớn nhất, phù hợp với Schedule Baseline khi A4, A5 và A6 chồng lấn có kiểm soát. Nhờ đó, PM có thể tập trung theo dõi variance chặt hơn ở giai đoạn giữa dự án thay vì phân bố sự chú ý đồng đều.
+
+\figureplaceholder{ch05-cost-baseline-scurve.png}{Biểu đồ S-curve thể hiện lũy kế Cost Baseline theo ba tháng: tháng 4 đạt 17 triệu VNĐ, tháng 5 tăng lên 45 triệu VNĐ lũy kế và tháng 6 kết thúc ở 60 triệu VNĐ. Có thể bổ sung đường Actual Cost giả định để minh họa variance.}{Đường cong phân bổ Cost Baseline của dự án}{fig:cost-baseline-scurve}
+
+\section{Kiểm soát chi phí}
+
+\subsection{Nguyên tắc kiểm soát}
+
+Kiểm soát chi phí được thực hiện theo các nguyên tắc sau:
+
+\begin{itemize}
+  \item mọi hạng mục chi phí phải có owner chịu trách nhiệm cập nhật;
+  \item dữ liệu chi phí phải truy được nguồn: effort log, báo giá, hóa đơn, usage log hoặc báo cáo kỹ thuật;
+  \item Cost Baseline chỉ được thay đổi thông qua change control, không tự ý sửa để ``làm đẹp'' variance;
+  \item báo cáo chi phí phải đi cùng giải thích nguyên nhân và hành động khắc phục nếu có lệch chuẩn.
+\end{itemize}
+
+\subsection{Earned Value Management ở cấp dự án}
+
+Dự án dùng EVM tại data date cuối tháng 5. Vì chưa có timesheet và chứng từ đầy đủ, bộ số liệu dưới đây là \textbf{kịch bản kiểm soát mô phỏng}, không phải kết quả thực tế. PV lấy từ Cost Baseline; EV chỉ ghi nhận work package có bằng chứng hoàn thành; AC là effort và chi phí được quy đổi trong kịch bản.
+
+Để EV không trở thành tỷ lệ hoàn thành chủ quan, mỗi work package phải được gán một quy tắc đo trước khi thực hiện, chẳng hạn 0/100 cho deliverable ngắn, 50/50 cho công việc có mốc giữa rõ ràng, hoặc weighted milestone cho gói dài. EV chỉ được ghi nhận khi có bằng chứng đáp ứng Definition of Done/acceptance criteria; không lấy phần trăm do owner tự ước đoán làm EV. Công thức EAC cũng phải nêu giả định, ví dụ $EAC = BAC/CPI$ khi hiệu suất chi phí hiện tại được dự báo tiếp diễn.
+
+\begin{table}[H]
+\centering
+\caption{Kịch bản EVM tại data date 31/05/2026}
+\label{tab:evm-context-scenario}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}p{2.4cm}X}
+\toprule
+Chỉ số & Giá trị mô phỏng & Diễn giải theo bối cảnh FundChain \\
+\midrule
+PV & 45 triệu VNĐ & Giá trị công việc theo kế hoạch lũy kế đến hết tháng 5 \\
+EV & 42 triệu VNĐ & Ba triệu giá trị chưa được ghi nhận do integration gate chưa đạt \\
+AC & 44 triệu VNĐ & Effort tăng vì sửa lỗi contract, redeploy và đồng bộ lại ABI/address \\
+SV = EV--PV & $-3$ triệu VNĐ & Chậm tiến độ theo giá trị, không có nghĩa dự án đã chi thiếu ba triệu \\
+CV = EV--AC & $-2$ triệu VNĐ & Chi phí quy đổi cao hơn giá trị hoàn thành \\
+SPI; CPI & 0,933; 0,955 & Cảnh báo tiến độ; hiệu quả chi phí ở sát ngưỡng vàng \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Nguyên nhân giả định là một lỗi quyền truy cập trong smart contract buộc nhóm sửa test, redeploy Sepolia và cập nhật ABI cho backend/frontend. Vì vậy, hành động không phải ``ép tăng phần trăm hoàn thành'', mà là đóng lỗi contract, khóa interface, chạy regression, ưu tiên activity đường găng và chỉ ghi EV sau khi integration gate đạt. Khi có actual data, nhóm thay toàn bộ giá trị mô phỏng, ghi rõ nguồn AC và phân tách variance do rework, scope change hoặc sai ước lượng.
+
+\subsection{Tần suất báo cáo và ngưỡng kiểm soát}
+
+Chi phí được theo dõi ở ba cấp:
+
+\begin{itemize}
+  \item \textbf{Hằng tuần:} cập nhật effort quy đổi, usage hạ tầng và sự kiện chi phí bất thường;
+  \item \textbf{Cuối sprint:} tính EV, AC, variance và so sánh với baseline;
+  \item \textbf{Tại milestone:} đánh giá lại EAC, nhu cầu dùng reserve và nguy cơ vượt Project Budget.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Ngưỡng kiểm soát chi phí}
+\label{tab:cost-thresholds}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.6cm}p{4.8cm}X}
+\toprule
+Mức & Điều kiện & Hành động quản trị \\
+\midrule
+Xanh & CPI từ 0,95 trở lên và CV trong phạm vi kiểm soát & Theo dõi bình thường, cập nhật báo cáo định kỳ \\
+Vàng & CPI dưới 0,95 hoặc CV âm quá 5\% ngân sách kỳ & PM phân tích nguyên nhân, điều chỉnh nội bộ và giám sát sát hơn \\
+Đỏ & CPI dưới 0,90, CV âm quá 10\% Cost Baseline hoặc EAC vượt Project Budget & Escalation, xem xét Change Request hoặc kích hoạt reserve phù hợp \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Kiểm soát gas và chi phí cloud}
+
+Hai nhóm chi phí biến động nhất của FundChain là gas và hạ tầng cloud. Dù giá trị tuyệt đối không lớn bằng nhân công, chúng có tính không chắc chắn cao hơn và dễ bị bỏ sót nếu không theo dõi thường xuyên.
+
+Biện pháp kiểm soát gồm:
+
+\begin{itemize}
+  \item theo dõi base fee, số lần deploy và mức sử dụng relayer theo từng giai đoạn;
+  \item giới hạn batch test không cần thiết và tối ưu lịch chạy transaction;
+  \item đặt cảnh báo dung lượng lưu trữ, log, database và queue;
+  \item tắt hoặc thu hẹp môi trường thử nghiệm khi không sử dụng;
+  \item đánh giá cost impact trước khi redeploy hoặc thay đổi kiến trúc hạ tầng.
+\end{itemize}
+
+\iffalse
+\section{Kế hoạch quản lý chi phí của dự án}
+
+\subsection{Tiêu chí kiểm soát}
+
+Để bảo đảm kế hoạch chi phí khả thi và dễ kiểm toán, dự án sử dụng các tiêu chí sau:
+
+\begin{enumerate}
+  \item Mọi chi phí đều phải gắn với WBS hoặc hoạt động quản trị được xác định rõ.
+  \item Mọi cập nhật chi phí phải có timestamp, owner và ghi chú nguyên nhân nếu có chênh lệch.
+  \item Không sử dụng management reserve để che variance của contingency reserve.
+  \item Không thay đổi baseline chỉ vì thực tế đã vượt kế hoạch; mọi điều chỉnh phải qua change control.
+  \item Khi báo cáo, luôn phân biệt giữa planned cost, actual cost quy đổi và cash outflow thực tế.
+\end{enumerate}
+
+\subsection{Rủi ro chi phí chính}
+
+Các rủi ro chi phí quan trọng của dự án gồm:
+
+\begin{itemize}
+  \item gas tăng hoặc cần redeploy nhiều lần hơn dự kiến;
+  \item hạ tầng vượt free tier do lưu trữ, log hoặc traffic test cao hơn kế hoạch;
+  \item defect nghiêm trọng làm tăng effort sửa lỗi và regression;
+  \item scope creep hoặc thay đổi yêu cầu muộn làm tăng chi phí phân tích, phát triển và kiểm thử;
+  \item phát sinh nhu cầu review bảo mật hoặc công cụ ngoài kế hoạch.
+\end{itemize}
+
+Những rủi ro này liên kết chặt với Risk Register và phải được theo dõi song song với variance thực tế.
+
+\subsection{Giá trị mang lại từ quản lý chi phí}
+
+Quản lý chi phí bài bản mang lại ba giá trị chính cho dự án:
+
+\begin{enumerate}
+  \item giúp nhóm chứng minh tính khả thi của phương án đầu tư đã chọn ở Chương III;
+  \item hỗ trợ cân bằng giữa tiến độ, chất lượng và nguồn lực trong quá trình ra quyết định;
+  \item tạo cơ sở định lượng để đánh giá hiệu quả sử dụng effort, reserve và hạ tầng khi tổng kết dự án.
+\end{enumerate}
+
+Ở mức rộng hơn, việc nhận diện đầy đủ chi phí của một nền tảng gây dựng quỹ bằng blockchain còn giúp nhóm hiểu rằng tính minh bạch của công nghệ không tự động đồng nghĩa với chi phí thấp. Giá trị thật nằm ở chỗ dự án biết đầu tư đúng chỗ và kiểm soát tốt phần biến động.
+
+\fi
+\section{Kết luận chương}
+
+Chương V đã xây dựng kế hoạch quản lý chi phí cho dự án FundChain theo đúng định hướng của môn Quản trị dự án. Nội dung chương đi từ phương pháp ước lượng, giả định đơn giá, cấu trúc ngân sách, Cost Baseline, dự phòng, phân bổ theo thời gian đến cơ chế kiểm soát bằng Earned Value Management và threshold quản trị. Nhờ đó, chi phí của dự án không còn là một con số tổng hợp cuối kỳ mà trở thành một baseline có thể theo dõi, phân tích và điều chỉnh.
+
+Đối với FundChain, quản lý chi phí có ý nghĩa đặc biệt vì dự án vừa có phần mềm, vừa có hạ tầng và yếu tố blockchain với mức biến động riêng. Khi chi phí được quản lý đúng, dự án có cơ sở tốt hơn để bảo vệ tiến độ, duy trì chất lượng và đưa ra các quyết định tích hợp hợp lý trong các chương tiếp theo.

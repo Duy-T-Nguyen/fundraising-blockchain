@@ -1,0 +1,118 @@
+\chapter*{MỞ ĐẦU}
+\addcontentsline{toc}{chapter}{MỞ ĐẦU}
+
+\section*{1. Lý do chọn đề tài}
+\addcontentsline{toc}{section}{1. Lý do chọn đề tài}
+
+Trong những năm gần đây, hoạt động gây quỹ từ thiện trên môi trường số ngày càng phổ biến nhờ khả năng tiếp cận cộng đồng nhanh, phạm vi lan tỏa rộng và chi phí tổ chức thấp hơn so với nhiều hình thức truyền thống. Chỉ trong một thời gian ngắn, một chiến dịch có thể tiếp nhận đóng góp từ nhiều cá nhân ở các địa điểm khác nhau. Tuy nhiên, sự thuận tiện đó đi kèm một vấn đề cốt lõi: người quyên góp thường chỉ nhìn thấy số tiền đã chuyển đi, nhưng khó theo dõi đầy đủ số tiền được giữ ở đâu, được chi cho bên nào, dựa trên đề nghị và chứng từ nào, cũng như phần tiền chưa sử dụng sẽ được xử lý ra sao.
+
+Trong mô hình gây quỹ tập trung, dữ liệu chiến dịch, danh sách giao dịch và quyền phê duyệt chi tiêu thường nằm trong cùng một hệ thống do một tổ chức kiểm soát. Người dùng phải tin tưởng rằng đơn vị vận hành công bố dữ liệu đầy đủ, không chỉnh sửa lịch sử và không giải ngân sai mục đích. Khi thông tin được cập nhật chậm, chứng từ bị thiếu hoặc quyền quyết định tập trung vào một bên, niềm tin của cộng đồng có thể suy giảm dù bản thân chiến dịch có mục tiêu tích cực. Vì vậy, bài toán của dự án không chỉ là xây dựng một trang web nhận quyên góp, mà còn là thiết kế một cơ chế giúp các bên có thể kiểm chứng dòng tiền và trách nhiệm của người quản lý.
+
+Blockchain được chọn như một phương án công nghệ để hỗ trợ khả năng truy vết và ràng buộc việc giải ngân, chứ không phải đối tượng duy nhất của tiểu luận. Công nghệ này làm dự án phát sinh nhiều vấn đề quản trị đáng chú ý: yêu cầu của nhiều nhóm người dùng có thể xung đột; thay đổi smart contract có chi phí sửa chữa cao; phí giao dịch biến động; dữ liệu được phân bố trên nhiều hệ thống; chất lượng và bảo mật ảnh hưởng trực tiếp tới tài sản. Những đặc điểm đó đòi hỏi phạm vi phải được xác định rõ, thay đổi phải được phê duyệt, rủi ro phải có owner và sản phẩm phải vượt qua các quality gate trước khi bàn giao.
+
+Đối với môn học Quản trị dự án, giá trị trọng tâm của đề tài nằm ở việc lập và kiểm soát một kế hoạch hoàn chỉnh cho sản phẩm phần mềm có độ phức tạp cao. Trong thời gian ba tháng, nhóm phải cân bằng phạm vi, tiến độ, chi phí, chất lượng, nguồn lực và rủi ro, đồng thời quản lý truyền thông, stakeholder và mua sắm theo định hướng PMBOK \cite{pmbok2021}. Báo cáo dùng các nguyên tắc và miền hiệu suất của PMBOK phiên bản 7 làm định hướng, đồng thời dùng các nhóm quy trình và artifact dự đoán quen thuộc (baseline, WBS, EVM, change control) để cụ thể hóa kế hoạch; hai lớp này bổ sung cho nhau chứ không được hiểu là PMBOK 7 quy định một chuỗi quy trình bắt buộc. Blockchain, IPFS và relayer được xem là các thành phần trong Product Scope; chúng tạo ra work package, dependency, chi phí và rủi ro cụ thể cần được quản trị.
+
+Từ những lý do trên, Nhóm 2 lựa chọn đề tài ``Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain''. Kết quả hướng tới không chỉ là một sản phẩm thử nghiệm, mà còn là hệ thống baseline, kế hoạch thành phần, biểu mẫu kiểm soát và bằng chứng nghiệm thu giúp trả lời bốn câu hỏi quản trị: dự án phải bàn giao gì, hoàn thành khi nào, sử dụng bao nhiêu nguồn lực và dựa trên tiêu chí nào để được chấp nhận.
+
+\section*{2. Đối tượng nghiên cứu}
+\addcontentsline{toc}{section}{2. Đối tượng nghiên cứu}
+
+Đối tượng nghiên cứu trung tâm là công tác quản trị dự án phát triển hệ thống gây dựng quỹ từ thiện bằng Blockchain. Tiểu luận nghiên cứu cách chuyển nhu cầu nghiệp vụ thành phạm vi và deliverable; cách phân rã công việc, ước lượng lịch biểu và chi phí; cách tổ chức nguồn lực, truyền thông, chất lượng, rủi ro, mua sắm và thay đổi trong suốt vòng đời dự án.
+
+Quy trình nghiệp vụ và kiến trúc phần mềm được nghiên cứu ở mức cần thiết để tạo cơ sở cho kế hoạch quản trị, gồm:
+
+\begin{itemize}
+  \item Cơ chế định danh người dùng bằng địa chỉ ví và phân quyền giữa Platform Admin, Campaign Manager, Donor, Supplier và Verifier.
+  \item Các luồng tạo và xét duyệt chiến dịch, quyên góp, yêu cầu chi, xác minh, giải ngân và hoàn tiền.
+  \item Các thành phần frontend, backend, smart contract, lưu trữ và hạ tầng cần được đưa vào WBS.
+  \item Các ràng buộc kỹ thuật ảnh hưởng đến ước lượng, chất lượng, mua sắm và rủi ro dự án.
+\end{itemize}
+
+Về quản trị, đề tài nghiên cứu cách xây dựng Project Charter, Scope Baseline, WBS, lịch biểu, Cost Baseline, kế hoạch chất lượng, RACI, ma trận truyền thông, Risk Register, kế hoạch mua sắm và quy trình kiểm soát thay đổi. Kết quả nghiên cứu không chỉ là mã nguồn chạy được mà còn là tập hợp tài liệu giúp giải thích vì sao dự án được lựa chọn, công việc được tổ chức thế nào và dựa vào tiêu chí nào để nghiệm thu.
+
+\section*{3. Phạm vi nghiên cứu}
+\addcontentsline{toc}{section}{3. Phạm vi nghiên cứu}
+
+\subsection*{3.1. Phạm vi chức năng}
+\addcontentsline{toc}{subsection}{3.1. Phạm vi chức năng}
+
+Hệ thống hỗ trợ người dùng kết nối ví MetaMask, duyệt danh sách chiến dịch, xem thông tin tổng hợp, dữ liệu IPFS, lịch sử quyên góp và yêu cầu chi tiêu. Campaign Manager có thể gửi đề xuất tạo chiến dịch kèm metadata CID và phí chống spam; sau khi được admin phê duyệt, manager quản lý chiến dịch, tạo yêu cầu chi một lần hoặc nhiều giai đoạn, lựa chọn Supplier và Verifier, hủy yêu cầu hợp lệ, hoàn tất giải ngân và dừng chiến dịch.
+
+Donor có thể quyên góp ETH nếu đáp ứng mức tối thiểu, theo dõi hoạt động của mình, biểu quyết theo trọng số đóng góp, tham gia validator pool khi được chọn và yêu cầu hoàn tiền theo tỷ lệ sau khi chiến dịch dừng. Platform Admin thực hiện xét duyệt đề xuất chiến dịch, điều chỉnh phí chống spam, quản lý Supplier và theo dõi trạng thái nền tảng. Supplier nộp bằng chứng cho yêu cầu hoặc milestone; Verifier kiểm tra CID và xác minh hoặc từ chối trên blockchain.
+
+Backend cung cấp API upload tệp và JSON metadata lên IPFS, nhận và xử lý intent của relayer, theo dõi gas, kết nối AI sidecar, lắng nghe blockchain event và phát notification. Frontend cung cấp các trang công khai cùng dashboard dành cho Creator, Admin, Supplier và Verifier. Trạng thái tài chính cốt lõi được đọc từ smart contract; MongoDB và Redis chỉ đóng vai trò hỗ trợ truy vấn, hàng đợi và thông báo.
+
+\subsection*{3.2. Phạm vi kỹ thuật}
+\addcontentsline{toc}{subsection}{3.2. Phạm vi kỹ thuật}
+
+Về mặt kỹ thuật, phạm vi gồm một frontend web, backend dịch vụ, smart contract, AI sidecar và hạ tầng dữ liệu hỗ trợ. Công nghệ chính là React/TypeScript, NestJS, Solidity/Hardhat, Python, MongoDB, Redis và IPFS. Môi trường blockchain mục tiêu là Ethereum Sepolia Testnet. Danh sách thư viện, contract và cấu hình triển khai chi tiết được quản lý trong hồ sơ kỹ thuật, không phải trọng tâm của phần mở đầu.
+
+Dữ liệu được phân lớp theo trách nhiệm. Blockchain lưu số dư, contribution, trạng thái chiến dịch, yêu cầu, vote, verification và payment. IPFS lưu nội dung metadata và bằng chứng. MongoDB lưu notification, trạng thái đồng bộ, lịch sử gas và thống kê relayer. Redis hỗ trợ queue và pub/sub. Việc phân chia này nhằm cân bằng tính minh bạch, chi phí gas và khả năng truy vấn của giao diện.
+
+\subsection*{3.3. Phạm vi quản trị}
+\addcontentsline{toc}{subsection}{3.3. Phạm vi quản trị}
+
+Báo cáo lập kế hoạch cho giai đoạn từ ngày 01/04/2026 đến ngày 30/06/2026, gồm sáu sprint hai tuần và một khoảng kết thúc/dự phòng. Ngân sách giả định của dự án là 64.000.000~VNĐ, bao gồm chi phí cơ hội nhân công, hạ tầng thử nghiệm, gas, tài liệu, contingency reserve và management reserve. Các con số này được dùng để thực hành lập baseline, EVM và NPV, không phải chứng từ chi tiêu thực tế.
+
+Phạm vi quản trị bao gồm quản lý tích hợp, phạm vi, lịch biểu, chi phí, chất lượng, nguồn lực, truyền thông, rủi ro và mua sắm. Stakeholder engagement được tích hợp vào Chương I, kế hoạch truyền thông, RACI, quy trình xác nhận phạm vi và closure; ma trận thể hiện mức tham gia hiện tại/mong muốn, owner và hành động tương tác. Ba thành viên Nhóm 2 được ánh xạ trực tiếp vào RACI và Resource Calendar của 240 giờ quản trị học thuật; đội kỹ thuật sáu người ẩn danh tiếp tục được quản lý theo vai trò chức năng.
+
+\subsection*{3.4. Ngoài phạm vi}
+\addcontentsline{toc}{subsection}{3.4. Ngoài phạm vi}
+
+Đề tài không triển khai Ethereum Mainnet, không xử lý tiền pháp định, không xây dựng KYC pháp lý hoàn chỉnh và không có cơ chế đăng nhập bằng tên người dùng/mật khẩu. NFT, token quản trị, DAO đầy đủ, mobile native và sàn giao dịch tài sản số không thuộc phạm vi. Dự án cũng không tuyên bố có AI phát hiện gian lận, formal verification hoặc audit bảo mật độc lập nếu chưa có bằng chứng thực hiện.
+
+Hệ thống không thể bảo đảm một chứng từ ngoài đời là thật chỉ vì tệp được lưu trên IPFS. Blockchain bảo vệ quy trình và lịch sử quyết định, nhưng chất lượng xác minh vẫn phụ thuộc vào Verifier và quy trình vận hành. Sepolia chỉ là môi trường thử nghiệm; mọi đánh giá triển khai Mainnet phải được thực hiện lại về bảo mật, gas, pháp lý và khả năng vận hành.
+
+\section*{4. Phương pháp nghiên cứu}
+\addcontentsline{toc}{section}{4. Phương pháp nghiên cứu}
+
+Đề tài sử dụng kết hợp các phương pháp sau:
+
+\begin{enumerate}
+  \item \textbf{Nghiên cứu tài liệu:} ưu tiên PMBOK và giáo trình quản trị dự án; tài liệu kỹ thuật được dùng để xác định work package, dependency, tiêu chí chất lượng và rủi ro.
+  \item \textbf{Phân tích hiện trạng mã nguồn:} đọc cấu trúc monorepo, smart contract, test case, API, frontend route, hook và cấu hình triển khai để bảo đảm báo cáo phản ánh đúng sản phẩm.
+  \item \textbf{Phân tích yêu cầu và stakeholder:} chuyển nhu cầu của từng vai trò thành yêu cầu chức năng, yêu cầu phi chức năng và acceptance criteria có thể kiểm thử.
+  \item \textbf{Mô hình hóa:} sử dụng WBS, network diagram, Gantt, RACI, ma trận truyền thông, risk matrix và các sơ đồ sản phẩm cần thiết.
+  \item \textbf{Phát triển lặp:} tổ chức kế hoạch theo sáu sprint, thực hiện review và cập nhật rủi ro sau mỗi chu kỳ.
+  \item \textbf{Kiểm thử và đối chiếu:} dùng Hardhat/Chai cho smart contract, Jest cho backend, build/lint cho frontend và kịch bản UAT cho luồng end-to-end.
+  \item \textbf{Phân tích định lượng:} áp dụng Weighted Scoring Model, PERT, Critical Path, EVM, ma trận xác suất--tác động, EMV và NPV trên các giả định đã công bố.
+\end{enumerate}
+
+Nguyên tắc xuyên suốt là phân biệt rõ dữ kiện lấy từ mã nguồn với số liệu giả định quản trị. Mọi tuyên bố về chức năng phải có thể truy vết tới module hoặc test tương ứng; mọi số liệu lịch biểu, chi phí và lợi ích tài chính phải ghi rõ cơ sở ước lượng.
+
+\section*{5. Tổng quan nội dung báo cáo}
+\iffalse
+\addcontentsline{toc}{section}{5. Tổng quan nội dung báo cáo}
+
+Ngoài phần mở đầu, kết luận, tài liệu tham khảo và phụ lục, báo cáo gồm mười hai chương. Chương I giới thiệu dự án, mục tiêu, sản phẩm, stakeholder và lợi ích mong đợi. Chương II xây dựng kế hoạch quản lý phạm vi, hệ thống yêu cầu, tiêu chuẩn nghiệm thu, WBS và kiểm soát thay đổi phạm vi. Chương III so sánh ba phương án đầu tư gồm Web2 tập trung, DApp người dùng tự trả gas và phương án blockchain kết hợp IPFS, relayer cùng AI tối ưu gas.
+
+Chương IV xây dựng Schedule Baseline ba tháng, quan hệ phụ thuộc, milestone, critical path và cơ chế kiểm soát tiến độ. Chương V ước lượng chi phí nhân công, hạ tầng, gas và dự phòng, sau đó thiết lập Cost Baseline, EVM và phân tích tài chính. Chương VI trình bày kế hoạch chất lượng, chiến lược kiểm thử, metric, quality gate và quản lý lỗi.
+
+Chương VII xây dựng cơ cấu nguồn lực, mô tả vai trò, RACI và phương án phát triển nhóm. Chương VIII quy định ma trận truyền thông, báo cáo trạng thái và escalation. Chương IX nhận diện, phân tích và lập phản hồi cho rủi ro quản trị, kỹ thuật, bảo mật và vận hành. Chương X lập kế hoạch mua sắm dịch vụ RPC, IPFS, cơ sở dữ liệu, Redis, hosting và audit khi phù hợp.
+
+Chương XI hợp nhất các kế hoạch thành Project Management Plan, mô tả quản lý tri thức, configuration và Integrated Change Control. Chương XII trình bày nghiệm thu, bàn giao, đánh giá dự án, lessons learned và kết thúc dự án.
+
+\section*{6. Ý nghĩa lý luận và thực tiễn}
+\addcontentsline{toc}{section}{6. Ý nghĩa lý luận và thực tiễn}
+
+\subsection*{6.1. Ý nghĩa lý luận}
+\addcontentsline{toc}{subsection}{6.1. Ý nghĩa lý luận}
+
+Đề tài minh họa cách áp dụng kiến thức quản trị dự án vào một DApp có nhiều lớp công nghệ và nhiều nguồn rủi ro. Khác với phần mềm web thông thường, thay đổi ở smart contract có thể ảnh hưởng tới tài sản, khả năng tương thích và toàn bộ chuỗi tích hợp. Vì vậy, quản lý phạm vi, chất lượng và thay đổi không thể tách rời quản lý bảo mật và cấu hình triển khai.
+
+Báo cáo đồng thời làm rõ cách đưa các yếu tố đặc thù của blockchain vào công cụ quản trị truyền thống: gas được xem như chi phí vận hành biến động; contract address và ABI là configuration item; transaction hash, event và CID là bằng chứng nghiệm thu; rủi ro smart contract được phản ánh trong Risk Register và quality gate.
+
+\subsection*{6.2. Ý nghĩa thực tiễn}
+\addcontentsline{toc}{subsection}{6.2. Ý nghĩa thực tiễn}
+
+Về thực tiễn, sản phẩm tạo ra một quy trình gây quỹ có khả năng truy vết từ lúc nhận tiền đến lúc chi tiền. Việc khóa ngân sách khi tạo yêu cầu giúp giảm nguy cơ cam kết vượt số dư. Supplier Registry hạn chế việc chuyển tiền tới địa chỉ tùy ý. Biểu quyết, proof CID, verification và hard reject tạo thêm các lớp kiểm soát trước khi giải ngân. Khi chiến dịch dừng, cơ chế hoàn tiền theo tỷ lệ bảo vệ phần quyền lợi còn lại của người quyên góp.
+
+Backend IPFS giúp giảm lượng dữ liệu phải lưu on-chain; relayer và batching hỗ trợ giảm rào cản gas; event listener và notification giúp người dùng theo dõi nhiệm vụ kịp thời. Quan trọng hơn, bộ tài liệu quản trị giúp nhóm có cơ sở phân công, đo tiến độ, kiểm soát thay đổi, đánh giá rủi ro và bàn giao sản phẩm thay vì chỉ tập trung vào việc hoàn thành mã nguồn.
+
+Kết quả của đề tài có thể được dùng làm nền tảng thử nghiệm hoặc tài liệu tham khảo cho các dự án gây quỹ minh bạch. Tuy nhiên, để vận hành thực tế với tiền thật, sản phẩm cần audit bảo mật độc lập, đánh giá pháp lý, kiểm thử tải, kế hoạch khôi phục và cơ chế xác minh bằng chứng ngoài đời chặt chẽ hơn.
+\fi
+
+\section*{5. Cấu trúc và giá trị của báo cáo}
+\addcontentsline{toc}{section}{5. Cấu trúc và giá trị của báo cáo}
+
+Báo cáo xác định dự án và phương án đầu tư, thiết lập các baseline phạm vi--tiến độ--chi phí, sau đó xây dựng kế hoạch chất lượng, nguồn lực, truyền thông, rủi ro, mua sắm, tích hợp và kết thúc. Giá trị chính là bộ artifact có thể truy vết gồm WBS, CPM, EVM, RACI, Risk Register và hồ sơ nghiệm thu; kết quả Sepolia chỉ chứng minh mô hình trong phạm vi học thuật.

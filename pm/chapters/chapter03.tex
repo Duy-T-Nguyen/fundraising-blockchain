@@ -1,0 +1,284 @@
+\chapter{LỰA CHỌN PHƯƠNG ÁN ĐẦU TƯ}
+
+Việc lựa chọn phương án đầu tư không chỉ là quyết định về công nghệ mà còn là quyết định quản trị dự án ở giai đoạn đầu. Đối với đề tài FundChain, lựa chọn ban đầu ảnh hưởng trực tiếp tới phạm vi, lịch biểu, chi phí, cấu trúc rủi ro, nhu cầu nguồn lực và tiêu chí chất lượng của toàn bộ dự án. Nếu chọn phương án quá đơn giản, sản phẩm khó đạt mục tiêu minh bạch và kiểm soát giải ngân; nếu chọn phương án quá phức tạp, dự án ba tháng dễ vượt quá khả năng triển khai và kiểm soát của nhóm.
+
+Vì vậy, chương này trình bày quá trình nhận diện, so sánh và lựa chọn phương án đầu tư theo góc nhìn quản trị dự án. Trọng tâm không phải chứng minh một công nghệ tốt hơn công nghệ khác trong mọi trường hợp, mà là xác định phương án phù hợp nhất với mục tiêu của đề tài, điều kiện thời gian ba tháng, đặc điểm sản phẩm hiện có và yêu cầu nghiệm thu môn học.
+
+\section{Tiêu chí và phương pháp đánh giá}
+
+\subsection{Mục tiêu của việc đánh giá phương án}
+
+Đánh giá phương án nhằm trả lời bốn câu hỏi quản trị cơ bản:
+
+\begin{enumerate}
+  \item Phương án nào phù hợp nhất với mục tiêu minh bạch và kiểm soát dòng tiền của dự án?
+  \item Phương án nào khả thi nhất trong giới hạn thời gian, chi phí và nguồn lực đã giả định?
+  \item Phương án nào tạo ra mức rủi ro chấp nhận được đối với một đề tài học thuật có vòng đời ba tháng?
+  \item Phương án nào tạo nền tảng tốt nhất để xây dựng các kế hoạch thành phần ở các chương sau?
+\end{enumerate}
+
+Việc đánh giá được thực hiện trước khi cố định Product Scope và Schedule Baseline. Kết quả lựa chọn phương án vì vậy được xem như một quyết định nền tảng, có vai trò định hướng toàn bộ phạm vi và cấu trúc dự án.
+
+\subsection{Tiêu chí đánh giá}
+
+Nhóm sử dụng bảy tiêu chí để so sánh các phương án. Các tiêu chí được chọn theo định hướng môn Quản trị dự án, nghĩa là phản ánh không chỉ đặc tính sản phẩm mà còn cả khả năng quản trị trong thực tế triển khai.
+
+\begin{table}[H]
+\centering
+\caption{Tiêu chí đánh giá phương án đầu tư}
+\label{tab:investment-criteria}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}p{2.2cm}X}
+\toprule
+Tiêu chí & Trọng số & Ý nghĩa quản trị \\
+\midrule
+Minh bạch và khả năng kiểm toán & 25\% & Đo mức độ người dùng và stakeholder có thể tự kiểm chứng trạng thái quỹ, quyết định chi và lịch sử thay đổi \\
+Bảo mật và kiểm soát tài sản & 20\% & Đánh giá khả năng hạn chế giải ngân tùy ý, sai phân quyền và rủi ro thao tác với tiền/quỹ \\
+Chi phí đầu tư và vận hành & 15\% & Xem xét tổng chi phí nhân lực, hạ tầng, giao dịch và độ nhạy với biến động vận hành \\
+Trải nghiệm người dùng & 15\% & Đo khả năng tiếp cận đối với người dùng không chuyên, số bước thao tác và rào cản tham gia \\
+Khả năng mở rộng và tích hợp & 10\% & Đánh giá mức độ dễ mở rộng chức năng, tích hợp dịch vụ và đáp ứng nhu cầu phát triển về sau \\
+Đơn giản triển khai và bảo trì & 10\% & Đánh giá độ phức tạp của kiến trúc, số lượng dependency và effort bảo trì \\
+Phù hợp mục tiêu môn học & 5\% & Đo mức độ phương án giúp thể hiện rõ nội dung quản trị dự án trong báo cáo học thuật \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các trọng số trên phản ánh ưu tiên của đề tài: minh bạch và kiểm soát dòng tiền là mục tiêu cốt lõi nên được đặt cao nhất; chi phí và trải nghiệm người dùng quan trọng nhưng không được phép làm lu mờ bản chất của bài toán quản trị quỹ.
+
+\subsection{Phương pháp đánh giá}
+
+Việc đánh giá được thực hiện theo thang điểm 1--5, trong đó:
+
+\begin{itemize}
+  \item 1 điểm: rất kém hoặc không đáp ứng mục tiêu;
+  \item 2 điểm: đáp ứng thấp, có nhiều hạn chế quan trọng;
+  \item 3 điểm: đáp ứng ở mức trung bình, chấp nhận được;
+  \item 4 điểm: đáp ứng tốt;
+  \item 5 điểm: đáp ứng rất tốt hoặc phù hợp nổi trội.
+\end{itemize}
+
+Điểm tổng hợp của mỗi phương án được tính bằng tổng của \textit{điểm số × trọng số}. Bên cạnh điểm tổng, nhóm còn xem xét phân tích định tính về rủi ro, độ phức tạp quản trị và mức độ phù hợp với sản phẩm hiện có trong source code. Cách làm này giúp tránh tình trạng lựa chọn hoàn toàn máy móc theo điểm số mà bỏ qua bối cảnh thực tế của dự án.
+
+\section{Phương án 1: Ứng dụng Web2 tập trung}
+
+\subsection{Mô tả}
+
+Phương án thứ nhất là xây dựng một hệ thống gây quỹ tập trung kiểu Web2. Toàn bộ thông tin chiến dịch, quyên góp, yêu cầu chi và chứng từ được lưu trong cơ sở dữ liệu tập trung; quyền kiểm soát giải ngân nằm ở phía hệ thống hoặc quản trị viên. Người dùng truy cập bằng giao diện web thông thường, không cần ví blockchain hay thao tác on-chain.
+
+Ở góc độ quản trị dự án, đây là phương án có kiến trúc đơn giản nhất. Phạm vi phát triển tập trung chủ yếu vào giao diện, backend, cơ sở dữ liệu và phân quyền ứng dụng. Điều này giúp giảm dependency công nghệ nhưng đồng thời thay đổi bản chất minh bạch của bài toán.
+
+\subsection{Ưu điểm}
+
+\begin{itemize}
+  \item Dễ phát triển và vận hành hơn do không cần smart contract, testnet, phí gas hay relayer.
+  \item Trải nghiệm người dùng đơn giản, phù hợp với người chưa từng dùng ví blockchain.
+  \item Dễ chỉnh sửa dữ liệu và hỗ trợ người dùng trong quá trình vận hành thử nghiệm.
+  \item Cấu trúc lịch biểu và chi phí tương đối dễ dự báo vì ít phụ thuộc hạ tầng ngoài.
+\end{itemize}
+
+\subsection{Nhược điểm}
+
+\begin{itemize}
+  \item Người dùng phải đặt niềm tin lớn vào đơn vị vận hành, làm giảm giá trị kiểm toán độc lập.
+  \item Lịch sử giải ngân và thay đổi dữ liệu có thể bị chỉnh sửa nếu hệ thống quản trị yếu.
+  \item Quyền lực tập trung vào một chủ thể khiến rủi ro lạm quyền tăng cao.
+  \item Phương án không phản ánh đầy đủ mục tiêu cốt lõi của đề tài là minh bạch quỹ bằng blockchain.
+\end{itemize}
+
+\subsection{Chi phí và rủi ro}
+
+Về chi phí, phương án Web2 có lợi thế do không cần chi cho deploy contract, verify contract hoặc gas của relayer. Tuy nhiên, phương án vẫn phát sinh chi phí backend, cơ sở dữ liệu, lưu trữ file, bảo mật máy chủ và vận hành hệ thống tập trung.
+
+Về rủi ro quản trị, đây là phương án có \textit{single point of failure} rõ nhất. Nếu máy chủ lỗi, cơ sở dữ liệu hỏng hoặc tài khoản quản trị bị lộ, toàn bộ hệ thống có thể bị ảnh hưởng đồng thời. Ngoài ra, rủi ro uy tín cũng cao hơn vì hệ thống khó thuyết phục stakeholder về tính minh bạch của dòng tiền.
+
+\section{Phương án 2: DApp public blockchain, người dùng tự trả gas}
+
+\subsection{Mô tả}
+
+Phương án thứ hai là xây dựng một DApp công khai trên blockchain, trong đó người dùng trực tiếp kết nối ví và tự gửi giao dịch on-chain. Metadata có thể được lưu một phần trên chain hoặc đưa lên IPFS; hệ thống backend nếu có chỉ đóng vai trò hỗ trợ hiển thị hoặc đồng bộ dữ liệu, không đóng vai trò relayer.
+
+Phương án này tăng mạnh tính minh bạch so với Web2 vì trạng thái tài chính cốt lõi được ghi nhận trên blockchain. Đồng thời, kiến trúc vẫn còn tương đối gọn so với phương án có relayer và AI sidecar.
+
+\subsection{Ưu điểm}
+
+\begin{itemize}
+  \item Tính minh bạch và khả năng kiểm toán độc lập cao.
+  \item Quyền kiểm soát giải ngân được ràng buộc bởi smart contract thay vì hoàn toàn phụ thuộc con người.
+  \item Kiến trúc đơn giản hơn phương án có relayer, queue và tối ưu gas chủ động.
+  \item Phù hợp với định hướng công nghệ blockchain của sản phẩm.
+\end{itemize}
+
+\subsection{Nhược điểm}
+
+\begin{itemize}
+  \item Người dùng phải có ví và ETH để trả gas, làm tăng rào cản tham gia.
+  \item Trải nghiệm sử dụng khó tiếp cận hơn đối với người dùng phổ thông.
+  \item Phí giao dịch biến động theo mạng lưới, khiến chi phí vận hành và trải nghiệm khó ổn định.
+  \item Nhiều thao tác nghiệp vụ nhỏ vẫn cần transaction riêng, có thể làm luồng sử dụng bị ngắt quãng.
+\end{itemize}
+
+\subsection{Chi phí và rủi ro}
+
+So với phương án Web2, phương án này làm tăng chi phí chuẩn bị smart contract, kiểm thử logic tài chính, deploy, verify và quản lý thay đổi ABI/address. Rủi ro quản trị lớn nhất là lỗi smart contract khó sửa sau khi deploy; mỗi thay đổi có thể kéo theo việc redeploy và tích hợp lại frontend.
+
+Phương án này đạt tốt mục tiêu minh bạch nhưng tạo áp lực mạnh lên phạm vi chất lượng và quản lý rủi ro. Trong bối cảnh dự án ba tháng, áp lực đó là đáng kể nhưng vẫn còn trong vùng có thể kiểm soát nếu phạm vi được chốt sớm.
+
+\section{Phương án 3: Blockchain public kết hợp IPFS, relayer và AI tối ưu gas}
+
+\subsection{Mô tả}
+
+Phương án thứ ba là phương án phản ánh đúng kiến trúc của source code hiện có. Sản phẩm sử dụng smart contract trên Sepolia, metadata và bằng chứng được lưu qua IPFS, backend NestJS hỗ trợ listener, notification, relayer và tích hợp AI sidecar phục vụ quyết định thời điểm gửi giao dịch theo trạng thái gas. Một phần trải nghiệm người dùng được cải thiện nhờ giao dịch thay mặt, gom giao dịch và cơ chế đồng bộ trạng thái ngoài chuỗi.
+
+Ở góc độ quản trị dự án, đây là phương án phức tạp nhất. Nó đòi hỏi phạm vi phải được phân tách rõ hơn, lịch biểu phải tính đến dependency giữa nhiều hợp phần, chi phí phải bao gồm thêm backend và dịch vụ hỗ trợ, còn quản trị rủi ro phải bao phủ cả blockchain lẫn hạ tầng off-chain.
+
+\subsection{Ưu điểm}
+
+\begin{itemize}
+  \item Giữ được bản chất minh bạch và khả năng kiểm toán của blockchain.
+  \item Giảm dữ liệu lưu on-chain bằng cách dùng CID, giúp kiểm soát chi phí giao dịch.
+  \item Hỗ trợ cải thiện trải nghiệm người dùng nhờ relayer, batching và notification.
+  \item Tăng khả năng quan sát trạng thái hệ thống qua listener, queue và log vận hành.
+  \item Phù hợp với sản phẩm thực tế trong source và tạo điều kiện để báo cáo bám sát hiện trạng dự án.
+\end{itemize}
+
+\subsection{Nhược điểm}
+
+\begin{itemize}
+  \item Kiến trúc nhiều hợp phần làm tăng số dependency và độ khó tích hợp.
+  \item Relayer cần được vận hành an toàn, có quỹ gas và cơ chế kiểm soát giao dịch.
+  \item Phụ thuộc nhiều dịch vụ ngoài như RPC, Redis, MongoDB, Pinata và hạ tầng backend.
+  \item Khi AI sidecar hoặc queue gặp lỗi, dự án phải có fallback rõ ràng để tránh gián đoạn vận hành.
+\end{itemize}
+
+\subsection{Chi phí và rủi ro}
+
+Phương án này làm tăng chi phí đầu tư và quản trị so với hai phương án còn lại vì phải bổ sung backend hỗ trợ, hàng đợi, cơ sở dữ liệu, monitoring và vận hành relayer. Tuy nhiên, chi phí tăng thêm đổi lại khả năng tối ưu gas tốt hơn và trải nghiệm người dùng tốt hơn phương án DApp thuần.
+
+Rủi ro chính của phương án không nằm ở một công nghệ riêng lẻ, mà ở tính liên kết giữa nhiều hợp phần. Nếu interface contract thay đổi, frontend, backend listener và relayer đều có thể bị ảnh hưởng; nếu IPFS lỗi, bằng chứng không truy cập được; nếu RPC chậm, đồng bộ trạng thái bị trễ. Do đó, phương án này đòi hỏi năng lực quản trị tích hợp tốt hơn nhưng cũng phản ánh đầy đủ nhất các bài toán của môn học.
+
+\section{So sánh và lựa chọn phương án}
+
+\subsection{Ma trận chấm điểm}
+
+\begin{table}[H]
+\centering
+\small
+\caption{So sánh và chấm điểm các phương án đầu tư}
+\label{tab:alternative-scoring}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.7cm}p{1.4cm}p{1.9cm}p{1.9cm}X}
+\toprule
+Tiêu chí & Trọng số & Web2 tập trung & DApp tự trả gas & Blockchain + IPFS + relayer/AI \\
+\midrule
+Minh bạch/kiểm toán & 25\% & 2 & 5 & 5 \\
+Bảo mật/kiểm soát tài sản & 20\% & 3 & 4 & 4 \\
+Chi phí đầu tư/vận hành & 15\% & 4 & 3 & 3 \\
+Trải nghiệm người dùng & 15\% & 5 & 2 & 4 \\
+Khả năng mở rộng/tích hợp & 10\% & 4 & 3 & 4 \\
+Đơn giản triển khai/bảo trì & 10\% & 5 & 3 & 2 \\
+Phù hợp mục tiêu môn học & 5\% & 2 & 4 & 5 \\
+\midrule
+\textbf{Điểm tổng} & \textbf{100\%} & \textbf{3,45/5} & \textbf{3,60/5} & \textbf{3,95/5} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Kết quả cho thấy phương án 3 đạt điểm cao nhất. Dù không phải là phương án rẻ nhất hoặc đơn giản nhất, nó tạo được sự cân bằng tốt nhất giữa minh bạch, kiểm soát tài sản, trải nghiệm người dùng và mức độ phù hợp với sản phẩm thực tế của dự án.
+
+\subsection{Phân tích nhạy cảm}
+
+Nhóm thực hiện phân tích nhạy cảm một chiều đối với hai tiêu chí dễ làm thay đổi quyết định nhất. Khi trọng số của một tiêu chí tăng từ 15\% lên 30\%, tổng trọng số 85\% của các tiêu chí còn lại được co theo cùng tỷ lệ để phần còn lại bằng 70\%. Quy tắc chuẩn hóa là:
+
+\[
+w'_j=w_j\times\frac{1-w'_k}{1-w_k},\quad j\ne k
+\]
+
+Trong đó $k$ là tiêu chí đang được khảo sát. Cách làm này giữ nguyên tương quan giữa các tiêu chí không được khảo sát và bảo đảm tổng trọng số luôn bằng 100\%.
+
+\begin{table}[H]
+\centering
+\caption{Kết quả phân tích nhạy cảm ma trận lựa chọn phương án}
+\label{tab:alternative-sensitivity}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}cccX}
+\toprule
+Kịch bản & Web2 & DApp & PA3 & Thứ hạng \\
+\midrule
+Baseline: Chi phí 15\%, UX 15\% & 3,450 & 3,600 & 3,950 & PA3 $>$ PA2 $>$ PA1 \\
+Chi phí tăng lên 30\% & 3,547 & 3,494 & 3,782 & PA3 $>$ PA1 $>$ PA2 \\
+UX tăng lên 30\% & 3,724 & 3,318 & 3,959 & PA3 $>$ PA1 $>$ PA2 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Để tìm ngưỡng đổi thứ hạng giữa phương án 3 và Web2, gọi $x$ là trọng số mới của tiêu chí khảo sát. Với tiêu chí Chi phí, chênh lệch điểm ngoài tiêu chí này trong baseline là 0,65 và chênh lệch điểm tiêu chí là $3-4=-1$. Điều kiện hòa điểm là:
+
+\[
+0{,}65\times\frac{1-x}{0{,}85}-x=0 \Rightarrow x\approx43{,}33\%.
+\]
+
+Do chênh lệch điểm UX giữa phương án 3 và Web2 cũng bằng $4-5=-1$ và phần chênh lệch ngoài UX cũng là 0,65, ngưỡng hòa điểm UX tương tự là 43,33\%. Phương án 3 vẫn cao hơn DApp thuần trong toàn bộ hai phép thay đổi một chiều này. Vì mức trọng số phải tăng gần gấp ba baseline mới làm Web2 hòa điểm, quyết định chọn phương án 3 được xem là tương đối ổn định trong miền kịch bản đã công bố; kết luận này không có nghĩa phương án 3 luôn tối ưu với mọi bộ tiêu chí.
+
+\figureplaceholder{ch03-alternative-comparison.png}{Biểu đồ hoặc sơ đồ so sánh ba phương án theo các tiêu chí minh bạch, bảo mật, chi phí, UX, khả năng mở rộng và độ phức tạp quản trị. Có thể dùng radar chart hoặc bar chart nhóm.}{So sánh tổng quan ba phương án đầu tư}{fig:alternative-comparison}
+
+\subsection{Khuôn mẫu ra quyết định đầu tư và kiểm chứng triển khai}
+
+Để tránh việc lựa chọn phương án chỉ dựa trên cảm nhận công nghệ, nhóm sử dụng thêm khuôn mẫu kiểm chứng đầu tư ở mức dự án. Khuôn mẫu này nối quyết định ở Chương III với ngân sách, lịch biểu, rủi ro, chất lượng và khả năng nghiệm thu thực tế của FundChain.
+
+\begin{table}[H]
+\centering
+\caption{Khuôn mẫu lựa chọn phương án đầu tư áp dụng cho FundChain}
+\label{tab:investment-selection-framework}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.6cm}X>{\raggedright\arraybackslash}p{3.2cm}}
+\toprule
+Góc đánh giá & Cách kiểm chứng trong dự án & Kết luận với PA3 \\
+\midrule
+Strategic fit & Phương án phải phục vụ minh bạch dòng tiền, kiểm soát giải ngân và khả năng truy vết công khai & Phù hợp cao \\
+Financial fit & Tổng ngân sách quy đổi không vượt 64 triệu VNĐ; NPV giả định dương; chi phí phát sinh có reserve & Chấp nhận được \\
+Technical fit & Source code thực tế đã có blockchain, backend, frontend, IPFS, relayer và AI sidecar & Bám sát hiện trạng \\
+Schedule fit & Có thể triển khai trong ba tháng nếu khóa interface sớm, kiểm soát đường găng và dùng buffer hợp lý & Khả thi có điều kiện \\
+Risk fit & Rủi ro ABI, RPC, IPFS, redeploy và integration được đưa vào Risk Register và quality gate & Kiểm soát được \\
+Acceptance fit & Có demo, test report, UAT checklist, runbook và biên bản nghiệm thu làm bằng chứng bàn giao & Đủ cơ sở nghiệm thu \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Với lợi ích quy đổi giả định 30 triệu VNĐ/năm và vốn đầu tư ban đầu 64 triệu VNĐ, thời gian hoàn vốn đơn giản khoảng $64/30 \approx 2{,}13$ năm. ROI ba năm theo dòng lợi ích chưa chiết khấu là $(90-64)/64 \approx 40{,}6\%$. Các chỉ số này không được hiểu là dự báo thương mại, mà là phép kiểm tra nhanh để bảo đảm phương án được chọn không mâu thuẫn với năng lực tài chính và mục tiêu triển khai thử nghiệm.
+
+\subsection{Kết luận lựa chọn}
+
+Nhóm quyết định chọn phương án 3: \textit{Blockchain public kết hợp IPFS, relayer và AI tối ưu gas}. Lý do lựa chọn gồm:
+
+\begin{enumerate}
+  \item Phương án phù hợp nhất với mục tiêu cốt lõi của đề tài là minh bạch quỹ và kiểm soát giải ngân.
+  \item Phương án bám sát sản phẩm thực tế trong source code, giúp báo cáo không tách rời hiện trạng dự án.
+  \item Phương án tạo ra đầy đủ các bài toán quản trị điển hình của một dự án phần mềm nhiều hợp phần: phạm vi, lịch biểu, chi phí, rủi ro, chất lượng, nguồn lực và tích hợp.
+  \item Phương án vẫn khả thi trong điều kiện ba tháng nếu được quản trị bằng baseline, milestone và quality gate rõ ràng.
+\end{enumerate}
+
+Quyết định này đồng nghĩa với việc chấp nhận mức độ phức tạp cao hơn để đổi lấy giá trị mục tiêu cao hơn. Chính quyết định này là cơ sở để hình thành các chương tiếp theo về thời gian, chi phí, chất lượng và rủi ro.
+
+\section{Phân tích khả thi}
+
+\subsection{Khả thi kỹ thuật}
+
+Phương án đã có cơ sở kỹ thuật rõ ràng vì source code thực tế đã tồn tại với các hợp phần blockchain, backend và frontend. Điều này làm giảm rủi ro “ý tưởng không triển khai được”, nhưng không loại bỏ rủi ro tích hợp và hoàn thiện. Từ góc độ quản trị dự án, mức khả thi kỹ thuật được đánh giá là \textbf{khả thi có điều kiện}: chỉ khả thi nếu interface giữa các hợp phần được ổn định sớm và quality gate được duy trì nghiêm túc.
+
+\subsection{Khả thi kinh tế}
+
+Dự án không hướng tới hiệu quả kinh doanh tức thời mà là hiệu quả học thuật và khả năng chứng minh mô hình. Vì vậy, tính khả thi kinh tế được xem xét dưới dạng ngân sách giả định và khả năng duy trì trong giới hạn 64 triệu đồng quy đổi. Với baseline chi phí đã giả định, phương án 3 vẫn nằm trong vùng chấp nhận được cho mục tiêu môn học.
+
+\subsection{Khả thi vận hành}
+
+Về vận hành, phương án 3 yêu cầu nhiều thành phần hỗ trợ hơn hai phương án còn lại. Tuy nhiên, môi trường triển khai là Sepolia testnet nên áp lực vận hành thấp hơn production. Nếu có runbook, cấu hình mẫu, quy trình fallback và demo dự phòng, phương án vẫn khả thi cho phạm vi học thuật.
+
+\subsection{Khả thi lịch biểu}
+
+Lịch biểu ba tháng là thách thức thực sự của phương án 3. Khả thi lịch biểu không đến từ việc giảm độ khó kỹ thuật, mà từ cách tổ chức lịch biểu theo milestone, hoạt động chồng lấn có kiểm soát và buffer ở cuối dự án. Nói cách khác, đây là phương án khả thi về thời gian nếu và chỉ nếu nhóm kiểm soát tốt dependency và không để scope creep xuất hiện ở giai đoạn tích hợp.
+
+\subsection{Khả thi pháp lý và đạo đức}
+
+Trong phạm vi môn học, sản phẩm được triển khai trên testnet nên không trực tiếp xử lý tiền thật hay phát sinh nghĩa vụ pháp lý như một nền tảng thương mại chính thức. Tuy vậy, về mặt đạo đức và học thuật, nhóm vẫn phải trình bày trung thực giới hạn của giải pháp: blockchain chỉ làm tăng khả năng truy vết và kiểm soát quy trình, không tự động bảo đảm tính đúng đắn của chứng từ hay đạo đức của người sử dụng.
+
+\section{Kết luận chương}
+
+Chương III đã thực hiện nhiệm vụ lựa chọn phương án đầu tư cho dự án FundChain theo hướng tiếp cận của quản trị dự án. Ba phương án đã được nhận diện, đánh giá bằng cả tiêu chí định lượng lẫn phân tích định tính, từ đó xác định phương án 3 là phù hợp nhất với mục tiêu minh bạch quỹ, kiểm soát giải ngân và hiện trạng source code của sản phẩm.
+
+Kết quả lựa chọn này là đầu vào trực tiếp cho các quyết định ở các chương sau. Cụ thể, vì dự án chọn phương án có nhiều dependency và rủi ro tích hợp hơn, kế hoạch thời gian phải đủ chặt chẽ, chi phí phải tính cả phần hạ tầng hỗ trợ, còn chất lượng phải bao phủ cả các luồng on-chain lẫn off-chain. Nói cách khác, lựa chọn phương án đầu tư không kết thúc ở Chương III mà tiếp tục chi phối toàn bộ logic quản trị của báo cáo.

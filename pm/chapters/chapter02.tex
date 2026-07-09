@@ -1,0 +1,716 @@
+\chapter{QUẢN LÝ PHẠM VI}
+
+Quản lý phạm vi là quá trình xác định dự án phải thực hiện những công việc nào, tạo ra sản phẩm gì và dựa trên tiêu chí nào để chấp nhận kết quả. Đối với FundChain, rủi ro mở rộng phạm vi tương đối cao vì sản phẩm kết hợp nhiều hợp phần và có nhiều ý tưởng phát triển hấp dẫn như KYC, DAO, Mainnet hoặc AI phát hiện gian lận. Nếu không thiết lập baseline rõ ràng, nhóm dễ dành thời gian cho tính năng mới trong khi các luồng bắt buộc, kiểm thử và hồ sơ nghiệm thu chưa hoàn thành.
+
+Chương này xây dựng kế hoạch quản lý phạm vi cho giai đoạn 01/04/2026--30/06/2026. Nội dung gồm thu thập và quản lý yêu cầu, xác định Project Scope và Product Scope, phân rã công việc thành WBS, thiết lập WBS Dictionary, xác nhận deliverable và kiểm soát thay đổi. Scope Baseline được tạo bởi ba thành phần: Project Scope Statement, WBS và WBS Dictionary.
+
+\iffalse
+\section{Kế hoạch quản lý phạm vi}
+
+\subsection{Mục đích của kế hoạch}
+
+Kế hoạch quản lý phạm vi quy định cách phạm vi được xác định, phê duyệt, phân rã, xác nhận và kiểm soát trong toàn bộ dự án. Kế hoạch không chỉ trả lời câu hỏi ``sản phẩm có những chức năng gì'', mà còn xác định các hoạt động quản trị, kiểm thử, triển khai, tài liệu và bàn giao cần thiết để tạo ra một deliverable hoàn chỉnh.
+
+Các mục tiêu cụ thể của kế hoạch gồm:
+
+\begin{itemize}
+  \item Tạo sự hiểu biết thống nhất giữa giảng viên/người nghiệm thu, PM và nhóm phát triển về kết quả phải bàn giao.
+  \item Chuyển nhu cầu của stakeholder thành yêu cầu có mã, mức ưu tiên, owner và acceptance criteria.
+  \item Phân rã 100\% phạm vi thành work package có thể ước lượng, giao trách nhiệm và kiểm tra.
+  \item Ngăn scope creep bằng quy trình Change Request và phân tích tác động tích hợp.
+  \item Thiết lập cơ sở để lập lịch, ngân sách, chất lượng, nguồn lực và rủi ro trong các chương sau.
+  \item Bảo đảm mỗi deliverable có bằng chứng xác nhận thay vì chỉ được báo cáo là ``đã hoàn thành''.
+\end{itemize}
+
+\subsection{Nguyên tắc quản lý phạm vi}
+
+Dự án áp dụng các nguyên tắc sau:
+
+\begin{enumerate}
+  \item \textbf{Phạm vi phải truy vết được:} mỗi yêu cầu được liên kết với stakeholder, WBS, deliverable, module thực hiện và test hoặc bằng chứng nghiệm thu.
+  \item \textbf{Không có công việc ngầm định:} kiểm thử, tài liệu, cấu hình và sửa lỗi phải nằm trong WBS; không xem đây là phần việc ``làm thêm nếu còn thời gian''.
+  \item \textbf{Ưu tiên giá trị và rủi ro:} chức năng quản lý dòng tiền, quyền truy cập và giải ngân có ưu tiên cao hơn cải tiến trình bày.
+  \item \textbf{Baseline chỉ thay đổi có kiểm soát:} backlog có thể được làm rõ, nhưng thay đổi làm tăng deliverable, milestone hoặc ngân sách phải được phê duyệt.
+  \item \textbf{Nguồn sự thật thống nhất:} Scope Statement, WBS, RTM và Change Log là hồ sơ chính thức; trao đổi qua chat không tự động trở thành yêu cầu đã duyệt.
+  \item \textbf{Phân biệt sản phẩm và dự án:} Product Scope mô tả đặc tính sản phẩm; Project Scope bao gồm toàn bộ công việc cần thiết để xây dựng và bàn giao sản phẩm đó.
+\end{enumerate}
+
+\subsection{Quy trình xây dựng và duy trì phạm vi}
+
+Quy trình quản lý phạm vi gồm sáu bước liên tục:
+
+\begin{enumerate}
+  \item Lập kế hoạch quản lý phạm vi và yêu cầu.
+  \item Thu thập nhu cầu từ stakeholder và hiện trạng sản phẩm.
+  \item Phân tích, ưu tiên và phê duyệt yêu cầu.
+  \item Xây dựng Scope Statement, WBS và WBS Dictionary.
+  \item Kiểm tra và xác nhận deliverable sau mỗi sprint hoặc milestone.
+  \item Theo dõi sai lệch và xử lý Change Request trong suốt dự án.
+\end{enumerate}
+
+\figureplaceholder{ch02-scope-management-process.png}{Sơ đồ tiến trình gồm Plan Scope Management, Collect Requirements, Define Scope, Create WBS, Validate Scope và Control Scope. Thể hiện Scope Baseline là đầu ra của Define Scope/Create WBS và Change Request quay lại Integrated Change Control.}{Quy trình quản lý phạm vi của dự án}{fig:scope-process}
+
+\subsection{Vai trò và trách nhiệm}
+
+Danh sách thành viên Nhóm 2 đã được xác định và trách nhiệm đối với hồ sơ quản trị được ánh xạ theo tên tại RACI cá nhân và Resource Calendar ở Chương VII. Trách nhiệm phát triển sản phẩm vẫn được gán theo vai trò chức năng vì đội kỹ thuật sáu người không công khai danh tính; hai lớp phân công dùng chung cơ chế phê duyệt và truy vết deliverable.
+
+\begin{table}[H]
+\centering
+\caption{Trách nhiệm trong quản lý phạm vi}
+\label{tab:scope-responsibility}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}X}
+\toprule
+Vai trò & Trách nhiệm \\
+\midrule
+Giảng viên/người nghiệm thu & Định hướng đề tài, xem xét deliverable cấp cao và xác nhận kết quả môn học \\
+Project Manager & Duy trì Scope Baseline, tổ chức phân tích tác động, điều phối xác nhận phạm vi và Change Control \\
+Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu; duy trì Product Backlog và RTM \\
+Technical Lead & Đánh giá tính khả thi, dependency và tác động kỹ thuật của yêu cầu/thay đổi \\
+QA/Tester & Xây acceptance criteria, xác nhận khả năng kiểm thử và cung cấp test evidence \\
+Thành viên phát triển & Ước lượng work package, triển khai đúng phạm vi và báo cáo sai lệch/blocker \\
+Change Control Board & Phê duyệt, từ chối hoặc hoãn thay đổi ảnh hưởng baseline \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Trong phạm vi tiểu luận, Change Control Board gồm Project Manager, Product Owner/BA, Technical Lead và đại diện giảng viên/người nghiệm thu đối với thay đổi lớn. Một người có thể đảm nhiệm nhiều vai trò, nhưng quyết định và trách nhiệm vẫn được ghi theo vai trò để tránh bỏ sót bước kiểm soát.
+
+\subsection{Công cụ và hồ sơ quản lý}
+
+Các công cụ và tài liệu được sử dụng gồm:
+
+\begin{itemize}
+  \item GitHub Issues/Projects để quản lý backlog, work item và trạng thái triển khai.
+  \item Repository và pull request để liên kết thay đổi source với requirement hoặc defect.
+  \item Google Drive để lưu biên bản, baseline và hồ sơ được phê duyệt.
+  \item RTM để truy vết yêu cầu; WBS Dictionary để kiểm soát work package.
+  \item Scope Validation Log để lưu kết quả demo/nghiệm thu.
+  \item Change Request Form và Change Log để kiểm soát thay đổi.
+\end{itemize}
+
+Phiên bản baseline được ghi rõ ngày phê duyệt. Mọi bản nháp sau đó phải có lịch sử thay đổi; không ghi đè bản đã phê duyệt mà không để lại dấu vết.
+
+\fi
+\section{Thu thập yêu cầu}
+
+Phạm vi được quản lý qua requirement baseline, WBS và Scope Baseline. Mọi thay đổi ảnh hưởng deliverable hoặc tiêu chí chấp nhận phải đi qua Change Request và được đánh giá đồng thời về lịch, chi phí, chất lượng và rủi ro.
+
+\iffalse
+\subsection{Mục tiêu và nguồn yêu cầu}
+
+Mục tiêu của thu thập yêu cầu là chuyển kỳ vọng của stakeholder thành tập hợp yêu cầu rõ ràng, có thể ưu tiên và kiểm thử. Với dự án này, yêu cầu không chỉ đến từ người sử dụng mà còn từ mục tiêu môn học, ràng buộc thời gian ba tháng, source hiện có, kiểm thử, môi trường Sepolia và các yêu cầu chất lượng đối với hệ thống liên quan đến tiền.
+
+\begin{table}[H]
+\centering
+\caption{Nguồn yêu cầu của dự án}
+\label{tab:requirement-sources}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.6cm}p{5.1cm}X}
+\toprule
+Nguồn & Kỳ vọng chính & Loại yêu cầu tạo ra \\
+\midrule
+Giảng viên/môn học & Có kế hoạch quản trị đầy đủ, logic và có số liệu & Deliverable quản trị, baseline, báo cáo \\
+Donor & Minh bạch, kiểm soát khoản chi và hoàn tiền hợp lệ & Chức năng, bảo mật, khả dụng \\
+Campaign Manager & Tạo và quản lý chiến dịch thuận tiện & Chức năng, UX và thông báo \\
+Admin & Kiểm soát chiến dịch và nhà cung cấp & Phân quyền, giám sát, báo cáo \\
+Supplier/Verifier & Nhiệm vụ rõ ràng và bằng chứng truy vết được & Workflow, notification, audit trail \\
+Nhóm phát triển & Phạm vi khả thi, interface ổn định và có test & Kỹ thuật, bảo trì, configuration \\
+Nhà cung cấp dịch vụ & Quota, API và điều kiện sử dụng & Ràng buộc vận hành/mua sắm \\
+Source và test hiện có & Phản ánh đúng sản phẩm thực tế & Yêu cầu hiện trạng và tiêu chí hồi quy \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Phương pháp thu thập}
+
+Dự án sử dụng phối hợp nhiều phương pháp:
+
+\begin{enumerate}
+  \item \textbf{Phỏng vấn và trao đổi có cấu trúc:} làm rõ mong đợi của giảng viên, người dùng đại diện và các thành viên.
+  \item \textbf{Workshop yêu cầu:} thống nhất actor, luồng chính, ngoài phạm vi và tiêu chí chấp nhận.
+  \item \textbf{Phân tích tài liệu và mã nguồn:} đối chiếu README, hợp đồng, API, giao diện và test để tránh mô tả chức năng không tồn tại.
+  \item \textbf{Prototype/demo:} dùng giao diện và luồng chạy để phát hiện yêu cầu còn mơ hồ.
+  \item \textbf{Brainstorming:} nhận diện nhu cầu, rủi ro và phương án; mọi ý tưởng mới chỉ trở thành phạm vi sau khi được phân tích và phê duyệt.
+  \item \textbf{Quan sát và phân tích quy trình:} mô tả luồng từ tạo chiến dịch đến giải ngân/hoàn tiền để nhận diện điểm kiểm soát.
+\end{enumerate}
+
+\subsection{Phân loại và ưu tiên yêu cầu}
+
+Yêu cầu được phân thành bốn nhóm: yêu cầu quản trị, yêu cầu chức năng, yêu cầu phi chức năng và yêu cầu chuyển tiếp/bàn giao. Phương pháp MoSCoW được dùng để ưu tiên:
+
+\begin{itemize}
+  \item \textbf{Must Have:} nếu thiếu, sản phẩm không đáp ứng mục tiêu cốt lõi hoặc không thể nghiệm thu.
+  \item \textbf{Should Have:} có giá trị cao nhưng có thể áp dụng giải pháp tạm thời trong release môn học.
+  \item \textbf{Could Have:} cải thiện trải nghiệm, chỉ thực hiện khi Must/Should đạt quality gate.
+  \item \textbf{Won't Have this release:} ghi nhận cho tương lai nhưng không đưa vào baseline ba tháng.
+\end{itemize}
+
+Ngoài giá trị, việc ưu tiên còn xét rủi ro, dependency, effort và tác động tới đường găng. Một tính năng ``hấp dẫn'' không tự động có độ ưu tiên cao nếu không phục vụ mục tiêu dự án.
+
+\fi
+\subsection{Yêu cầu quản trị dự án}
+
+\begin{longtable}{p{1.2cm}p{7.4cm}p{2.1cm}p{2.1cm}}
+\caption{Yêu cầu quản trị dự án}\label{tab:management-requirements}\\
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Bằng chứng} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Bằng chứng} \\
+\midrule
+\endhead
+MR-01 & Có Project Charter và mục tiêu SMART được thống nhất & Must & Charter \\
+MR-02 & Có Scope, Schedule và Cost Baseline & Must & Baseline \\
+MR-03 & Có WBS bao phủ 100\% phạm vi và WBS Dictionary & Must & WBS \\
+MR-04 & Có RACI và resource calendar sau khi phân vai & Must & RACI \\
+MR-05 & Có kế hoạch chất lượng, test report và UAT & Must & QA record \\
+MR-06 & Có Risk Register, owner và phản hồi cho rủi ro chính & Must & Risk log \\
+MR-07 & Có ma trận truyền thông và báo cáo định kỳ & Should & Status report \\
+MR-08 & Có quy trình Change Request và Change Log & Must & Change log \\
+MR-09 & Có kế hoạch mua sắm dịch vụ ngoài & Should & Kế hoạch mua sắm \\
+MR-10 & Có biên bản nghiệm thu, bàn giao và lessons learned & Must & Closure record \\
+\bottomrule
+\end{longtable}
+
+\subsection{Yêu cầu chức năng cấp cao}
+
+Yêu cầu chức năng được giữ ở mức đủ để quản trị Product Scope. Đặc tả hàm, kiểu dữ liệu và xử lý kỹ thuật nằm trong tài liệu thiết kế, không thuộc nội dung chính của chương này.
+
+\begin{longtable}{p{1.2cm}p{7.3cm}p{2cm}p{2.3cm}}
+\caption{Yêu cầu chức năng cấp cao}\label{tab:functional-requirements}\\
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Owner} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Owner} \\
+\midrule
+\endhead
+FR-01 & Người dùng kết nối ví và xem chiến dịch công khai & Must & FE \\
+FR-02 & Người khởi tạo gửi đề xuất chiến dịch và theo dõi trạng thái xét duyệt & Must & FE/BC \\
+FR-03 & Admin phê duyệt hoặc từ chối đề xuất và quản lý nhà cung cấp & Must & FE/BC \\
+FR-04 & Donor quyên góp và xem lịch sử đóng góp & Must & FE/BC \\
+FR-05 & Manager theo dõi số dư khả dụng và tạo yêu cầu chi hợp lệ & Must & FE/BC \\
+FR-06 & Hệ thống giữ trước ngân sách của yêu cầu đang mở để tránh cam kết vượt quỹ & Must & BC \\
+FR-07 & Donor hoặc validator tham gia phê duyệt theo quy tắc của yêu cầu & Must & FE/BC \\
+FR-08 & Supplier nộp bằng chứng; Verifier xác minh hoặc từ chối & Must & FE/BC/IPFS \\
+FR-09 & Hệ thống chỉ giải ngân khi đủ điều kiện và ghi nhận người nhận & Must & BC \\
+FR-10 & Manager có thể hủy yêu cầu hợp lệ; ngân sách được giải phóng & Must & BC \\
+FR-11 & Hỗ trợ yêu cầu nhiều giai đoạn và thanh toán theo milestone & Should & FE/BC \\
+FR-12 & Donor yêu cầu hoàn tiền theo điều kiện khi chiến dịch dừng & Must & FE/BC \\
+FR-13 & Backend upload/đọc metadata và bằng chứng IPFS & Must & BE \\
+FR-14 & Backend theo dõi sự kiện và phát thông báo cho người dùng liên quan & Should & BE/FE \\
+FR-15 & Hệ thống hỗ trợ giao dịch thay mặt và gom giao dịch có chữ ký hợp lệ & Should & BE/BC \\
+FR-16 & Cung cấp dashboard cho Manager, Admin, Supplier, Verifier và hoạt động Donor & Must & FE \\
+\bottomrule
+\end{longtable}
+
+\subsection{Yêu cầu phi chức năng}
+
+\begin{longtable}{p{1.3cm}p{7.1cm}p{4.4cm}}
+\caption{Yêu cầu phi chức năng}\label{tab:nfr}\\
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Tiêu chí chấp nhận} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Yêu cầu} & \textbf{Tiêu chí chấp nhận} \\
+\midrule
+\endhead
+NFR-01 & Quyền tài chính phải được kiểm tra ở lớp tin cậy, không chỉ ở giao diện & Test phủ các trường hợp truy cập trái phép \\
+NFR-02 & Trạng thái tiền và quyết định cốt lõi phải truy vết được & Có transaction/event tương ứng \\
+NFR-03 & Không để private key hoặc secret trong repository/client & Kiểm tra cấu hình và source trước bàn giao \\
+NFR-04 & API thông thường phản hồi trong điều kiện thử nghiệm ổn định & Không quá 2 giây, không tính xác nhận blockchain/IPFS \\
+NFR-05 & Trang chính hiển thị nội dung ban đầu trong điều kiện thử nghiệm & Không quá 3 giây \\
+NFR-06 & Smart contract logic cốt lõi có mức kiểm thử tối thiểu & 80\% statement coverage và 100\% test Critical/High đạt \\
+NFR-07 & Hệ thống có cơ chế xử lý khi dịch vụ ngoài tạm lỗi & Có thông báo, retry hoặc fallback cho luồng liên quan \\
+NFR-08 & Sản phẩm có thể bảo trì và tái triển khai & Module hóa, lockfile, env template và deployment guide \\
+NFR-09 & Giao diện hỗ trợ các trình duyệt hiện đại có MetaMask & UAT trên môi trường được chỉ định \\
+NFR-10 & Dữ liệu công khai không được mô tả sai là dữ liệu bí mật & Cảnh báo và quy định upload IPFS \\
+\bottomrule
+\end{longtable}
+
+\iffalse
+\subsection{Yêu cầu chuyển tiếp và bàn giao}
+
+\begin{itemize}
+  \item Có hướng dẫn cài đặt, cấu hình, build, test và deploy.
+  \item Có ABI, chain ID, địa chỉ triển khai và mẫu biến môi trường không chứa secret.
+  \item Có test report, known issues và giới hạn của release Sepolia.
+  \item Có kịch bản demo và phương án dự phòng khi dịch vụ ngoài gián đoạn.
+  \item Có hồ sơ quản trị gồm baseline, RTM, Risk Register, Change Log và Lessons Learned.
+\end{itemize}
+
+\subsection{Quản lý vòng đời yêu cầu}
+
+Mỗi yêu cầu đi qua các trạng thái \textit{Proposed}, \textit{Analyzed}, \textit{Approved}, \textit{Implemented}, \textit{Tested} và \textit{Accepted}. Yêu cầu bị từ chối hoặc hoãn vẫn được lưu cùng lý do để tránh được đề xuất lại mà không có thông tin mới.
+
+Product Owner/BA chịu trách nhiệm duy trì nội dung và ưu tiên; Technical Lead đánh giá tính khả thi; QA xác định bằng chứng; PM tổng hợp đề xuất và trình cấp có thẩm quyền phê duyệt baseline. PM chỉ được phê duyệt thay đổi nhỏ trong ngưỡng đã được ủy quyền; sponsor/giảng viên hoặc CCB quyết định thay đổi vượt ngưỡng. Sau khi baseline được phê duyệt, thay đổi acceptance criteria hoặc mức ưu tiên cần Change Request khi ảnh hưởng baseline hoặc cam kết đã duyệt.
+
+\subsection{Ma trận truy vết yêu cầu}
+
+RTM là công cụ nối nhu cầu với kết quả dự án. Bảng~\ref{tab:rtm-sample} trình bày một phần RTM; bản đầy đủ được đặt trong phụ lục và cập nhật đến khi nghiệm thu.
+
+\begin{longtable}{p{1.1cm}p{2.4cm}p{1.5cm}p{3cm}p{3.8cm}}
+\caption{Trích Ma trận truy vết yêu cầu}\label{tab:rtm-sample}\\
+\toprule
+\textbf{Mã} & \textbf{Nguồn} & \textbf{WBS} & \textbf{Deliverable} & \textbf{Bằng chứng} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Nguồn} & \textbf{WBS} & \textbf{Deliverable} & \textbf{Bằng chứng} \\
+\midrule
+\endhead
+MR-02 & Môn học/PM & 1.4, 10.1 & Hồ sơ baseline & Baseline được duyệt \\
+FR-02 & Manager và Admin & 4.1, 6.3 & Luồng tạo chiến dịch & Test và UAT scenario 1 \\
+FR-06 & Donor/PM & 4.2, 8.2 & Kiểm soát ngân sách & Unit/security test \\
+FR-08 & Supplier và Verifier & 4.4, 5.1, 6.6--6.7 & Luồng bằng chứng & Integration/UAT \\
+FR-12 & Donor & 4.5, 6.5, 8.2 & Hoàn tiền & Unit/E2E test \\
+NFR-03 & Nhóm dự án & 8.2, 9.1 & Cấu hình an toàn & Checklist/secret scan \\
+NFR-06 & QA & 8.1--8.7 & Báo cáo chất lượng & Coverage/test report \\
+\bottomrule
+\end{longtable}
+
+\subsection{Thách thức khi thu thập yêu cầu}
+
+Thách thức lớn nhất là stakeholder có mức hiểu biết kỹ thuật khác nhau. Yêu cầu ``minh bạch'' hoặc ``an toàn'' quá rộng nếu không chuyển thành hành vi và tiêu chí đo lường. Nhóm xử lý bằng cách dùng prototype, scenario và acceptance criteria thay cho thuật ngữ trừu tượng.
+
+Thách thức thứ hai là source hiện có có thể khác tài liệu cũ. Khi phát hiện mâu thuẫn, nhóm đối chiếu source, test và cấu hình triển khai; sau đó đưa vấn đề vào Decision Log thay vì âm thầm chọn một phiên bản. Thách thức thứ ba là ý tưởng mới dễ bị hiểu nhầm thành cam kết. Tất cả ý tưởng sau baseline được đưa vào Product Backlog hoặc Change Request tùy mức tác động.
+
+\fi
+\section{Xác định phạm vi}
+\iffalse
+
+\subsection{Project Scope Statement}
+
+Trong ba tháng, Nhóm 2 thực hiện phân tích, lập kế hoạch, hoàn thiện và kiểm tra sản phẩm FundChain trên Sepolia. Project Scope bao gồm:
+
+\begin{itemize}
+  \item Khởi tạo dự án, xác định stakeholder, mục tiêu và governance.
+  \item Thu thập yêu cầu, xây Scope Baseline và thiết kế giải pháp.
+  \item Phát triển/hoàn thiện các hợp phần blockchain, backend, frontend và AI sidecar nằm trong Product Scope.
+  \item Tích hợp dữ liệu, API, ví, contract và thông báo.
+  \item Kiểm thử chức năng, quyền truy cập, luồng tài chính, tích hợp và UAT.
+  \item Triển khai thử nghiệm, cấu hình, smoke test và chuẩn bị demo.
+  \item Lập hồ sơ quản trị, tài liệu kỹ thuật/người dùng, nghiệm thu, bàn giao và kết thúc dự án.
+\end{itemize}
+
+Kết quả cuối là một release thử nghiệm có thể trình diễn và kiểm chứng, đi kèm bộ tài liệu quản trị. Dự án không cam kết khả năng vận hành production với tiền thật.
+
+\subsection{Product Scope Statement}
+
+Sản phẩm cho phép người dùng kết nối ví, xem và tạo đề xuất chiến dịch; admin xét duyệt và quản lý nhà cung cấp; donor quyên góp và tham gia giám sát; manager tạo yêu cầu chi; supplier nộp bằng chứng; verifier đưa ra kết quả xác minh; hệ thống chỉ giải ngân hoặc hoàn tiền theo điều kiện đã thiết lập. Metadata/bằng chứng được lưu ngoài chuỗi có liên kết truy vết; giao diện cung cấp dashboard và thông báo theo vai trò.
+
+Product Scope gồm năm nhóm deliverable:
+
+\begin{enumerate}
+  \item Hợp phần quản lý chiến dịch và quỹ.
+  \item Hợp phần bằng chứng, xác minh và nhà cung cấp.
+  \item Dịch vụ backend, relayer và notification.
+  \item Giao diện công khai và dashboard theo vai trò.
+  \item Hạ tầng thử nghiệm, cấu hình, kiểm thử và tài liệu.
+\end{enumerate}
+
+\subsection{Sản phẩm bàn giao}
+
+\begin{table}[H]
+\centering
+\caption{Deliverable và tiêu chí chấp nhận cấp cao}
+\label{tab:scope-deliverables}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}p{5.1cm}X}
+\toprule
+Deliverable & Nội dung & Tiêu chí chấp nhận \\
+\midrule
+Hồ sơ quản trị & Charter, baseline, kế hoạch thành phần và log & Đầy đủ, nhất quán, có version/phê duyệt \\
+Blockchain module & Contract, ABI, script và test & Compile/test đạt quality gate, deploy được Sepolia \\
+Backend/AI module & API, listener, notification, relayer và sidecar & Build chạy, integration scenario đạt \\
+Frontend DApp & Trang công khai và dashboard & Build thành công, Must Have đạt UAT \\
+Hạ tầng thử nghiệm & Cấu hình database, queue, IPFS, RPC và Docker & Có env template, checklist và smoke test \\
+Báo cáo kiểm thử & Test result, coverage, defect và known issues & Không còn lỗi Critical/High \\
+Tài liệu bàn giao & README, hướng dẫn deploy/demo và cấu hình & Người nhận có thể kiểm tra/tái triển khai \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Tiêu chuẩn chấp nhận sản phẩm}
+
+Sản phẩm chỉ được đề nghị nghiệm thu khi đáp ứng đồng thời:
+
+\begin{enumerate}
+  \item Toàn bộ yêu cầu Must Have đã ở trạng thái Tested hoặc Accepted.
+  \item Kịch bản từ tạo chiến dịch đến giải ngân chạy được trên môi trường mục tiêu.
+  \item Các trường hợp truy cập trái phép và chi vượt ngân sách bị từ chối theo test.
+  \item Có thể truy vết giao dịch và dữ liệu bằng transaction/event/CID phù hợp.
+  \item Frontend và backend build thành công; smart contract test đạt quality gate.
+  \item Không còn defect Critical/High; Medium có owner và kế hoạch xử lý.
+  \item Hồ sơ triển khai không chứa private key hoặc secret.
+  \item Tài liệu quản trị và bàn giao đầy đủ theo checklist.
+\end{enumerate}
+
+\subsection{Các nội dung loại trừ}
+
+Các hạng mục sau không thuộc baseline release này:
+
+\begin{itemize}
+  \item Ethereum Mainnet, tiền pháp định và cam kết production SLA.
+  \item KYC pháp lý hoàn chỉnh và đăng nhập tài khoản truyền thống.
+  \item NFT donation, token quản trị, DAO đầy đủ và sàn giao dịch.
+  \item AI phát hiện gian lận; AI hiện tại chỉ nằm trong phạm vi hỗ trợ tối ưu hoạt động relayer.
+  \item Mobile native, hệ thống kế toán/thuế và tích hợp ngân hàng.
+  \item Formal verification hoặc audit độc lập nếu không có procurement được phê duyệt.
+\end{itemize}
+
+Các hạng mục loại trừ được lưu trong Product Backlog dài hạn. Việc có mặt trong backlog không tạo nghĩa vụ phải thực hiện trong ba tháng.
+
+\subsection{Giả định}
+
+\begin{itemize}
+  \item Nhóm có quyền truy cập repository và các tài khoản dịch vụ thử nghiệm.
+  \item Người dùng UAT có MetaMask và ETH Sepolia.
+  \item RPC, IPFS, MongoDB và Redis khả dụng ở mức phù hợp cho demo.
+  \item Quy mô thử nghiệm không vượt 100 ví, 30 chiến dịch, 500 donation, 200 request và 20 người dùng đồng thời.
+  \item Thành viên dành trung bình 20 giờ/người/tuần; lịch cá nhân được cập nhật sau khi phân vai.
+  \item Giảng viên/người nghiệm thu phản hồi tại các milestone đã thống nhất.
+\end{itemize}
+
+\subsection{Ràng buộc}
+
+\begin{itemize}
+  \item Thời gian cố định ba tháng và Project Budget giả định 64.000.000~VNĐ.
+  \item Nhóm sinh viên có nguồn lực và kinh nghiệm giới hạn.
+  \item Gas và tính sẵn sàng của testnet/dịch vụ ngoài có thể biến động.
+  \item Thay đổi contract có thể kéo theo cập nhật ABI, frontend, backend, test và triển khai.
+  \item Không được đưa secret hoặc dữ liệu nhạy cảm lên repository/IPFS.
+  \item Release chỉ phục vụ môi trường thử nghiệm; không được mô tả là hệ thống Mainnet đã audit.
+\end{itemize}
+
+\fi
+\section{Phân rã công việc}
+
+\subsection{Mục tiêu và quy tắc phân rã}
+
+WBS phân rã Project Scope thành các work package có thể ước lượng và kiểm soát. Dự án áp dụng quy tắc 100\%: tổng các phần tử cấp dưới phải bao phủ toàn bộ phần tử cấp trên, không trùng lặp và không bổ sung công việc ngoài phạm vi.
+
+Work package được xem là đủ nhỏ khi:
+
+\begin{itemize}
+  \item Có một deliverable hoặc kết quả kiểm tra được.
+  \item Có thể chỉ định một owner chịu trách nhiệm.
+  \item Có thể ước lượng effort, duration và chi phí.
+  \item Có dependency và acceptance criteria rõ ràng.
+  \item Có thể hoàn thành trong một sprint hoặc được chia nhỏ thành activity.
+\end{itemize}
+
+\subsection{Cấu trúc WBS}
+
+WBS sử dụng cách phân rã theo vòng đời và deliverable, gồm mười nhóm công việc:
+
+\begin{enumerate}
+  \item[1.0] Khởi tạo và quản trị dự án.
+  \item[2.0] Phân tích yêu cầu và phạm vi.
+  \item[3.0] Thiết kế giải pháp.
+  \item[4.0] Phát triển blockchain.
+  \item[5.0] Phát triển backend và AI.
+  \item[6.0] Phát triển frontend.
+  \item[7.0] Tích hợp hệ thống.
+  \item[8.0] Kiểm thử và bảo đảm chất lượng.
+  \item[9.0] Triển khai thử nghiệm.
+  \item[10.0] Tài liệu, nghiệm thu và kết thúc.
+\end{enumerate}
+
+\figureplaceholder{ch02-wbs-tree.png}{Sơ đồ cây WBS ba cấp. Cấp 1 là dự án; cấp 2 gồm 1.0 đến 10.0; cấp 3 sử dụng các work package trong Bảng Cấu trúc WBS chi tiết. Không dùng sơ đồ tiến trình thay cho sơ đồ phân rã.}{Cấu trúc phân rã công việc của dự án FundChain}{fig:wbs-tree}
+
+\iffalse
+\subsection{WBS chi tiết}
+
+\begin{longtable}{p{1.2cm}p{4.9cm}p{6.7cm}}
+\caption{Cấu trúc WBS chi tiết}\label{tab:wbs-detail}\\
+\toprule
+\textbf{Mã} & \textbf{Work package} & \textbf{Đầu ra chính} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Work package} & \textbf{Đầu ra chính} \\
+\midrule
+\endhead
+1.1 & Project Charter & Charter và mục tiêu SMART \\
+1.2 & Stakeholder management & Stakeholder Register/engagement strategy \\
+1.3 & Thiết lập công cụ và governance & Repository, board, quy ước và meeting cadence \\
+1.4 & Project Management Plan & Các baseline và kế hoạch thành phần \\
+\midrule
+2.1 & Thu thập yêu cầu & Requirement list và biên bản workshop \\
+2.2 & Phân tích/ưu tiên yêu cầu & Backlog, MoSCoW và acceptance criteria \\
+2.3 & Xác định phạm vi & Scope Statement và exclusions \\
+2.4 & WBS/WBS Dictionary & Scope Baseline \\
+2.5 & Requirements Traceability & RTM hoàn chỉnh \\
+\midrule
+3.1 & Kiến trúc tổng thể & Architecture diagram và decision record \\
+3.2 & Thiết kế luồng nghiệp vụ & Use case, state/sequence diagram \\
+3.3 & Thiết kế dữ liệu/API & API contract, schema và event mapping \\
+3.4 & Thiết kế UI/UX & Wireframe/prototype và navigation \\
+3.5 & Threat modeling & Threat list và security controls \\
+\midrule
+4.1 & Quản lý vòng đời chiến dịch & Contract/module và test liên quan \\
+4.2 & Donation/yêu cầu chi & Logic quỹ, giữ ngân sách và biểu quyết \\
+4.3 & Supplier management & Registry và quyền quản trị \\
+4.4 & Bằng chứng/xác minh/milestone & Verification và payment workflow \\
+4.5 & Hủy, deadline và hoàn tiền & Lifecycle exception handling \\
+4.6 & Giao dịch thay mặt & Forwarding/batching workflow \\
+4.7 & Tối ưu và deploy script & Gas/security optimization, scripts \\
+\midrule
+5.1 & Evidence/IPFS service & Upload/read metadata API \\
+5.2 & Blockchain listener & Event listener và sync state \\
+5.3 & Notification service & Persistence và real-time notification \\
+5.4 & Relayer/queue & Intent validation, queue và batch \\
+5.5 & Gas monitor/AI sidecar & Decision integration và fallback \\
+5.6 & Backend documentation & Swagger, validation và logging \\
+\midrule
+6.1 & Layout/routing/wallet & Khung giao diện và trạng thái ví \\
+6.2 & Public campaign pages & Home, list và detail \\
+6.3 & Create Campaign & Form và trạng thái proposal \\
+6.4 & Creator/Activity dashboard & Quản lý chiến dịch và lịch sử \\
+6.5 & Donation/request interaction & Donate, vote và request view \\
+6.6 & Supplier dashboard & Profile, task và proof \\
+6.7 & Verifier dashboard & Verify/reject workflow \\
+6.8 & Admin dashboard & Campaign/Supplier/system management \\
+6.9 & Notification/legal/responsive & UX hỗ trợ và các trang bổ sung \\
+\midrule
+7.1 & ABI/address/config integration & Configuration đồng bộ \\
+7.2 & Frontend--blockchain integration & Các luồng on-chain \\
+7.3 & Frontend--backend/IPFS integration & Metadata, evidence và notification \\
+7.4 & Relayer integration & Signed intent và kết quả transaction \\
+7.5 & End-to-end scenario & Luồng tích hợp hoàn chỉnh \\
+\midrule
+8.1 & Test planning & Test strategy, case và environment \\
+8.2 & Contract/security test & Unit, negative và hardening test \\
+8.3 & Backend/API test & Unit/integration/E2E test \\
+8.4 & Frontend test & Build, lint, manual và browser test \\
+8.5 & Regression/performance & Regression và đo ngưỡng cơ bản \\
+8.6 & UAT & Scenario, biên bản và feedback \\
+8.7 & Defect closure & Triage, fix, retest và test report \\
+\midrule
+9.1 & Chuẩn bị môi trường & Account, secret và env template \\
+9.2 & Deploy/verify contract & Sepolia deployment record \\
+9.3 & Deploy backend/data/AI & Docker services và health check \\
+9.4 & Build/deploy frontend & Release frontend \\
+9.5 & Smoke test/monitoring & Checklist và vận hành thử \\
+\midrule
+10.1 & Hoàn thiện báo cáo & Tiểu luận, bảng và hình \\
+10.2 & Tài liệu sử dụng/vận hành & README, runbook và demo script \\
+10.3 & Nghiệm thu/bàn giao & Acceptance và handover record \\
+10.4 & Lessons learned & Retrospective và knowledge archive \\
+10.5 & Đóng dự án & Closure report và thu hồi quyền \\
+\bottomrule
+\end{longtable}
+
+\subsection{Từ điển WBS}
+
+WBS Dictionary mô tả nội dung không thể thể hiện đầy đủ trên sơ đồ cây. Mỗi work package có: mã/tên, mô tả, owner, đầu vào, đầu ra, dependency, giả định, effort, duration, acceptance criteria và rủi ro. Bảng~\ref{tab:wbs-dictionary} là trích mẫu; bản đầy đủ được đưa vào phụ lục.
+
+\begin{longtable}{p{3cm}p{9.8cm}}
+\caption{Trích WBS Dictionary cho work package 2.4}\label{tab:wbs-dictionary}\\
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung} \\
+\midrule
+WBS ID/Tên & 2.4 -- Xây dựng WBS và WBS Dictionary \\
+Mục tiêu & Phân rã 100\% Project Scope thành work package kiểm soát được \\
+Owner & Product Owner/BA; PM điều phối review; cấp có thẩm quyền phê duyệt baseline \\
+Đầu vào & Charter, requirement list, Scope Statement, giả định/ràng buộc \\
+Đầu ra & WBS dạng cây, bảng WBS chi tiết, WBS Dictionary \\
+Phụ thuộc & 2.1, 2.2 và 2.3 hoàn thành \\
+Effort giả định & 32 giờ \\
+Duration giả định & 4 ngày làm việc \\
+Acceptance criteria & Bao phủ 100\% deliverable; không trùng lặp; mỗi work package có owner và đầu ra \\
+Rủi ro & Bỏ sót công việc kiểm thử/tài liệu; phân rã theo activity quá sớm; trùng phạm vi giữa module \\
+Bằng chứng & File WBS, biên bản review và version baseline \\
+\bottomrule
+\end{longtable}
+
+Một ví dụ thứ hai đối với work package có rủi ro cao:
+
+\begin{longtable}{p{3cm}p{9.8cm}}
+\caption{Trích WBS Dictionary cho work package 7.5}\label{tab:wbs-dictionary-e2e}\\
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung} \\
+\midrule
+WBS ID/Tên & 7.5 -- End-to-end scenario \\
+Mục tiêu & Chứng minh các hợp phần phối hợp đúng trong luồng nghiệp vụ cốt lõi \\
+Owner & Technical Lead; QA chịu trách nhiệm kiểm chứng \\
+Đầu vào & Release candidate của blockchain, backend, frontend và cấu hình test \\
+Đầu ra & Luồng tích hợp chạy được và danh sách defect \\
+Phụ thuộc & 7.1--7.4 và các module Must Have \\
+Effort giả định & 56 giờ \\
+Duration giả định & 5 ngày làm việc \\
+Acceptance criteria & Scenario tạo chiến dịch--quyên góp--yêu cầu chi--xác minh--giải ngân chạy thành công; có bằng chứng giao dịch \\
+Rủi ro & ABI/address sai, dịch vụ ngoài gián đoạn, dữ liệu test không nhất quán \\
+Bằng chứng & Test log, transaction hash, ảnh/video demo và defect record \\
+\bottomrule
+\end{longtable}
+
+\subsection{Mối liên hệ giữa WBS và các baseline khác}
+
+WBS là nền tảng cho các chương tiếp theo. Activity của Schedule Baseline được tạo từ work package; effort và nguồn lực tạo cơ sở Cost Baseline; acceptance criteria tạo Quality Plan; dependency và giả định cung cấp đầu vào cho Risk Register; các hạng mục dịch vụ ngoài được chuyển sang Procurement Plan. Khi WBS thay đổi, PM phải kiểm tra đồng thời các baseline liên quan thay vì chỉ sửa danh sách công việc.
+
+\fi
+\section{Xác nhận phạm vi}
+\iffalse
+
+\subsection{Mục đích}
+
+Xác nhận phạm vi là quá trình chính thức chấp nhận deliverable đã hoàn thành. Quá trình này khác Control Quality: QA kiểm tra deliverable có đúng yêu cầu hay không, còn Validate Scope tập trung vào việc stakeholder có chấp nhận deliverable hay không. Một deliverable vượt test nhưng chưa được người có thẩm quyền chấp nhận vẫn chưa hoàn tất về mặt quản trị.
+
+\subsection{Thời điểm xác nhận}
+
+Phạm vi được xác nhận tại ba cấp:
+
+\begin{itemize}
+  \item \textbf{Cuối sprint:} Product Owner/BA và QA review increment, cập nhật RTM và feedback.
+  \item \textbf{Milestone:} PM cùng stakeholder xem xét deliverable cấp giai đoạn như Scope Baseline, kiến trúc, release candidate.
+  \item \textbf{Cuối dự án:} giảng viên/người nghiệm thu xác nhận bộ sản phẩm, báo cáo và hồ sơ bàn giao.
+\end{itemize}
+
+\subsection{Quy trình xác nhận}
+
+\begin{enumerate}
+  \item Owner tự kiểm tra Definition of Done và chuẩn bị bằng chứng.
+  \item QA thực hiện Control Quality và lập kết quả test/review.
+  \item PM/Product Owner đối chiếu deliverable với Scope Baseline và RTM.
+  \item Nhóm trình diễn hoặc chuyển hồ sơ cho stakeholder có thẩm quyền.
+  \item Stakeholder chấp nhận, chấp nhận có điều kiện hoặc từ chối kèm lý do.
+  \item PM cập nhật Acceptance Log; phần bị từ chối trở thành defect, rework hoặc Change Request tùy nguyên nhân.
+\end{enumerate}
+
+\figureplaceholder{ch02-scope-validation-flow.png}{Swimlane gồm Work Package Owner, QA, PM/Product Owner và Giảng viên/Stakeholder. Luồng từ hoàn thành, quality control, đối chiếu RTM, demo, Accepted/Rejected và cập nhật Acceptance Log.}{Quy trình xác nhận phạm vi và deliverable}{fig:scope-validation}
+
+\subsection{Hồ sơ và bằng chứng xác nhận}
+
+\begin{table}[H]
+\centering
+\caption{Bằng chứng xác nhận theo loại deliverable}
+\label{tab:acceptance-evidence}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}X}
+\toprule
+Deliverable & Bằng chứng phù hợp \\
+\midrule
+Tài liệu quản trị & Version, biên bản review, chữ ký/xác nhận và change history \\
+Source code & Pull request, commit/tag và code review \\
+Smart contract & Test report, deployment record và transaction hash \\
+Backend/API & Build/test log, Swagger hoặc response mẫu \\
+Frontend & Build log, screenshot/video và UAT checklist \\
+Tích hợp & E2E log, transaction/CID và defect record \\
+Bàn giao & Handover checklist, known issues và biên bản nghiệm thu \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Kết quả của xác nhận phạm vi}
+
+Đầu ra có thể là accepted deliverable, yêu cầu sửa lỗi, yêu cầu làm lại, Change Request hoặc cập nhật lessons learned. Nếu stakeholder đề xuất chức năng mới trong buổi demo, chức năng đó không tự động được thêm vào sprint; PM ghi nhận và chuyển qua quy trình Control Scope.
+
+\fi
+\section{Kiểm soát phạm vi}
+
+\subsection{Mục đích và đối tượng kiểm soát}
+
+Kiểm soát phạm vi theo dõi trạng thái Product Scope và Project Scope, đồng thời quản lý thay đổi đối với Scope Baseline. Các đối tượng được kiểm soát gồm requirement, acceptance criteria, deliverable, WBS, exclusions, assumption và interface có tác động liên module.
+
+Các dấu hiệu scope creep gồm:
+
+\begin{itemize}
+  \item Thành viên triển khai tính năng chưa có requirement hoặc issue được duyệt.
+  \item Stakeholder yêu cầu thêm chức năng nhưng không điều chỉnh lịch/chi phí.
+  \item Acceptance criteria thay đổi sau khi work package gần hoàn thành.
+  \item Công việc kiểm thử/tài liệu bị cắt để dành thời gian cho chức năng mới.
+  \item Một cải tiến kỹ thuật làm tăng phạm vi tích hợp nhưng không được đánh giá tác động.
+\end{itemize}
+
+\subsection{Quy trình Change Request}
+
+Mọi thành viên và stakeholder có thể đề xuất thay đổi. Quy trình xử lý gồm:
+
+\begin{enumerate}
+  \item Ghi Change Request với mô tả, lý do, giá trị mong đợi và người đề xuất.
+  \item BA/Technical Lead làm rõ yêu cầu, phương án và dependency.
+  \item PM điều phối đánh giá tác động tới scope, schedule, cost, quality, resource, risk, procurement và configuration.
+  \item Change Control Board quyết định Approve, Reject, Defer hoặc Request More Information.
+  \item Nếu duyệt, PM cập nhật baseline, RTM, WBS, backlog và kế hoạch liên quan trước khi triển khai.
+  \item Owner thực hiện; QA kiểm tra; PM đóng Change Request và cập nhật Change Log.
+\end{enumerate}
+
+\figureplaceholder{ch02-change-control-flow.png}{Flowchart từ Submit Change Request đến Clarify, Impact Analysis, CCB Decision. Các nhánh Approve, Reject, Defer; nhánh Approve cập nhật baseline, thực hiện, kiểm thử và đóng thay đổi.}{Quy trình kiểm soát thay đổi phạm vi}{fig:scope-change-control}
+
+\subsection{Phân loại và thẩm quyền phê duyệt}
+
+\begin{table}[H]
+\centering
+\caption{Phân loại thay đổi phạm vi}
+\label{tab:change-level}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.6cm}p{6cm}X}
+\toprule
+Mức & Tiêu chí & Thẩm quyền \\
+\midrule
+Làm rõ & Không thay đổi deliverable, effort hoặc acceptance intent & Product Owner/BA ghi nhận \\
+Minor & Tác động trong work package, không đổi milestone/Cost Baseline & PM và Product Owner \\
+Major & Thêm/bớt deliverable, đổi interface, milestone hoặc ngân sách & Change Control Board \\
+Emergency & Lỗi Critical ảnh hưởng tiền, secret hoặc quyền truy cập & PM/Technical Lead xử lý cô lập ngay; CCB review sau \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Không dùng quy trình emergency để hợp thức hóa tính năng mới. Emergency change chỉ áp dụng khi cần giảm thiểu thiệt hại hoặc khôi phục an toàn.
+
+\subsection{Phân tích tác động}
+
+Mỗi Change Request lớn phải trả lời tối thiểu:
+
+\begin{itemize}
+  \item Yêu cầu/deliverable/WBS nào bị thay đổi?
+  \item Cần thêm bao nhiêu effort, duration và chi phí?
+  \item Có ảnh hưởng critical path hoặc milestone 30/06/2026 không?
+  \item Có thay đổi quyền truy cập, dữ liệu, interface hoặc cấu hình không?
+  \item Cần test hồi quy và tài liệu nào?
+  \item Rủi ro mới, residual risk và contingency là gì?
+  \item Phải loại bỏ hoặc hoãn hạng mục nào để giữ nguyên baseline?
+\end{itemize}
+
+Nếu không đủ dữ liệu ước lượng, CCB không phê duyệt ngay mà yêu cầu spike/analysis time-boxed.
+
+\subsection{Ví dụ Change Request}
+
+Giả sử stakeholder đề xuất bổ sung KYC trong tuần thứ 8. Yêu cầu có giá trị về pháp lý nhưng làm phát sinh lựa chọn nhà cung cấp, xử lý dữ liệu cá nhân, UI mới, API mới, bảo mật, chi phí và kiểm thử. Đây là Major Change và có nguy cơ ảnh hưởng đường găng. Với baseline ba tháng, quyết định phù hợp là \textit{Defer} sang release sau, ghi vào Product Backlog và giữ KYC trong danh sách ngoài phạm vi.
+
+Ngược lại, thay đổi nội dung cảnh báo trước khi upload dữ liệu lên IPFS chỉ ảnh hưởng một màn hình, không đổi interface và có effort nhỏ. PM/Product Owner có thể phê duyệt như Minor Change nếu không ảnh hưởng sprint commitment.
+
+\subsection{Đo lường và báo cáo phạm vi}
+
+PM theo dõi các chỉ số sau mỗi tuần/sprint:
+
+\begin{itemize}
+  \item Tỷ lệ requirement Must Have ở các trạng thái Approved, Implemented, Tested và Accepted.
+  \item Số deliverable được chấp nhận/đến hạn.
+  \item Số Change Request mới, được duyệt, bị từ chối và đang chờ.
+  \item Effort rework do yêu cầu không rõ hoặc thay đổi muộn.
+  \item Số work item không truy vết được tới requirement/WBS.
+  \item Scope variance và tác động tới Schedule/Cost Baseline.
+\end{itemize}
+
+Trạng thái phạm vi được báo cáo theo RAG: Green khi không có sai lệch đáng kể; Amber khi có nguy cơ ảnh hưởng sprint/milestone nhưng còn phương án xử lý; Red khi deliverable bắt buộc hoặc ngày kết thúc bị đe dọa và cần quyết định của CCB.
+
+\subsection{Scope Baseline của dự án}
+
+Sau khi các nội dung trong chương được phê duyệt, Scope Baseline gồm:
+
+\begin{enumerate}
+  \item Project Scope Statement và Product Scope Statement tại Mục 2.3.
+  \item Danh sách deliverable, acceptance criteria, assumptions, constraints và exclusions.
+  \item WBS tổng quan tại Hình~\ref{fig:wbs-tree}; work package chi tiết được quản lý trong hồ sơ dự án.
+  \item Requirement Baseline và RTM liên quan.
+\end{enumerate}
+
+Baseline được đánh phiên bản 1.0 sau khi phê duyệt. Mọi phiên bản tiếp theo phải chỉ rõ Change Request đã được duyệt và ngày hiệu lực.
+
+\section{Kết luận chương}
+
+Chương II đã chuyển mục tiêu cấp cao của FundChain thành một hệ thống phạm vi có thể quản trị. Trọng tâm không nằm ở việc liệt kê càng nhiều chức năng càng tốt, mà ở khả năng truy vết nhu cầu thành deliverable, work package và bằng chứng nghiệm thu. Scope Statement xác định ranh giới; WBS và WBS Dictionary phân rã toàn bộ công việc; Validate Scope bảo đảm stakeholder chính thức chấp nhận kết quả; Control Scope ngăn thay đổi tùy tiện làm mất cân bằng thời gian, chi phí và chất lượng.
+
+Scope Baseline là đầu vào trực tiếp của Chương III khi đánh giá phương án đầu tư và của Chương IV khi xây dựng lịch biểu. Mọi ước lượng sau đó phải dựa trên phạm vi được xác định tại chương này, không dựa trên một danh sách tính năng không có owner hoặc acceptance criteria.

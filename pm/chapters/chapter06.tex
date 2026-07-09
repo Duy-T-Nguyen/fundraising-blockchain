@@ -1,0 +1,363 @@
+\chapter{QUẢN LÝ CHẤT LƯỢNG}
+
+Chất lượng là điều kiện để dự án biến phạm vi, thời gian và chi phí thành kết quả có thể chấp nhận được. Với FundChain, một deliverable chỉ được xem là hoàn thành khi vừa đáp ứng yêu cầu môn học về quản trị dự án, vừa đủ ổn định để chứng minh tính khả thi của sản phẩm gây dựng quỹ từ thiện bằng blockchain. Nếu dự án hoàn thành đúng hạn nhưng deliverable nhiều lỗi, thiếu bằng chứng kiểm thử hoặc không bảo đảm tính nhất quán giữa yêu cầu và kết quả thực tế, thì thành công đó chỉ mang tính hình thức.
+
+Trong bối cảnh dự án có thời lượng ba tháng, việc quản lý chất lượng càng quan trọng vì nhóm không có nhiều dư địa để sửa lỗi muộn. Những lỗi liên quan đến logic phân bổ quỹ, kiểm soát quyền, đồng bộ dữ liệu on-chain/off-chain hay trạng thái giao dịch nếu được phát hiện ở cuối kỳ sẽ kéo theo rework lớn, ảnh hưởng trực tiếp đến milestone tích hợp, UAT và bàn giao. Do đó, chương này tiếp cận chất lượng theo góc nhìn quản trị dự án: lập kế hoạch tiêu chuẩn, tổ chức bảo đảm chất lượng, kiểm soát chất lượng theo quality gate, theo dõi defect và tối ưu chi phí chất lượng.
+
+\iffalse
+\section{Tầm quan trọng của quản lý chất lượng}
+
+\subsection{Vai trò của chất lượng trong dự án}
+
+Quản lý chất lượng giúp dự án trả lời ba câu hỏi cốt lõi: deliverable cần đạt chuẩn nào, nhóm sẽ bảo đảm chuẩn đó bằng cách nào và ai có quyền xác nhận kết quả đạt yêu cầu. Nếu thiếu ba yếu tố này, dự án thường rơi vào tình trạng hoàn thành nhiều đầu việc nhưng không chứng minh được giá trị đầu ra.
+
+Đối với FundChain, chất lượng không chỉ là ít lỗi phần mềm. Chất lượng còn bao gồm:
+
+\begin{itemize}
+  \item mức độ phù hợp với mục tiêu của dự án và phạm vi đã baseline;
+  \item tính đúng đắn của các luồng nghiệp vụ như quyên góp, tạo yêu cầu chi, xác minh bằng chứng và giải ngân;
+  \item khả năng truy vết từ yêu cầu đến thiết kế, mã nguồn, kiểm thử và nghiệm thu;
+  \item mức độ sẵn sàng vận hành thử nghiệm, trình bày và bàn giao trong phạm vi môn học.
+\end{itemize}
+
+Nói cách khác, chất lượng là tiêu chí liên kết giữa Scope Baseline, Schedule Baseline và kết quả nghiệm thu. Khi nhóm định nghĩa đúng chất lượng ngay từ đầu, số lần sửa lại giảm, quyết định ưu tiên rõ ràng hơn và việc chấp nhận deliverable cũng minh bạch hơn.
+
+\subsection{Rủi ro nếu chất lượng không được quản trị}
+
+Trong dự án này, một số rủi ro chất lượng có tác động lớn gồm:
+
+\begin{itemize}
+  \item lỗi logic smart contract có thể khóa quỹ, giải ngân sai hoặc tạo hành vi ngoài dự kiến;
+  \item dữ liệu lệch giữa blockchain, backend và frontend làm giảm tính minh bạch của hệ thống;
+  \item trạng thái giao dịch hiển thị không rõ trên giao diện dễ khiến người dùng thao tác lặp hoặc hiểu sai kết quả;
+  \item kiểm thử không đầy đủ dẫn đến defect chỉ được phát hiện ở giai đoạn UAT;
+  \item bằng chứng nghiệm thu không đầy đủ khiến nhóm khó chứng minh deliverable đạt yêu cầu.
+\end{itemize}
+
+Những rủi ro này cho thấy quản lý chất lượng không thể chờ đến cuối dự án. Nó phải được tích hợp vào lập kế hoạch, thiết kế, phát triển, tích hợp và đóng dự án.
+
+\subsection{Mục tiêu chất lượng của dự án}
+
+Kế hoạch chất lượng của FundChain đặt ra các mục tiêu sau:
+
+\begin{enumerate}
+  \item 100\% deliverable chính có tiêu chí chấp nhận rõ ràng trước khi thực hiện.
+  \item Không còn lỗi mức Critical hoặc High trước khi bước vào nghiệm thu cuối.
+  \item Mọi thay đổi quan trọng đều có bằng chứng review, kiểm thử và cập nhật tài liệu liên quan.
+  \item Tỷ lệ hoàn thành Definition of Done ở mức tối thiểu 90\% theo từng sprint hoặc milestone.
+  \item Các luồng nghiệp vụ trọng yếu đều có test và bằng chứng nghiệm thu tương ứng.
+  \item Chất lượng được kiểm soát xuyên suốt dự án, không dồn kiểm tra vào cuối kỳ.
+\end{enumerate}
+
+\section{Cơ sở xác định chất lượng}
+
+\subsection{Nguồn đầu vào của tiêu chuẩn chất lượng}
+
+Tiêu chuẩn chất lượng của dự án được xác định từ nhiều nguồn, thay vì chỉ dựa trên cảm nhận của nhóm. Các đầu vào quan trọng gồm:
+
+\begin{itemize}
+  \item Project Charter và Scope Baseline;
+  \item bộ yêu cầu, use case, acceptance criteria và RTM;
+  \item kiến trúc giải pháp, quy tắc tích hợp và các interface baseline;
+  \item chuẩn lập trình, quy ước đặt tên, cấu trúc commit/pull request và tài liệu kỹ thuật;
+  \item checklist bảo mật, checklist triển khai và checklist nghiệm thu;
+  \item kết quả build, lint, test, review, UAT và phản hồi của giảng viên/người nghiệm thu.
+\end{itemize}
+
+Việc sử dụng nhiều nguồn giúp tiêu chuẩn chất lượng vừa có tính quản trị, vừa bám thực tế triển khai. Một deliverable không thể được xem là ``đạt'' nếu chỉ đúng về mặt kỹ thuật nhưng không khớp yêu cầu; ngược lại, một deliverable bám yêu cầu nhưng thiếu bằng chứng chất lượng cũng chưa đủ điều kiện chấp nhận.
+
+\subsection{Nguyên tắc xác định chất lượng}
+
+Các nguyên tắc chính được sử dụng trong dự án gồm:
+
+\begin{enumerate}
+  \item \textbf{Phù hợp mục đích sử dụng:} deliverable phải phục vụ đúng mục tiêu gây dựng quỹ từ thiện minh bạch và có thể trình bày trong phạm vi môn học.
+  \item \textbf{Ngăn ngừa hơn sửa lỗi muộn:} ưu tiên review, checklist và test sớm hơn là đợi đến cuối kỳ mới phát hiện lỗi.
+  \item \textbf{Dựa trên bằng chứng:} chất lượng được xác nhận bằng kết quả kiểm tra, báo cáo và minh chứng, không dựa trên nhận định cảm tính.
+  \item \textbf{Truy vết được:} yêu cầu, code, test và defect phải liên kết được với nhau.
+  \item \textbf{Cải tiến liên tục:} bài học từ defect và rework phải được phản hồi vào Definition of Done, checklist và cách phối hợp.
+\end{enumerate}
+
+\figureplaceholder{ch06-quality-foundation.png}{Sơ đồ thể hiện các nguồn hình thành chuẩn chất lượng gồm Charter/Scope Baseline, yêu cầu và acceptance criteria, chuẩn kỹ thuật, security checklist, test evidence và phản hồi nghiệm thu. Ở giữa là Quality Plan, đầu ra là metric, checklist, gate và bằng chứng kiểm soát.}{Cơ sở xác định chất lượng của dự án}{fig:quality-foundation}
+
+\section{Quy trình quản lý chất lượng}
+
+\subsection{Plan Quality Management}
+
+Ở bước lập kế hoạch chất lượng, nhóm xác định tiêu chuẩn, metric, quality gate, vai trò phê duyệt, phương pháp review và cách lưu bằng chứng. Đây là bước làm rõ ``chất lượng tốt trông như thế nào'' trước khi triển khai công việc.
+
+Đầu ra quan trọng của bước này gồm:
+
+\begin{itemize}
+  \item Quality Management Plan;
+  \item danh sách metric sản phẩm và metric quy trình;
+  \item Definition of Done và acceptance checklist;
+  \item kế hoạch kiểm thử theo lớp: unit, integration, system và UAT;
+  \item ngưỡng defect và cơ chế escalation.
+\end{itemize}
+
+\subsection{Manage Quality}
+
+Manage Quality là quá trình bảo đảm nhóm thực sự làm việc theo tiêu chuẩn đã đặt ra. Hoạt động này không chờ đến lúc có sản phẩm hoàn chỉnh mà diễn ra song song với thiết kế và phát triển. Trong dự án, các biện pháp bảo đảm chất lượng gồm:
+
+\begin{itemize}
+  \item review yêu cầu, thiết kế và interface trước khi code;
+  \item pull request review và kiểm tra tuân thủ coding convention;
+  \item rà soát rủi ro bảo mật và quyền truy cập đối với các luồng liên quan đến quỹ;
+  \item phân tích nguyên nhân gốc đối với defect lặp lại hoặc lỗi ảnh hưởng nhiều hạng mục;
+  \item cải tiến checklist, DoD hoặc test strategy sau mỗi milestone.
+\end{itemize}
+
+\subsection{Control Quality}
+
+Control Quality là quá trình đo lường và xác nhận deliverable thực tế có đạt tiêu chuẩn hay không. Ở bước này, nhóm sử dụng test result, bug report, UAT record, báo cáo build/lint, checklist và bằng chứng demo để quyết định chấp nhận, sửa lại hay chuyển trạng thái defect.
+
+Nếu deliverable không đạt quality gate, nhóm không được đánh dấu hoàn thành chỉ để giữ tiến độ hình thức. PM phải đánh giá tác động đến Schedule Baseline và kích hoạt hành động khắc phục tương ứng.
+
+\figureplaceholder{ch06-quality-management-process.png}{Sơ đồ quy trình Plan Quality Management, Manage Quality và Control Quality; thể hiện vòng phản hồi từ kết quả kiểm soát quay lại checklist, metric, Definition of Done và kế hoạch cải tiến.}{Quy trình quản lý chất lượng của dự án}{fig:quality-process}
+
+\fi
+\section{Kế hoạch quản lý chất lượng}
+
+\subsection{Metric sản phẩm}
+
+Metric sản phẩm được dùng để đánh giá chất lượng đầu ra hữu hình của dự án. Bảng~\ref{tab:product-quality-metrics} tổng hợp các chỉ số chính.
+
+\begin{longtable}{p{4.2cm}p{3.2cm}p{5.2cm}}
+\caption{Metric chất lượng sản phẩm}\label{tab:product-quality-metrics}\\
+\toprule
+\textbf{Metric} & \textbf{Ngưỡng mục tiêu} & \textbf{Ý nghĩa quản trị} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Metric} & \textbf{Ngưỡng mục tiêu} & \textbf{Ý nghĩa quản trị} \\
+\midrule
+\endhead
+Test pass rate & $\geq$ 95\% trong bộ test hợp lệ & Phản ánh mức ổn định của deliverable trước khi chuyển gate \\
+Coverage logic cốt lõi & $\geq$ 80\% statement coverage cho phần quan trọng & Bảo đảm các luồng tài chính và quyền truy cập được kiểm thử ở mức tối thiểu \\
+Defect tồn đọng trước nghiệm thu & 0 Critical/High; Medium có owner; Low ghi backlog & Tạo ngưỡng chấp nhận rõ ràng trước UAT/bàn giao \\
+API response time & Thông thường $\leq$ 2 giây ở môi trường thử nghiệm ổn định & Hạn chế trải nghiệm chậm gây hiểu nhầm trạng thái hệ thống \\
+Thời gian hiển thị nội dung ban đầu & $\leq$ 3 giây với trang chính & Kiểm soát mức sẵn sàng trình diễn và sử dụng thử \\
+Tính nhất quán trạng thái sự kiện & 100\% sự kiện trọng yếu có dữ liệu hiển thị tương ứng & Bảo đảm minh bạch giữa blockchain, backend và giao diện \\
+UAT acceptance rate & $\geq$ 90\% kịch bản đạt ngay vòng đầu & Đo mức trưởng thành của deliverable trước khi đóng dự án \\
+\bottomrule
+\end{longtable}
+
+Những metric này không chỉ phục vụ kiểm thử kỹ thuật mà còn giúp PM đưa ra quyết định quản trị. Ví dụ, nếu UAT acceptance rate thấp, vấn đề không còn là ``một số bug nhỏ'' mà là tín hiệu cho thấy deliverable chưa sẵn sàng để chốt milestone.
+
+\subsection{Metric quy trình}
+
+Khác với metric sản phẩm, metric quy trình phản ánh cách nhóm tạo ra chất lượng. Bảng~\ref{tab:process-quality-metrics} trình bày các chỉ số theo dõi chính.
+
+\begin{table}[H]
+\centering
+\caption{Metric chất lượng quy trình}
+\label{tab:process-quality-metrics}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}p{3cm}X}
+\toprule
+Metric & Ngưỡng mục tiêu & Ý nghĩa quản trị \\
+\midrule
+Tỷ lệ task đạt Definition of Done & $\geq$ 90\% & Kiểm tra mức tuân thủ chuẩn hoàn thành \\
+Review turnaround time & $\leq$ 24 giờ làm việc & Giảm tắc nghẽn và tránh tồn đọng PR \\
+Build success rate & $\geq$ 95\% & Phản ánh độ ổn định của pipeline và cấu hình \\
+Defect leakage & Giảm dần qua các milestone & Đo số lỗi lọt sang giai đoạn sau do kiểm soát chưa đủ sớm \\
+Defect reopen rate & $\leq$ 10\% & Đánh giá chất lượng sửa lỗi và retest \\
+Tỷ lệ traceability đầy đủ & 100\% với luồng trọng yếu & Bảo đảm yêu cầu, test và bằng chứng có thể đối chiếu \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Definition of Done}
+
+Definition of Done là hàng rào chất lượng tối thiểu trước khi một task, user story hoặc work package được xem là hoàn thành. Với FundChain, DoD gồm các điểm sau:
+
+\begin{enumerate}
+  \item Yêu cầu và acceptance criteria đã được làm rõ.
+  \item Mã nguồn hoặc deliverable đã hoàn thành theo phạm vi được phê duyệt.
+  \item Đã có review phù hợp với mức độ rủi ro của thay đổi.
+  \item Test liên quan đã được thêm hoặc cập nhật và kết quả đạt yêu cầu.
+  \item Build/lint/configuration kiểm tra thành công.
+  \item Tài liệu, ABI, địa chỉ, cấu hình hoặc hướng dẫn liên quan đã được cập nhật nếu có thay đổi.
+  \item Không còn secret, cấu hình nguy hiểm hoặc cảnh báo nghiêm trọng chưa được xử lý.
+  \item Bằng chứng hoàn thành đã được lưu để phục vụ kiểm soát và nghiệm thu.
+\end{enumerate}
+
+DoD giúp ngăn tình trạng ``xong về mặt cá nhân nhưng chưa xong về mặt dự án''. Đây là công cụ quản trị rất quan trọng để duy trì chất lượng trong điều kiện tiến độ ngắn.
+
+\subsection{Quality gate theo giai đoạn}
+
+Để tránh phát hiện vấn đề quá muộn, dự án sử dụng quality gate tại các cột mốc chính. Bảng~\ref{tab:quality-gates} mô tả các gate quan trọng.
+
+\begin{longtable}{p{3.2cm}p{5.3cm}p{4.2cm}}
+\caption{Quality gate theo giai đoạn}\label{tab:quality-gates}\\
+\toprule
+\textbf{Giai đoạn} & \textbf{Điều kiện qua gate} & \textbf{Bằng chứng yêu cầu} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Giai đoạn} & \textbf{Điều kiện qua gate} & \textbf{Bằng chứng yêu cầu} \\
+\midrule
+\endhead
+Phạm vi/yêu cầu & Use case, RTM, acceptance criteria và WBS nhất quán & Biên bản review, RTM, baseline được duyệt \\
+Thiết kế & Kiến trúc, interface, dữ liệu và test approach đã rà soát & Tài liệu thiết kế, checklist review, quyết định kỹ thuật \\
+Phát triển lõi & Luồng quan trọng có unit test và review chéo & PR review, test result, log build/lint \\
+Tích hợp & Luồng end-to-end chạy ổn định, defect trọng yếu đã xử lý & Test report, defect log, demo nội bộ \\
+UAT/triển khai & Không còn lỗi Critical/High, có runbook và bằng chứng UAT & UAT checklist, release note, deployment record \\
+Bàn giao & Tài liệu, minh chứng, known issues và kết luận đầy đủ & Hồ sơ bàn giao, demo, báo cáo tổng hợp \\
+\bottomrule
+\end{longtable}
+
+\iffalse
+\section{Đảm bảo chất lượng}
+
+\subsection{Hoạt động bảo đảm chất lượng}
+
+Đảm bảo chất lượng tập trung vào việc cải thiện quy trình để lỗi ít xuất hiện ngay từ đầu. Dự án triển khai các hoạt động chính sau:
+
+\begin{itemize}
+  \item review yêu cầu và acceptance criteria trước khi phân công phát triển;
+  \item review thiết kế đối với thay đổi có ảnh hưởng đến nhiều hợp phần;
+  \item pull request review cho các thay đổi về logic, dữ liệu, giao diện và cấu hình;
+  \item kiểm tra checklist bảo mật, phân quyền, dependency và version;
+  \item traceability audit giữa yêu cầu, test và bằng chứng nghiệm thu;
+  \item retrospective sau milestone để rút kinh nghiệm và cập nhật quy trình.
+\end{itemize}
+
+Điểm quan trọng của bảo đảm chất lượng là nhóm không chỉ hỏi ``lỗi ở đâu'' mà còn hỏi ``vì sao lỗi lọt qua'' và ``quy trình nào cần cải tiến để tránh lặp lại''.
+
+\subsection{Vai trò trong đảm bảo chất lượng}
+
+PM chịu trách nhiệm tích hợp kế hoạch chất lượng vào tiến độ tổng thể, theo dõi threshold và escalation. QA/Tester là đầu mối điều phối test plan, bằng chứng test và defect log. Technical Lead chịu trách nhiệm review các thay đổi có tác động kiến trúc hoặc bảo mật. BA/PM hỗ trợ xác nhận acceptance criteria và truy vết yêu cầu. Giảng viên/người nghiệm thu là bên chấp nhận ở mức cuối cùng đối với deliverable môn học.
+
+Việc phân vai như vậy giúp chất lượng không bị đẩy hết về một người kiểm thử ở cuối kỳ. Trách nhiệm chất lượng được phân tán theo đúng bản chất quản trị dự án: người tạo ra deliverable chịu trách nhiệm chất lượng đầu vào, còn người kiểm soát chịu trách nhiệm độc lập xác minh.
+
+\fi
+\section{Kiểm soát chất lượng}
+
+\subsection{Kiểm soát theo lớp kiểm thử}
+
+Hoạt động kiểm soát chất lượng được phân theo nhiều lớp để phát hiện lỗi sớm và giới hạn phạm vi ảnh hưởng:
+
+\begin{itemize}
+  \item \textbf{Kiểm thử đơn vị:} xác minh logic của từng module hoặc hàm quan trọng.
+  \item \textbf{Kiểm thử tích hợp:} xác minh giao tiếp giữa smart contract, backend, IPFS/relayer và frontend.
+  \item \textbf{Kiểm thử hệ thống:} kiểm tra luồng nghiệp vụ hoàn chỉnh từ đầu đến cuối.
+  \item \textbf{UAT:} kiểm tra deliverable dưới góc nhìn người dùng và bên chấp nhận.
+\end{itemize}
+
+\subsection{Phạm vi kiểm soát chất lượng chính}
+
+Các nhóm kịch bản kiểm soát chất lượng trọng yếu gồm:
+
+\begin{enumerate}
+  \item Luồng tạo chiến dịch, phê duyệt và công bố chiến dịch.
+  \item Luồng quyên góp, ghi nhận lịch sử và cập nhật trạng thái liên quan.
+  \item Luồng tạo yêu cầu chi, khóa ngân sách, xác minh bằng chứng và giải ngân.
+  \item Luồng biểu quyết hoặc xác thực đối với yêu cầu chi theo quy tắc của hệ thống.
+  \item Luồng từ chối, hủy, hết hạn hoặc hoàn tiền trong các tình huống ngoại lệ.
+  \item Luồng relayer/batch/sign intent và đồng bộ kết quả on-chain với giao diện.
+  \item Luồng dashboard theo vai trò và kiểm soát quyền truy cập.
+\end{enumerate}
+
+Những kịch bản trên được ưu tiên vì chúng gắn trực tiếp với giá trị của dự án và có tác động lớn nhất đến cảm nhận chất lượng của người dùng.
+
+\subsection{Quy trình quản lý defect}
+
+Defect được quản lý theo vòng đời chuẩn để bảo đảm trách nhiệm rõ ràng và minh chứng đầy đủ:
+
+\begin{center}
+New $\rightarrow$ Triaged $\rightarrow$ Assigned $\rightarrow$ Fixed $\rightarrow$ Retest $\rightarrow$ Closed/Reopened
+\end{center}
+
+Trong đó:
+
+\begin{itemize}
+  \item \textbf{New:} lỗi vừa được ghi nhận;
+  \item \textbf{Triaged:} QA/PM đánh giá mức độ nghiêm trọng, mức ưu tiên và phạm vi ảnh hưởng;
+  \item \textbf{Assigned:} lỗi được giao owner xử lý;
+  \item \textbf{Fixed:} owner hoàn thành sửa lỗi và cung cấp bằng chứng;
+  \item \textbf{Retest:} QA hoặc người phù hợp kiểm tra lại;
+  \item \textbf{Closed/Reopened:} đóng lỗi nếu đạt hoặc mở lại nếu lỗi chưa được xử lý dứt điểm.
+\end{itemize}
+
+Bảng~\ref{tab:defect-severity} quy định mức độ lỗi và thời gian phản hồi nội bộ.
+
+\begin{table}[H]
+\centering
+\caption{Mức độ lỗi và SLA nội bộ}
+\label{tab:defect-severity}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}p{6cm}X}
+\toprule
+Mức độ & Mô tả & SLA nội bộ \\
+\midrule
+Critical & Gây mất chức năng cốt lõi, rủi ro quỹ, sai quyền hoặc chặn toàn bộ luồng chính & Có biện pháp cô lập/sửa trong 4 giờ làm việc \\
+High & Ảnh hưởng nghiêm trọng đến một luồng nghiệp vụ trọng yếu nhưng còn workaround hạn chế & Xử lý trong 1 ngày làm việc \\
+Medium & Ảnh hưởng một phần chức năng, chưa chặn toàn bộ luồng & Xử lý trong 3 ngày làm việc \\
+Low & Lỗi nhỏ, hiển thị hoặc cải tiến không khẩn cấp & Ghi backlog kỳ kế tiếp hoặc trước bàn giao nếu có thể \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figureplaceholder{ch06-defect-lifecycle.png}{Lưu đồ defect lifecycle từ New, Triaged, Assigned, Fixed, Retest đến Closed hoặc Reopened; thể hiện nhánh escalation đối với lỗi Critical/High.}{Vòng đời xử lý lỗi của dự án}{fig:defect-lifecycle}
+
+\subsection{Ngưỡng kiểm soát và hành động khắc phục}
+
+Dự án sử dụng ba mức cảnh báo chất lượng:
+
+\begin{itemize}
+  \item \textbf{Mức xanh:} metric trong ngưỡng, milestone tiếp tục như kế hoạch.
+  \item \textbf{Mức vàng:} có dấu hiệu lệch ngưỡng như defect leakage tăng, review chậm hoặc build fail lặp lại; PM yêu cầu hành động khắc phục trong sprint.
+  \item \textbf{Mức đỏ:} còn lỗi Critical/High gần gate, UAT không đạt, hoặc deliverable không đủ bằng chứng chất lượng; milestone bị giữ lại cho đến khi đóng issue trọng yếu hoặc có quyết định thay đổi chính thức.
+\end{itemize}
+
+Hành động khắc phục có thể gồm bổ sung review chéo, tăng test cho luồng rủi ro cao, điều chỉnh phân công, tách nhỏ phạm vi sửa lỗi hoặc lùi hoạt động sau nếu cần. Điều quan trọng là không đánh đổi chất lượng cốt lõi chỉ để bảo vệ tiến độ bề ngoài.
+
+\subsection{Công cụ kiểm soát chất lượng trong thực nghiệm}
+
+Để phần kiểm soát chất lượng không dừng ở checklist hình thức, nhóm mô phỏng một check sheet tại giai đoạn tích hợp cuối tháng 5. Dữ liệu này dùng để minh họa cách PM và QA ưu tiên xử lý lỗi trước UAT.
+
+\begin{table}[H]
+\centering
+\caption{Check sheet lỗi tích hợp và UAT giả lập}
+\label{tab:quality-checksheet}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}c X>{\raggedright\arraybackslash}p{3.3cm}}
+\toprule
+Nhóm lỗi & Số lỗi & Ví dụ quan sát & Hành động kiểm soát \\
+\midrule
+UI validation & 4 & Form campaign/donation cho phép nhập thiếu hoặc sai định dạng & Bổ sung validation checklist trước demo \\
+ABI/address mismatch & 3 & Frontend hoặc listener gọi sai contract address sau redeploy & Khóa address registry và cập nhật env template \\
+Documentation gap & 3 & Runbook thiếu biến môi trường hoặc thiếu bước verify contract & Review tài liệu bằng checklist bàn giao \\
+Access control & 2 & Role không đúng khi approve hoặc release fund & Thêm negative test và review quyền \\
+RPC/IPFS timeout & 2 & Metadata hoặc event sync chậm trong lúc demo & Chuẩn bị retry/fallback và dữ liệu demo dự phòng \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Theo nguyên tắc Pareto, hai nhóm lỗi đầu tiên chiếm khoảng một nửa số lỗi quan sát được. Vì vậy, trước UAT nhóm ưu tiên sửa validation và chuẩn hóa ABI/address thay vì phân tán effort cho các lỗi nhỏ. Với lỗi tích hợp nghiêm trọng, nhóm dùng sơ đồ nguyên nhân--kết quả ở mức gọn: \textit{People} là review chéo chưa đều; \textit{Process} là chưa khóa ABI trước khi tích hợp; \textit{Tool} là thiếu env template; \textit{Technology} là Sepolia/RPC biến động; \textit{Requirement} là acceptance criteria chưa đủ chi tiết. Hành động cải tiến tương ứng là cập nhật Definition of Done, bổ sung integration checklist và yêu cầu mọi redeploy phải đi kèm contract address, ABI hash, migration note và regression result.
+
+\iffalse
+\section{Chi phí chất lượng}
+
+\subsection{Cấu phần chi phí chất lượng}
+
+Chi phí chất lượng của dự án được chia thành bốn nhóm:
+
+\begin{enumerate}
+  \item \textbf{Prevention cost:} chi phí phòng ngừa như phân tích yêu cầu, thiết kế, đào tạo, review, checklist và chuẩn hóa quy trình.
+  \item \textbf{Appraisal cost:} chi phí đánh giá như kiểm thử, rà soát, build, lint, demo nội bộ và UAT.
+  \item \textbf{Internal failure cost:} chi phí do lỗi phát hiện trước bàn giao như debug, rework, test lại và trễ nội bộ.
+  \item \textbf{External failure cost:} chi phí do lỗi phát hiện sau khi trình diễn/nghiệm thu như sửa gấp, hỗ trợ bổ sung, giảm uy tín và ảnh hưởng đến kết quả học tập.
+\end{enumerate}
+
+\subsection{Định hướng phân bổ}
+
+Với dự án thời gian ngắn, chiến lược phù hợp là đầu tư tương đối nhiều cho prevention và appraisal nhằm giảm internal failure và đặc biệt là external failure. Chi phí review, test và chuẩn hóa ban đầu có thể làm tiến độ có vẻ chậm hơn trong ngắn hạn, nhưng lại giúp dự án tránh những đợt rework lớn ở giai đoạn cuối.
+
+Ở góc nhìn quản trị dự án, chi phí chất lượng không phải ``chi phí phụ''. Đây là khoản đầu tư để bảo vệ milestone, ngân sách và khả năng chấp nhận deliverable. Nếu tiết kiệm quá mức ở khâu chất lượng, dự án thường trả giá bằng rework, chậm tiến độ và áp lực bàn giao.
+
+\fi
+\section{Kết luận chương}
+
+Chương VI đã xây dựng kế hoạch quản lý chất lượng cho dự án FundChain theo đúng trọng tâm của môn Quản trị dự án. Nội dung chương không dừng ở kiểm thử kỹ thuật, mà bao quát toàn bộ chuỗi quản trị chất lượng: xác định tiêu chuẩn, thiết lập metric, tổ chức bảo đảm chất lượng, kiểm soát bằng quality gate, quản lý defect và nhận diện chi phí chất lượng. Nhờ đó, chất lượng được xem là một biến quản trị có thể lập kế hoạch, theo dõi và điều chỉnh, thay vì chỉ là kết quả ngẫu nhiên sau khi hoàn thành sản phẩm.
+
+Đối với FundChain, chất lượng tốt không có nghĩa là hệ thống phải hoàn hảo tuyệt đối trong phạm vi một đồ án môn học, mà là mọi deliverable trọng yếu đều đạt mức tin cậy đủ để minh chứng tính khả thi, minh bạch và khả năng vận hành của giải pháp. Khi chất lượng được quản lý đúng, dự án có cơ sở vững hơn để bước sang các nội dung truyền thông, rủi ro, mua sắm và tích hợp ở các chương tiếp theo.

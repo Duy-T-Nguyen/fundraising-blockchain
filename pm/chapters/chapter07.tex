@@ -1,0 +1,546 @@
+\chapter{QUẢN LÝ NGUỒN LỰC}
+
+Nguồn nhân lực là yếu tố quyết định khả năng chuyển Scope Baseline thành deliverable đúng thời hạn và chất lượng. Với FundChain, khó khăn không nằm ở số lượng công nghệ được sử dụng, mà ở việc dự án cần nhiều nhóm năng lực khác nhau trong thời gian ba tháng: quản trị và phân tích, phát triển sản phẩm, kiểm thử, tích hợp, triển khai và tài liệu. Đặc biệt, nguồn lực của đề tài được chia thành hai lớp: Nhóm 2 gồm ba sinh viên chịu trách nhiệm lập kế hoạch, theo dõi và hoàn thiện báo cáo môn học; song song đó, sản phẩm kỹ thuật là đầu vào được xây dựng bởi một đội sáu thành viên ẩn danh. Nếu ranh giới trách nhiệm giữa hai lớp nguồn lực này không được xác định rõ, báo cáo dễ nhầm lẫn giữa người quản trị dự án và người trực tiếp phát triển sản phẩm.
+
+Chương này xây dựng kế hoạch quản lý nguồn nhân lực theo hướng phù hợp với tiểu luận môn Quản trị dự án. Nội dung tập trung vào cách hoạch định, huy động, phát triển, quản lý và kiểm soát nguồn lực. Chi tiết kỹ thuật chỉ được dùng để xác định nhu cầu năng lực và phân bổ công việc, không phải trọng tâm của chương.
+
+\iffalse
+\section{Tầm quan trọng của nguồn nhân lực trong dự án}
+
+\subsection{Vai trò của quản lý nguồn nhân lực}
+
+Quản lý nguồn nhân lực giúp dự án bảo đảm đúng người, đúng kỹ năng và đúng mức độ sẵn sàng cho từng work package. Một kế hoạch tốt phải trả lời được các câu hỏi: dự án cần những vai trò nào, ai chịu trách nhiệm cuối cùng, thời điểm nào cần huy động từng năng lực, tải công việc có cân bằng không, nhóm giải quyết xung đột như thế nào và tri thức được lưu giữ ra sao.
+
+Đối với dự án ba tháng, sai lệch nguồn lực nhanh chóng tác động tới Schedule Baseline. Nếu một thành viên duy nhất phụ trách hợp phần nằm trên đường găng, việc thành viên đó bận học, gặp lỗi khó hoặc nghỉ đột xuất có thể làm chậm toàn bộ mốc tích hợp. Ngược lại, phân công quá nhiều người cho cùng một work package mà không có ranh giới trách nhiệm làm tăng chi phí phối hợp và nguy cơ công việc trùng lặp.
+
+Quản lý nguồn nhân lực còn ảnh hưởng trực tiếp đến chất lượng. Những công việc liên quan tới tiền, phân quyền và cấu hình triển khai cần review chéo; người viết code không nên là người duy nhất xác nhận kết quả. QA, reviewer và người chấp nhận deliverable phải được xác định trong RACI và Definition of Done.
+
+\subsection{Đặc điểm nguồn lực của dự án}
+
+Dự án sử dụng mô hình nguồn lực bán thời gian và được quản lý theo hai nhóm. Nhóm học thuật công khai gồm ba sinh viên Nguyễn Thành Long, Đỗ Nguyễn Phương Thảo và Hoàng Lê Việt Hà. Nhóm này chịu trách nhiệm lập kế hoạch quản trị, theo dõi tiến độ, tổng hợp minh chứng, đánh giá rủi ro và hoàn thiện báo cáo môn học. Nhóm kỹ thuật gồm sáu thành viên ẩn danh chịu trách nhiệm xây dựng các hợp phần blockchain, backend, frontend, kiểm thử và triển khai sản phẩm.
+
+Baseline nhân công của toàn dự án được giả định là 960 giờ trong ba tháng. Trong đó, khoảng 240 giờ dành cho hoạt động quản trị, theo dõi và hoàn thiện hồ sơ học thuật của Nhóm 2; 720 giờ còn lại dành cho hoạt động phân tích kỹ thuật, phát triển, tích hợp, kiểm thử và bàn giao sản phẩm của đội kỹ thuật. Đây là giả định quản trị để lập lịch và chi phí, không phải dữ liệu chấm công thực tế.
+
+Các đặc điểm chính gồm:
+
+\begin{itemize}
+  \item Ba sinh viên của Nhóm 2 phải cân bằng dự án với lịch học, thi và các nghĩa vụ học tập khác.
+  \item Đội kỹ thuật sáu người không công khai danh tính, vì vậy việc quản trị được thực hiện chủ yếu theo vai trò thay vì theo tên cá nhân.
+  \item Một người có thể đảm nhiệm nhiều vai trò, nhưng mỗi deliverable chỉ có một người Accountable.
+  \item Năng lực ban đầu không đồng đều; cần đào tạo chéo và review để giảm key-person risk.
+  \item Giao tiếp chủ yếu trực tuyến, vì vậy quyết định và phân công phải được ghi lại trên công cụ chung.
+  \item Nguồn lực hạ tầng và tài khoản dịch vụ cũng cần owner, dù chương này tập trung vào con người.
+\end{itemize}
+
+\subsection{Mục tiêu quản lý nguồn nhân lực}
+
+Kế hoạch đặt ra các mục tiêu sau:
+
+\begin{enumerate}
+  \item 100\% work package có một owner chịu trách nhiệm và ít nhất một người có thể hỗ trợ hoặc review đối với công việc trọng yếu.
+  \item Không thành viên nào được phân bổ vượt 100\% khả năng sẵn sàng trong hai tuần liên tiếp mà chưa có phương án điều chỉnh.
+  \item Mỗi hợp phần quan trọng có tài liệu bàn giao và backup person trước giai đoạn UAT.
+  \item Mọi xung đột ảnh hưởng sprint hoặc milestone được ghi nhận, xử lý và theo dõi action item.
+  \item Đánh giá hiệu suất dựa trên deliverable, chất lượng và hợp tác; không chỉ dựa trên số commit hoặc số giờ báo cáo.
+  \item Tri thức quan trọng được chuyển từ cá nhân sang tài sản chung của nhóm trước khi đóng dự án.
+\end{enumerate}
+
+\section{Quy trình quản lý nguồn nhân lực dự án}
+
+\subsection{Các quy trình chính}
+
+Quản lý nguồn lực được thực hiện xuyên suốt vòng đời dự án qua sáu hoạt động:
+
+\begin{enumerate}
+  \item \textbf{Lập kế hoạch quản lý nguồn lực:} xác định vai trò, quyền hạn, trách nhiệm, cơ cấu báo cáo và quy tắc làm việc.
+  \item \textbf{Ước lượng nguồn lực hoạt động:} xác định loại kỹ năng, số giờ và thời điểm cần thiết cho activity/work package.
+  \item \textbf{Huy động nguồn lực:} phân công thành viên, cấp quyền truy cập và chuẩn bị công cụ.
+  \item \textbf{Phát triển nhóm:} nâng cao kỹ năng, niềm tin, khả năng phối hợp và mức độ thay thế lẫn nhau.
+  \item \textbf{Quản lý nhóm:} theo dõi hiệu suất, phản hồi, xử lý vấn đề và xung đột.
+  \item \textbf{Kiểm soát nguồn lực:} so sánh phân bổ thực tế với kế hoạch, điều chỉnh quá tải và bảo vệ milestone.
+\end{enumerate}
+
+\figureplaceholder{ch07-resource-management-process.png}{Sơ đồ vòng đời gồm Plan Resource Management, Estimate Activity Resources, Acquire Resources, Develop Team, Manage Team và Control Resources. Thể hiện các vòng phản hồi từ Control/Manage về kế hoạch và phân bổ.}{Quy trình quản lý nguồn nhân lực của dự án}{fig:resource-process}
+
+\subsection{Đầu vào và đầu ra}
+
+WBS, Schedule Baseline, Cost Baseline, Risk Register và stakeholder requirements là đầu vào chính. Từ đó, chương này tạo ra Resource Management Plan, cơ cấu tổ chức, role description, RACI, competency matrix, resource calendar, team charter, kế hoạch đào tạo và phương pháp đánh giá hiệu suất.
+
+Các tài liệu không tồn tại độc lập. Khi lịch biểu thay đổi, resource calendar và tải công việc phải được cập nhật. Khi thiếu kỹ năng, kế hoạch đào tạo hoặc phân công phải thay đổi. Khi bổ sung vai trò hoặc dịch vụ thuê ngoài, Cost Baseline và Procurement Plan có thể bị ảnh hưởng.
+
+\subsection{Chu kỳ theo dõi}
+
+PM kiểm tra nguồn lực ở ba cấp:
+
+\begin{itemize}
+  \item \textbf{Hằng ngày:} thành viên cập nhật tiến độ, thời gian dự kiến còn lại và blocker theo hình thức bất đồng bộ.
+  \item \textbf{Hai lần mỗi tuần:} nhóm rà soát tải công việc, dependency và nhu cầu hỗ trợ.
+  \item \textbf{Cuối sprint:} PM so sánh planned effort với actual effort, cập nhật năng lực, đánh giá phối hợp và điều chỉnh sprint kế tiếp.
+\end{itemize}
+
+Những thay đổi phân công nhỏ trong cùng sprint do PM điều phối. Nếu thay đổi làm ảnh hưởng milestone, chi phí hoặc Scope Baseline, PM phải thực hiện phân tích tác động và Change Control.
+
+\fi
+\section{Kế hoạch quản lý nguồn nhân lực}
+
+\subsection{Cơ cấu tổ chức dự án}
+
+Cơ cấu tổ chức theo dạng projectized thu nhỏ: giảng viên/người nghiệm thu giữ vai trò sponsor và chấp nhận kết quả; Nhóm 2 là đầu mối quản trị dự án trong phạm vi môn học; đội kỹ thuật sáu người là nguồn lực thực hiện sản phẩm. Vì báo cáo tập trung vào quản trị dự án, tên của ba sinh viên được công khai, còn đội kỹ thuật được quản lý theo vai trò chức năng. Một thành viên có thể mang nhiều ``mũ'', nhưng khi thực hiện từng work package phải xác định rõ đang hành động theo vai trò nào.
+
+\figureplaceholder{ch07-project-organization-chart.png}{Sơ đồ tổ chức: Giảng viên/Người nghiệm thu ở cấp định hướng; Nhóm 2 ở lớp quản trị học thuật; đội kỹ thuật sáu người ẩn danh ở lớp thực hiện sản phẩm. Bên trong lớp kỹ thuật thể hiện các vai trò Product Owner/BA, Technical Lead, Frontend, Backend/AI, Blockchain, QA/Tester và DevOps/Documentation; dùng nét đứt cho vai trò có thể kiêm nhiệm.}{Cơ cấu tổ chức dự án FundChain}{fig:project-organization}
+
+\subsection{Nhân sự công khai của Nhóm 2}
+
+Trong phạm vi tiểu luận, ba sinh viên sau là nhân sự được công khai và chịu trách nhiệm trực tiếp về phần lập kế hoạch, theo dõi và hoàn thiện báo cáo môn học:
+
+\begin{table}[H]
+\centering
+\caption{Danh sách sinh viên thực hiện tiểu luận}
+\label{tab:student-team}
+\begin{tabularx}{\textwidth}{c X p{4cm} X}
+\toprule
+\textbf{STT} & \textbf{Họ và tên} & \textbf{Mã số sinh viên} & \textbf{Phạm vi tham gia trong báo cáo} \\
+\midrule
+1 & Nguyễn Thành Long & 022205011246 & Tham gia lập kế hoạch, tổng hợp tài liệu, theo dõi tiến độ và hoàn thiện báo cáo \\
+2 & Đỗ Nguyễn Phương Thảo & 036305010922 & Tham gia phân tích nội dung, rà soát minh chứng và hoàn thiện báo cáo \\
+3 & Hoàng Lê Việt Hà & 044305005437 & Tham gia tổng hợp dữ liệu dự án, kiểm tra tính nhất quán và hoàn thiện báo cáo \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Ba sinh viên trên không được hiểu mặc định là toàn bộ đội phát triển sản phẩm. Trong Chương VII, khi xuất hiện các vai trò như Blockchain Developer, Backend/AI Developer hay Frontend Developer, đó là vai trò quản trị của đội kỹ thuật sáu người ẩn danh.
+
+\iffalse
+\subsection{Mô tả vai trò và trách nhiệm}
+
+\begin{longtable}{p{3.1cm}p{5.7cm}p{4.3cm}}
+\caption{Mô tả vai trò trong dự án}\label{tab:role-description}\\
+\toprule
+\textbf{Vai trò} & \textbf{Trách nhiệm chính} & \textbf{Quyền hạn/đầu ra} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Vai trò} & \textbf{Trách nhiệm chính} & \textbf{Quyền hạn/đầu ra} \\
+\midrule
+\endhead
+Giảng viên/người nghiệm thu & Định hướng, phản hồi tại milestone và xác nhận sản phẩm môn học & Phê duyệt/chấp nhận deliverable cấp cao \\
+Project Manager & Tích hợp kế hoạch, điều phối nguồn lực, theo dõi baseline, rủi ro và thay đổi & Project plan, status report, quyết định điều phối \\
+Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu và duy trì RTM/backlog & Requirement baseline và acceptance intent \\
+Technical Lead & Duy trì kiến trúc, interface, chuẩn kỹ thuật và review thay đổi có tác động rộng & Technical decision và integration gate \\
+Blockchain Developer & Thực hiện và kiểm thử logic quản lý quỹ/quyền truy cập & Contract module, test và deployment support \\
+Backend/AI Developer & Thực hiện API, dữ liệu, thông báo, relayer và sidecar & Backend services, API test và runbook \\
+Frontend Developer & Thực hiện giao diện, wallet flow, dashboard và tích hợp & Frontend build, UI test và demo \\
+QA/Tester & Lập test plan, thiết kế test, triage defect và cung cấp bằng chứng chất lượng & Test report, UAT checklist và quality recommendation \\
+DevOps và tài liệu & Quản lý cấu hình, môi trường, build/deploy và tài liệu bàn giao & Release record, env template, hướng dẫn \\
+\bottomrule
+\end{longtable}
+
+Các vai trò Blockchain, Backend/AI, Frontend, QA và DevOps được phân bổ trong đội kỹ thuật sáu người và có thể kiêm nhiệm tùy giai đoạn. Tuy nhiên, người triển khai một thay đổi tài chính quan trọng không được là reviewer duy nhất của chính thay đổi đó. PM và Technical Lead phải bố trí review chéo trước quality gate.
+
+\fi
+\subsection{Ma trận RACI}
+
+RACI quy định bốn mức trách nhiệm: Responsible là người trực tiếp thực hiện; Accountable là người chịu trách nhiệm cuối cùng và phê duyệt kết quả; Consulted là người được tham vấn hai chiều; Informed là người nhận thông tin. Mỗi hạng mục chỉ có một Accountable để tránh mơ hồ.
+
+\begin{landscape}
+\begin{longtable}{p{4.3cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}}
+\caption{Ma trận RACI của dự án}\label{tab:raci}\\
+\toprule
+\textbf{Hạng mục} & \textbf{GV} & \textbf{PM} & \textbf{BA} & \textbf{TL} & \textbf{BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Hạng mục} & \textbf{GV} & \textbf{PM} & \textbf{BA} & \textbf{TL} & \textbf{BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
+\midrule
+\endhead
+Project Charter & A & R & C & C & I & I & I & I \\
+Scope/Requirement Baseline & C & A & R & C & C & C & C & C \\
+Schedule/Cost Baseline & I & A/R & C & C & C & C & C & C \\
+Kiến trúc/thiết kế tích hợp & I & C & C & A/R & R & R & R & C \\
+Blockchain work package & I & I & C & A & R & C & C & C \\
+Backend/AI work package & I & I & C & A & C & R & C & C \\
+Frontend work package & I & I & C & A & C & C & R & C \\
+Test plan và quality gate & I & C & C & C & C & C & C & A/R \\
+Tích hợp end-to-end & I & C & C & A & R & R & R & R \\
+Deploy/release & I & A & I & R & C & R & R & C \\
+Change Request lớn & A & R & C & C & C & C & C & C \\
+UAT/nghiệm thu & A & R & R & C & I & I & I & R \\
+Báo cáo và bàn giao & A & R & R & C & C & C & C & C \\
+\bottomrule
+\end{longtable}
+\end{landscape}
+
+Trong bảng, GV là giảng viên/người nghiệm thu; PM là Project Manager; BA là Product Owner/Business Analyst; TL là Technical Lead; BC, BE, FE và QA lần lượt là các vai trò Blockchain, Backend, Frontend và Quality Assurance. Vai trò DevOps/Documentation thuộc đội kỹ thuật và được PM giao theo work package. Do sáu thành viên kỹ thuật không công khai danh tính, RACI trên tiếp tục quản lý họ bằng vai trò; riêng hồ sơ học thuật được ánh xạ trực tiếp cho ba thành viên Nhóm 2 như Bảng~\ref{tab:student-raci}.
+
+\begin{table}[H]
+\centering
+\caption{RACI cá nhân cho hồ sơ quản trị của Nhóm 2}
+\label{tab:student-raci}
+\begin{tabularx}{\textwidth}{>{\bfseries}Xccc}
+\toprule
+Hạng mục hồ sơ & Nguyễn Thành Long & Đỗ Nguyễn Phương Thảo & Hoàng Lê Việt Hà \\
+\midrule
+Charter và governance & A/R & C & C \\
+Stakeholder register và engagement & A & R & C \\
+Requirement, Scope Statement và RTM & A & R & R \\
+WBS, CPM và Schedule Baseline & A/R & C & R \\
+Cost Baseline, EVM và NPV & A & C & R \\
+Quality plan, test evidence và UAT & A & R & C \\
+Risk, configuration và change log & A & C & R \\
+Weekly status và tích hợp hồ sơ & A/R & C & C \\
+Rà soát nhất quán và trích dẫn & A & R & R \\
+Báo cáo, slide, demo và closure & A/R & R & R \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Trong lớp quản trị học thuật, Nguyễn Thành Long giữ vai trò PM và chịu trách nhiệm tích hợp cuối; Đỗ Nguyễn Phương Thảo giữ trọng tâm BA, stakeholder và quality evidence; Hoàng Lê Việt Hà giữ trọng tâm schedule--cost--risk và document control. Ký hiệu A không đồng nghĩa người đó tự thực hiện toàn bộ công việc: từng deliverable vẫn có R và yêu cầu review chéo trước khi hợp nhất.
+
+\iffalse
+\subsection{Ma trận năng lực}
+
+Năng lực được đánh giá theo thang 1--4: 1 là cần hướng dẫn; 2 là có thể thực hiện nhiệm vụ cơ bản; 3 là làm việc độc lập; 4 là có thể thiết kế, review và hướng dẫn người khác. Bảng~\ref{tab:competency-target} mô tả mức năng lực mục tiêu theo vai trò, không phải điểm cá nhân.
+
+\begin{longtable}{p{4.6cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}}
+\caption{Mức năng lực mục tiêu theo vai trò}\label{tab:competency-target}\\
+\toprule
+\textbf{Năng lực} & \textbf{PM/BA} & \textbf{TL/BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Năng lực} & \textbf{PM/BA} & \textbf{TL/BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
+\midrule
+\endhead
+Quản trị phạm vi/lịch/chi phí & 4 & 2 & 2 & 2 & 3 \\
+Phân tích yêu cầu/acceptance & 4 & 3 & 3 & 3 & 4 \\
+Thiết kế hệ thống/tích hợp & 2 & 4 & 3 & 3 & 3 \\
+Smart contract/security & 1 & 4 & 2 & 1 & 3 \\
+Backend/API/dữ liệu & 1 & 3 & 4 & 2 & 3 \\
+Frontend/UI/UX & 2 & 2 & 2 & 4 & 3 \\
+Kiểm thử/defect management & 2 & 3 & 3 & 3 & 4 \\
+CI/CD/configuration & 2 & 3 & 3 & 3 & 3 \\
+Tài liệu/trình bày & 4 & 3 & 3 & 3 & 3 \\
+\bottomrule
+\end{longtable}
+
+Sau khi có danh sách thành viên, nhóm thực hiện self-assessment và review chéo để lập competency matrix cá nhân. Khoảng cách giữa năng lực hiện tại và mục tiêu tạo đầu vào cho kế hoạch đào tạo, pairing và phân công backup.
+
+\fi
+\subsection{Kế hoạch staffing và phân bổ effort}
+
+Tổng effort 960 giờ được phân bổ theo nhóm công việc thay vì chia đều cơ học. Các hoạt động quản trị và báo cáo của Nhóm 2 chiếm tỷ trọng nhỏ hơn nhưng bắt buộc phải có ngân sách riêng; phần lớn effort được dành cho phát triển, tích hợp, kiểm thử và triển khai của đội kỹ thuật.
+
+\begin{table}[H]
+\centering
+\caption{Phân bổ effort nguồn nhân lực theo WBS cấp cao}
+\label{tab:effort-allocation}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}r r X}
+\toprule
+Nhóm công việc & Giờ & Tỷ lệ & Nguồn lực chủ đạo \\
+\midrule
+1.0 Khởi tạo/quản trị & 72 & 7,5\% & PM, BA \\
+2.0 Phân tích phạm vi & 96 & 10,0\% & PM, BA, QA, TL \\
+3.0 Thiết kế & 96 & 10,0\% & TL, BA, FE/BE/BC \\
+4.0 Blockchain & 144 & 15,0\% & BC, TL, QA \\
+5.0 Backend/AI & 120 & 12,5\% & BE, TL, QA \\
+6.0 Frontend & 120 & 12,5\% & FE, BA, QA \\
+7.0 Tích hợp & 96 & 10,0\% & TL, BC, BE, FE, QA \\
+8.0 Kiểm thử/chất lượng & 96 & 10,0\% & QA và toàn nhóm \\
+9.0 Triển khai & 48 & 5,0\% & DevOps, TL, QA \\
+10.0 Tài liệu/kết thúc & 72 & 7,5\% & PM, BA và toàn nhóm \\
+\midrule
+\textbf{Tổng cộng} & \textbf{960} & \textbf{100\%} & \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Phân bổ trên là baseline. Actual effort được ghi theo work package để phục vụ EVM và cải tiến ước lượng. Nếu một nhóm công việc vượt 15\% effort kế hoạch, PM phải phân tích nguyên nhân: yêu cầu chưa rõ, thiếu năng lực, defect, dependency hoặc scope creep.
+
+\subsection{Resource calendar}
+
+Resource calendar được lập theo hai lớp nguồn lực: lớp quản trị học thuật của Nhóm 2 và lớp thực hiện kỹ thuật của đội sáu người ẩn danh. Bảng~\ref{tab:student-resource-calendar} phân bổ đầy đủ 240 giờ của Nhóm 2 theo tên; Bảng~\ref{tab:resource-calendar} giữ lịch ưu tiên của toàn dự án theo vai trò.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Resource calendar cá nhân cho 240 giờ quản trị học thuật}
+\label{tab:student-resource-calendar}
+\begin{tabularx}{\textwidth}{p{2.3cm}Xrrr r}
+\toprule
+\textbf{Thời gian} & \textbf{Trọng tâm công việc} & \textbf{Long} & \textbf{Thảo} & \textbf{Hà} & \textbf{Tổng} \\
+\midrule
+01/04--07/04 & Charter, stakeholder, governance & 8 & 8 & 6 & 22 \\
+08/04--21/04 & Yêu cầu, phạm vi, WBS, RTM & 12 & 14 & 12 & 38 \\
+22/04--05/05 & Thiết kế kế hoạch, CPM, quality approach & 10 & 10 & 12 & 32 \\
+06/05--15/05 & Theo dõi milestone, cost và risk & 10 & 8 & 8 & 26 \\
+16/05--26/05 & Status, change và evidence review & 10 & 8 & 8 & 26 \\
+27/05--11/06 & Tích hợp hồ sơ, quality và consistency & 10 & 10 & 10 & 30 \\
+12/06--25/06 & UAT, deployment record, nghiệm thu & 8 & 10 & 10 & 28 \\
+26/06--30/06 & Báo cáo, slide, demo và closure & 12 & 12 & 14 & 38 \\
+\midrule
+\textbf{Tổng giờ/người} & & \textbf{80} & \textbf{80} & \textbf{80} & \textbf{240} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Số giờ trên là planned effort, không phải khẳng định về giờ thực tế. Mỗi thành viên ghi actual effort theo tuần; chênh lệch vượt 20\% ở một giai đoạn phải có giải thích và được phản ánh trong status report. Cách phân bổ 80 giờ/người tạo baseline minh bạch, còn đánh giá đóng góp cuối kỳ dựa trên deliverable, bằng chứng review và actual effort thay vì mặc định chia đều.
+
+\begin{longtable}{p{2.1cm}p{2.2cm}p{4.4cm}p{4.1cm}}
+\caption{Resource calendar cấp nhóm}\label{tab:resource-calendar}\\
+\toprule
+\textbf{Thời gian} & \textbf{Giai đoạn} & \textbf{Vai trò ưu tiên} & \textbf{Kết quả nguồn lực} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Thời gian} & \textbf{Giai đoạn} & \textbf{Vai trò ưu tiên} & \textbf{Kết quả nguồn lực} \\
+\midrule
+\endhead
+01/04--07/04 & Khởi tạo & Nhóm 2 giữ PM/BA; TL/QA kỹ thuật tham vấn & Charter, stakeholder và governance \\
+08/04--21/04 & Phạm vi & Nhóm 2 chủ đạo; đội kỹ thuật review yêu cầu & Scope Baseline, WBS và RTM \\
+22/04--05/05 & Thiết kế & TL cùng BC/BE/FE; Nhóm 2 theo dõi và tổng hợp & Design baseline và test approach \\
+06/05--26/05 & Ba nhánh phát triển & BC/BE/FE chạy song song; TL/QA kiểm soát interface & Ba increment sẵn sàng tích hợp \\
+27/05--11/06 & Tích hợp và hoàn thiện & Đội kỹ thuật tích hợp; Nhóm 2 theo dõi rủi ro và thay đổi & E2E, regression và defect fixes \\
+12/06--25/06 & Deploy/UAT & DevOps, QA, PM; Nhóm 2 phối hợp nghiệm thu & Release candidate, UAT và fixes \\
+26/06--30/06 & Bàn giao & Nhóm 2 chủ trì báo cáo; đội kỹ thuật hỗ trợ minh chứng & Báo cáo, demo, closure \\
+\bottomrule
+\end{longtable}
+
+\figureplaceholder{ch07-resource-histogram.png}{Biểu đồ cột chồng theo tuần, thể hiện tổng giờ của hai lớp nguồn lực: Nhóm 2 phụ trách quản trị học thuật và đội kỹ thuật phụ trách phát triển sản phẩm. Đường ngang capacity biểu diễn baseline 960 giờ được phân bổ trong 12 tuần.}{Biểu đồ nhu cầu và khả năng nguồn lực theo thời gian}{fig:resource-histogram}
+
+\subsection{Quy tắc cân bằng nguồn lực}
+
+Khi phát hiện quá tải, PM xử lý theo thứ tự:
+
+\begin{enumerate}
+  \item Loại bỏ công việc không thuộc phạm vi hoặc chưa được ưu tiên.
+  \item Điều chỉnh thứ tự activity trong phạm vi float cho phép.
+  \item Chuyển work package cho thành viên có năng lực và capacity phù hợp.
+  \item Pairing/time-boxing để tháo gỡ blocker thay vì để một người làm thêm giờ kéo dài.
+  \item Giảm scope của hạng mục Could/Should Have thông qua Change Control.
+  \item Chỉ sử dụng overtime ngắn hạn khi có thỏa thuận, theo dõi rủi ro chất lượng và có thời gian bù.
+\end{enumerate}
+
+Crashing bằng cách bổ sung người không phải lúc nào cũng hiệu quả vì cần onboarding và tăng giao tiếp. Với công việc chuyên môn sâu, đào tạo backup sớm có giá trị hơn thêm người ở cuối dự án.
+
+\subsection{Kế hoạch giải phóng nguồn lực}
+
+Nguồn lực không được giải phóng ngay khi code hoàn thành. Owner chỉ kết thúc trách nhiệm sau khi deliverable vượt test, tài liệu được cập nhật, issue quan trọng có owner và knowledge transfer hoàn tất. Trước khi đóng dự án, PM thu hồi quyền truy cập không còn cần thiết, xác nhận secret/tài khoản được bàn giao, lưu lessons learned và ghi nhận đóng góp của thành viên.
+
+\iffalse
+\section{Thiết lập đội ngũ dự án}
+
+\subsection{Tiêu chí phân công}
+
+Phân công dựa trên năm tiêu chí: năng lực hiện tại, khả năng học, mức sẵn sàng, sở thích/nguyện vọng và nhu cầu dự phòng của dự án. Không phân công chỉ dựa trên việc ai đã viết module trước đó, vì cách này làm tăng phụ thuộc cá nhân.
+
+Quy trình phân công gồm:
+
+\begin{enumerate}
+  \item Thành viên tự đánh giá kỹ năng và lịch khả dụng.
+  \item PM/TL đối chiếu với competency target và WBS.
+  \item Gán vai trò chính, vai trò phụ và backup work package.
+  \item Kiểm tra tải công việc và xung đột lịch.
+  \item Nhóm thống nhất RACI và điều kiện chuyển giao.
+  \item Cập nhật lại sau mỗi sprint dựa trên hiệu suất và rủi ro.
+\end{enumerate}
+
+\subsection{Onboarding và cấp quyền}
+
+Mỗi thành viên phải hoàn thành onboarding trước khi nhận work package:
+
+\begin{itemize}
+  \item Đọc Charter, Scope Baseline, WBS, Definition of Done và Risk Register.
+  \item Thiết lập repository, branch convention, coding/review convention và issue board.
+  \item Cài đặt môi trường cần thiết và chạy build/test cơ bản.
+  \item Được cấp quyền tối thiểu cần thiết cho repository và tài khoản dịch vụ.
+  \item Ký cam kết nhóm về bảo vệ private key, API key và dữ liệu thử nghiệm.
+  \item Biết kênh escalation khi có blocker, incident hoặc conflict.
+\end{itemize}
+
+Quyền truy cập tuân theo nguyên tắc least privilege. Không dùng chung private key cá nhân qua chat; tài khoản dịch vụ quan trọng có owner và phương án thu hồi/rotate credential.
+
+\subsection{Team Charter}
+
+Team Charter là thỏa thuận vận hành nội bộ, gồm các quy tắc:
+
+\begin{itemize}
+  \item Tôn trọng ý kiến dựa trên dữ kiện; phản biện giải pháp, không công kích cá nhân.
+  \item Cập nhật blocker trong vòng một ngày làm việc, không chờ tới cuối sprint.
+  \item Pull request quan trọng cần ít nhất một reviewer phù hợp trước khi merge.
+  \item Meeting có agenda, time-box, biên bản, action owner và deadline.
+  \item Quyết định thay đổi phạm vi phải theo Change Control, không dựa trên trao đổi miệng.
+  \item Thành viên báo sớm khi khả năng sẵn sàng thay đổi để PM điều chỉnh nguồn lực.
+  \item Không che giấu defect; phát hiện sớm được xem là đóng góp cho chất lượng.
+\end{itemize}
+
+\subsection{Thiết lập môi trường hợp tác}
+
+GitHub Issues/Projects là nguồn theo dõi task; pull request lưu review kỹ thuật; Google Drive lưu baseline và biên bản; Zalo hoặc Messenger dùng cho trao đổi nhanh; Google Meet dùng cho họp. Thông tin quyết định từ chat phải được chuyển vào issue, Decision Log hoặc biên bản để mọi thành viên có thể truy cập.
+
+\section{Phát triển đội ngũ dự án}
+
+\subsection{Mục tiêu phát triển đội ngũ}
+
+Phát triển đội ngũ không chỉ là học thêm công nghệ. Mục tiêu là tăng khả năng phối hợp, chất lượng quyết định, niềm tin và khả năng thay thế lẫn nhau. Đến trước UAT, mỗi hợp phần quan trọng phải có ít nhất hai người hiểu luồng triển khai/kiểm tra ở mức đủ để xử lý sự cố cơ bản.
+
+\subsection{Các giai đoạn phát triển nhóm}
+
+Nhóm được theo dõi theo mô hình Tuckman:
+
+\begin{itemize}
+  \item \textbf{Forming:} làm rõ mục tiêu, vai trò, công cụ và quy tắc.
+  \item \textbf{Storming:} xử lý khác biệt về ưu tiên, giải pháp và cách ước lượng.
+  \item \textbf{Norming:} hình thành chuẩn review, Definition of Done và nhịp làm việc.
+  \item \textbf{Performing:} nhóm chủ động phối hợp, giải quyết blocker và giao increment ổn định.
+  \item \textbf{Adjourning:} bàn giao tri thức, đánh giá kết quả và giải phóng nguồn lực.
+\end{itemize}
+
+PM không kỳ vọng xung đột biến mất hoàn toàn; mục tiêu là chuyển xung đột từ cá nhân sang thảo luận dữ kiện, trade-off và mục tiêu dự án.
+
+\subsection{Kế hoạch đào tạo và chia sẻ tri thức}
+
+\begin{table}[H]
+\centering
+\caption{Kế hoạch phát triển năng lực nhóm}
+\label{tab:training-plan}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.7cm}p{4.2cm}p{3cm}X}
+\toprule
+Hoạt động & Mục tiêu & Thời điểm & Bằng chứng \\
+\midrule
+Project onboarding & Hiểu Charter, scope, WBS và governance & Tuần 1 & Checklist hoàn thành \\
+Workshop yêu cầu/WBS & Thống nhất requirement và work package & Tuần 2--3 & RTM/WBS review \\
+Security/threat review & Nhận diện rủi ro tiền, quyền và secret & Tuần 4--5 & Threat checklist \\
+Pair programming & Chuyển giao kiến thức module quan trọng & Tuần 6--10 & PR/review record \\
+Test case workshop & Nâng chất lượng acceptance/negative test & Tuần 8--10 & Test case review \\
+Deployment rehearsal & Giảm rủi ro release và key-person & Tuần 11 & Runbook/smoke test \\
+Demo rehearsal & Đồng bộ câu chuyện sản phẩm và quản trị & Tuần 12--13 & Feedback/action list \\
+Retrospective & Ghi nhận bài học và cải tiến & Cuối sprint & Lessons learned \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Phương pháp phát triển nhóm}
+
+Nhóm sử dụng pairing, review chéo, technical sharing ngắn, demo nội bộ và rotation có kiểm soát. Pairing được ưu tiên cho work package rủi ro cao hoặc khi năng lực giữa owner và backup chênh lệch lớn. Rotation không thực hiện tùy tiện giữa sprint vì có thể làm mất năng suất; chỉ chuyển sau khi có handover và PM cập nhật responsibility.
+
+Retrospective cuối sprint trả lời bốn câu hỏi: điều gì hiệu quả, điều gì chưa hiệu quả, cần thử thay đổi gì và ai chịu trách nhiệm. Action item phải có deadline và được kiểm tra ở retrospective sau; nếu không, retrospective chỉ trở thành hoạt động hình thức.
+
+\subsection{Ghi nhận và tạo động lực}
+
+Trong dự án môn học, động lực đến từ quyền sở hữu công việc, cơ hội học tập, sự công bằng và việc đóng góp được ghi nhận. PM áp dụng:
+
+\begin{itemize}
+  \item Ghi nhận cụ thể hành vi hoặc deliverable, không chỉ khen chung chung.
+  \item Chia sẻ cơ hội trình bày/demo và nhận trách nhiệm phù hợp năng lực.
+  \item Công khai nguyên tắc phân công và đánh giá để giảm cảm giác bất công.
+  \item Ghi nhận công việc review, test, tài liệu và hỗ trợ nhóm, không chỉ code mới.
+  \item Trao đổi riêng khi góp ý hiệu suất cá nhân; không phê bình cá nhân trước nhóm.
+\end{itemize}
+
+\section{Quản lý đội ngũ và xử lý xung đột}
+
+\subsection{Theo dõi hiệu suất}
+
+Hiệu suất được đánh giá ở ba cấp: cá nhân, work package và nhóm. Chỉ số được sử dụng như tín hiệu để trao đổi, không dùng máy móc để xếp hạng.
+
+\begin{longtable}{p{3.5cm}p{5.7cm}p{4.5cm}}
+\caption{Tiêu chí theo dõi hiệu suất nguồn nhân lực}\label{tab:performance-criteria}\\
+\toprule
+\textbf{Nhóm tiêu chí} & \textbf{Chỉ số quan sát} & \textbf{Cách sử dụng} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nhóm tiêu chí} & \textbf{Chỉ số quan sát} & \textbf{Cách sử dụng} \\
+\midrule
+\endhead
+Hoàn thành & Deliverable đúng hạn, effort còn lại và acceptance status & Dự báo tiến độ và hỗ trợ sớm \\
+Chất lượng & Defect, rework, test pass và review finding & Cải thiện quy trình/năng lực \\
+Hợp tác & Phản hồi review, chia sẻ tri thức và hỗ trợ blocker & Đánh giá đóng góp nhóm \\
+Kỷ luật quản trị & Cập nhật task, báo cáo rủi ro và tuân thủ Change Control & Bảo vệ baseline \\
+Học tập & Khoảng cách năng lực giảm và có backup person & Giảm key-person risk \\
+Khả năng sẵn sàng & Planned/actual availability và overload & Resource leveling \\
+\bottomrule
+\end{longtable}
+
+Số commit, dòng code hoặc giờ online không được dùng độc lập để kết luận hiệu suất. Một review phát hiện lỗi nghiêm trọng hoặc một tài liệu giúp cả nhóm triển khai được có thể tạo giá trị lớn hơn nhiều commit nhỏ.
+
+\subsection{Phản hồi và coaching}
+
+Phản hồi được đưa ra sớm, cụ thể, tập trung vào hành vi và tác động. Cấu trúc đề xuất là Situation--Behavior--Impact--Next Action. Ví dụ: ``Trong sprint review, phần demo chưa có transaction evidence; stakeholder không thể xác nhận FR-09; lần sau owner và QA cần hoàn thành acceptance checklist trước buổi demo.''
+
+Khi thành viên gặp khoảng cách năng lực, PM/TL thống nhất kế hoạch coaching gồm mục tiêu nhỏ, thời hạn, người hỗ trợ và bằng chứng. Nếu nguyên nhân là quá tải hoặc yêu cầu không rõ, giải pháp phải điều chỉnh kế hoạch thay vì quy toàn bộ trách nhiệm cho cá nhân.
+
+\subsection{Nhận diện nguồn xung đột}
+
+Các nguồn xung đột dự kiến gồm:
+
+\begin{itemize}
+  \item Tranh chấp ưu tiên giữa tính năng mới, sửa lỗi, kiểm thử và tài liệu.
+  \item Khác biệt giải pháp hoặc tiêu chuẩn chất lượng.
+  \item Phân công không cân bằng và chênh lệch availability.
+  \item Dependency bị bàn giao muộn hoặc interface thay đổi.
+  \item Không thống nhất về mức độ hoàn thành của deliverable.
+  \item Giao tiếp thiếu bối cảnh hoặc quyết định chỉ tồn tại trong chat.
+\end{itemize}
+
+\subsection{Phương pháp xử lý xung đột}
+
+Nhóm ưu tiên \textit{Collaborate/Problem Solve}: xác định lợi ích chung, thu thập dữ kiện, tạo phương án và đánh giá trade-off theo mục tiêu dự án. Các phương pháp khác được dùng tùy tình huống:
+
+\begin{table}[H]
+\centering
+\caption{Chiến lược xử lý xung đột}
+\label{tab:conflict-strategy}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{5cm}X}
+\toprule
+Phương pháp & Khi sử dụng & Lưu ý \\
+\midrule
+Collaborate & Vấn đề quan trọng, cần giải pháp bền vững & Ưu tiên mặc định; cần thời gian và dữ kiện \\
+Compromise & Hai phía có quyền lợi hợp lý, thời gian hạn chế & Mỗi bên nhượng bộ; kiểm tra residual risk \\
+Điều hòa & Vấn đề nhỏ, giữ quan hệ quan trọng hơn & Không dùng để che giấu vấn đề chất lượng \\
+Force/Direct & Incident khẩn cấp hoặc quyết định thuộc thẩm quyền rõ & Ghi lý do và review sau khẩn cấp \\
+Withdraw/Avoid & Cần thêm dữ liệu hoặc hạ nhiệt tạm thời & Phải có thời điểm quay lại, không trì hoãn vô hạn \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Quy trình giải quyết xung đột}
+
+\begin{enumerate}
+  \item Ghi nhận vấn đề và các bên liên quan; tách dữ kiện khỏi giả định.
+  \item Đánh giá mức ảnh hưởng tới con người, phạm vi, lịch, chi phí và chất lượng.
+  \item Trao đổi trực tiếp với các bên trong phạm vi nhỏ nhất cần thiết.
+  \item Thống nhất phương án, owner, deadline và tiêu chí đóng vấn đề.
+  \item Cập nhật issue/decision/risk/change log nếu ảnh hưởng dự án.
+  \item Theo dõi kết quả; escalation lên PM, CCB hoặc giảng viên nếu không giải quyết được hoặc vượt thẩm quyền.
+\end{enumerate}
+
+\figureplaceholder{ch07-conflict-resolution-flow.png}{Flowchart từ Identify Conflict, Collect Facts, Assess Impact, Discuss Options, Agree Action, Monitor. Có nhánh Escalate tới PM/CCB/Giảng viên khi vượt thẩm quyền hoặc không đạt thỏa thuận.}{Quy trình xử lý và escalation xung đột}{fig:conflict-resolution}
+
+\subsection{Quản lý thay đổi nguồn lực}
+
+Khi availability của thành viên thay đổi, PM đánh giá work package đang sở hữu, dependency, knowledge concentration và critical path. Hành động có thể gồm giảm tải, đổi owner, bổ sung backup, điều chỉnh lịch trong float hoặc đề xuất thay đổi phạm vi. Mọi handover phải có trạng thái công việc, tài liệu, branch/issue, vấn đề tồn đọng và buổi walkthrough.
+
+Nếu một thành viên rời dự án đột xuất, ưu tiên là bảo vệ công việc trên đường găng và quyền truy cập. PM thu hồi/điều chỉnh credential, chỉ định owner tạm thời, khôi phục từ tài liệu và đánh giá lại Schedule/Cost Baseline. Sự kiện được ghi vào Issue/Risk Log và lessons learned.
+
+\subsection{Kiểm soát nguồn lực và báo cáo}
+
+PM sử dụng các chỉ số sau:
+
+\begin{itemize}
+  \item Planned hours, actual hours và Estimate to Complete theo work package.
+  \item Tỷ lệ utilization so với availability, số tuần quá tải và số blocker chưa xử lý.
+  \item Bus factor/backup coverage của các hợp phần trọng yếu.
+  \item Effort rework, defect do thiếu review và thời gian chờ dependency.
+  \item Action item từ retrospective và tỷ lệ hoàn thành.
+  \item Mức độ đáp ứng milestone và SPI/CPI ở cấp dự án.
+\end{itemize}
+
+Trạng thái nguồn lực được báo cáo theo RAG. Green khi tải trong capacity và không có key-person risk nghiêm trọng; Amber khi một thành viên quá tải, backup chưa sẵn sàng hoặc skill gap đe dọa sprint; Red khi thiếu nguồn lực làm ảnh hưởng critical path/milestone và cần thay đổi tích hợp.
+
+\fi
+\section{Kết luận chương}
+
+Chương VII đã xác định cách dự án hoạch định và quản lý nguồn nhân lực theo hai lớp: Nhóm 2 gồm ba sinh viên chịu trách nhiệm quản trị học thuật và đội kỹ thuật sáu người ẩn danh chịu trách nhiệm tạo ra sản phẩm đầu vào. Trên baseline 960 giờ, kế hoạch sử dụng cơ cấu theo vai trò, RACI, competency target, resource calendar và Team Charter để biến phân công thành trách nhiệm có thể kiểm tra. Phát triển nhóm được thực hiện qua onboarding, pairing, review chéo, workshop, rehearsal và retrospective; mục tiêu quan trọng là giảm phụ thuộc cá nhân trước UAT và bàn giao.
+
+Hiệu suất được đánh giá cân bằng giữa tiến độ, chất lượng, hợp tác, kỷ luật quản trị và học tập. Xung đột được xem là vấn đề cần quản lý bằng dữ kiện và mục tiêu chung, không phải điều phải che giấu. Việc công khai tên ba sinh viên và ẩn danh đội kỹ thuật không làm thay đổi logic quản trị; ngược lại, cách trình bày này giúp báo cáo phản ánh đúng thực tế rằng nhóm môn học là chủ thể lập kế hoạch và đánh giá dự án, còn đội kỹ thuật là nguồn lực thực thi được quản trị theo vai trò.

@@ -1,0 +1,336 @@
+\chapter{GIỚI THIỆU DỰ ÁN}
+
+\section{Tổng quan dự án}
+
+\subsection{Thông tin chung}
+
+Dự án mang tên \textbf{FundChain}, với định hướng xây dựng nền tảng gây dựng quỹ từ thiện minh bạch bằng Blockchain, được thực hiện trong khuôn khổ đề tài ``\projecttitle''. Đây là một ứng dụng web phi tập trung, cho phép cộng đồng tạo chiến dịch, quyên góp ETH, theo dõi dòng tiền và tham gia kiểm soát việc giải ngân. Sản phẩm được tổ chức dưới dạng monorepo, gồm ba khối chính là blockchain (\texttt{bc/}), backend (\texttt{be/}) và frontend (\texttt{fe/}); backend còn tích hợp một AI sidecar phục vụ quyết định xử lý giao dịch theo trạng thái gas.
+
+Thời gian quản trị dự án được giả định từ ngày 01/04/2026 đến ngày 30/06/2026, tương đương ba tháng. Sản phẩm mục tiêu được triển khai trên Ethereum Sepolia Testnet thay vì Mainnet. Việc sử dụng testnet giúp nhóm kiểm tra đầy đủ các luồng nghiệp vụ mà không đặt tiền thật của người dùng vào rủi ro trong giai đoạn học tập và thử nghiệm.
+
+Khác với một website quyên góp chỉ hiển thị thông tin do quản trị viên nhập, FundChain đưa trạng thái tài chính và các quyết định cốt lõi lên blockchain. Mỗi chiến dịch sau khi được phê duyệt có một smart contract riêng để tiếp nhận và quản lý tiền. Campaign Manager không được chuyển tiền trực tiếp từ quỹ sang ví tùy ý; muốn chi tiêu, manager phải tạo yêu cầu chỉ định Supplier, giá trị, Verifier và metadata CID. Smart contract chỉ giải ngân khi yêu cầu thỏa các điều kiện về biểu quyết, bằng chứng và xác minh đã được định nghĩa.
+
+\begin{table}[H]
+\centering
+\caption{Thông tin khái quát về dự án}
+\label{tab:project-overview}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}X}
+\toprule
+Tên đề tài & Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain \\
+Tên sản phẩm & FundChain \\
+Loại sản phẩm & Ứng dụng web phi tập trung quản lý gây quỹ \\
+Đơn vị thực hiện & Nhóm 2 \\
+Thời gian baseline & 01/04/2026--30/06/2026 \\
+Môi trường blockchain & Ethereum Sepolia Testnet \\
+Thành phần chính & React DApp, NestJS backend, Solidity smart contract, AI sidecar \\
+Kho dữ liệu & Sepolia, IPFS/Pinata, MongoDB và Redis \\
+Ngân sách giả định & 64.000.000 VNĐ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Bài toán nghiệp vụ}
+
+Quy trình gây quỹ truyền thống thường đặt đơn vị tổ chức vào đồng thời ba vị trí: người giữ tiền, người phê duyệt chi và người công bố báo cáo. Cách tổ chức này đơn giản nhưng làm phát sinh bất cân xứng thông tin. Donor biết mình đã chuyển bao nhiêu nhưng khó kiểm chứng số tiền còn lại, các khoản đã cam kết, người nhận tiền và bằng chứng tương ứng. Khi báo cáo được lập thủ công hoặc chỉ lưu trong cơ sở dữ liệu tập trung, lịch sử có thể thiếu nhất quán giữa các thời điểm.
+
+Dự án xác định sáu vấn đề nghiệp vụ chính cần xử lý:
+
+\begin{enumerate}
+  \item Thiếu một nguồn dữ liệu tài chính công khai để cộng đồng tự kiểm chứng.
+  \item Campaign Manager có thể có quá nhiều quyền đối với tiền quỹ nếu không có cơ chế ràng buộc.
+  \item Một chiến dịch có thể tạo nhiều yêu cầu chi vượt quá số dư thực tế nếu ngân sách chưa được đặt trước.
+  \item Donor thường không tham gia vào quyết định sử dụng tiền sau khi đã quyên góp.
+  \item Bằng chứng và chứng từ khó liên kết trực tiếp với từng quyết định giải ngân.
+  \item Phí gas và thao tác ví tạo rào cản cho người dùng chưa quen blockchain.
+\end{enumerate}
+
+FundChain xử lý các vấn đề đó bằng cách phân tách quyền hạn. Admin duyệt chiến dịch và quản lý danh sách Supplier, nhưng không thay Campaign Manager tạo yêu cầu chi. Manager tổ chức chiến dịch và tạo yêu cầu nhưng không tự phê duyệt khoản chi. Donor hoặc validator tham gia bỏ phiếu; Supplier nộp bằng chứng; Verifier thực hiện xác minh độc lập. Smart contract là thành phần cuối cùng kiểm tra điều kiện và chuyển tiền.
+
+\subsection{Mô hình hoạt động tổng quát}
+
+Vòng đời nghiệp vụ của sản phẩm gồm các bước chính sau:
+
+\begin{enumerate}
+  \item Người khởi tạo kết nối ví, tạo metadata chiến dịch và upload dữ liệu lên IPFS.
+  \item Người khởi tạo gửi yêu cầu tạo chiến dịch tới hệ thống, kèm phí chống spam và mức quyên góp tối thiểu.
+  \item Platform Admin kiểm tra yêu cầu. Nếu chấp thuận, Factory tạo một minimal proxy từ Campaign implementation; nếu từ chối, hợp đồng hoàn lại 80\% phí chống spam theo logic hiện tại.
+  \item Donor chuyển ETH trực tiếp vào Campaign contract. Hợp đồng cập nhật contribution, tổng tiền và lịch sử liên quan.
+  \item Manager tạo yêu cầu chi cho Supplier đã được đăng ký. Giá trị yêu cầu được cộng vào \texttt{lockedFunds}, nhờ đó phần tiền đã cam kết không thể tiếp tục được dùng để tạo yêu cầu khác.
+  \item Yêu cầu đi qua nhánh phê duyệt phù hợp. Khoản chi nhỏ có thể sử dụng validator pool; yêu cầu thông thường hoặc nhiều giai đoạn sử dụng biểu quyết và xác minh theo điều kiện contract.
+  \item Supplier nộp proof CID; Verifier xác minh hoặc từ chối. Hard reject giải phóng phần ngân sách đang bị khóa.
+  \item Khi đủ điều kiện, manager gọi hàm hoàn tất; contract chuyển ETH trực tiếp cho Supplier và Supplier Registry ghi nhận khoản thanh toán.
+  \item Khi chiến dịch bị dừng, Donor có thể yêu cầu hoàn lại phần tiền còn lại theo tỷ lệ đóng góp và quy tắc của contract.
+\end{enumerate}
+
+\figureplaceholder{ch01-business-flow.png}{Sơ đồ BPMN hoặc flowchart gồm các tác nhân Manager, Admin, Donor, Supplier, Verifier và Smart Contract; thể hiện luồng submit campaign, approve, donate, create request, vote, submit proof, verify và finalize.}{Quy trình nghiệp vụ tổng quát của FundChain}{fig:business-flow}
+
+\section{Mục tiêu của dự án}
+
+\subsection{Mục tiêu tổng quát}
+
+Mục tiêu tổng quát của dự án là xây dựng và quản trị một nền tảng gây quỹ từ thiện có khả năng công khai dòng tiền, hạn chế việc giải ngân tùy ý và tăng quyền giám sát của cộng đồng bằng blockchain. Sản phẩm phải minh họa được một quy trình khép kín từ đề xuất chiến dịch đến thanh toán hoặc hoàn tiền, đồng thời có đủ tài liệu quản trị để theo dõi phạm vi, thời gian, chi phí, chất lượng và rủi ro trong ba tháng thực hiện.
+
+Mục tiêu này không đồng nghĩa với việc tuyên bố hệ thống đã sẵn sàng quản lý tiền thật ở quy mô lớn. Kết quả của dự án là một release thử nghiệm trên Sepolia, có thể dùng để trình diễn, kiểm thử và đánh giá tính khả thi. Trước khi triển khai Mainnet, sản phẩm phải trải qua audit bảo mật độc lập, đánh giá pháp lý và kiểm thử vận hành ở quy mô thực tế.
+
+\iffalse
+\subsection{Mục tiêu cụ thể}
+
+Các mục tiêu cụ thể được chia thành hai nhóm để tránh đồng nhất thành công của dự án với số lượng chức năng kỹ thuật.
+
+\textbf{Mục tiêu quản trị dự án:}
+
+\begin{itemize}
+  \item Hoàn thành phạm vi được duyệt trong giai đoạn 01/04/2026--30/06/2026 và trong Project Budget 64.000.000~VNĐ.
+  \item Xây dựng Scope, Schedule và Cost Baseline làm cơ sở đo lường; mọi thay đổi lớn phải qua Integrated Change Control.
+  \item Phân rã 100\% phạm vi thành WBS, xác định owner, dependency, acceptance criteria và rủi ro cho từng work package.
+  \item Thiết lập kế hoạch chất lượng và traceability từ yêu cầu đến source, test và bằng chứng nghiệm thu.
+  \item Phân công trách nhiệm bằng RACI, duy trì ma trận truyền thông, Risk Register, Change Log và Lessons Learned Register.
+  \item Bàn giao đầy đủ sản phẩm, tài liệu và configuration để người nhận có thể kiểm tra hoặc tái triển khai.
+\end{itemize}
+
+\textbf{Mục tiêu sản phẩm ở cấp cao:}
+
+\begin{itemize}
+  \item Xây dựng quy trình gửi, phê duyệt và từ chối đề xuất chiến dịch, kèm phí chống spam để hạn chế yêu cầu rác.
+  \item Tách quỹ của từng chiến dịch vào một Campaign contract riêng và ghi nhận mọi donation bằng event on-chain.
+  \item Chỉ cho phép tạo yêu cầu chi đối với Supplier thuộc registry dùng chung của nền tảng.
+  \item Ngăn cam kết chi vượt số dư bằng cơ chế \texttt{lockedFunds} và hàm xác định available funds.
+  \item Hỗ trợ yêu cầu chi một lần và nhiều giai đoạn, phù hợp với công việc cần nghiệm thu theo milestone.
+  \item Cho Donor tham gia biểu quyết theo trọng số contribution; hỗ trợ validator pool đối với khoản chi nhỏ.
+  \item Yêu cầu proof CID và xác minh on-chain trước khi chuyển tiền; hỗ trợ hard reject, cancellation và voting deadline.
+  \item Lưu ảnh, nội dung mô tả và bằng chứng trên IPFS, chỉ lưu CID cần thiết trên blockchain để giảm chi phí gas.
+  \item Hỗ trợ cơ chế giao dịch thay mặt và gom giao dịch để giảm rào cản trải nghiệm.
+  \item Theo dõi event, lưu notification và đẩy cập nhật thời gian thực đến giao diện.
+  \item Cung cấp dashboard phù hợp cho Manager, Admin, Supplier, Verifier và Donor.
+  \item Xây dựng bộ kiểm thử cho các luồng nghiệp vụ, điều kiện thất bại, quyền truy cập và các nguyên tắc tài chính quan trọng.
+\end{itemize}
+
+\fi
+\subsection{Mục tiêu đo lường được}
+
+Để tránh đánh giá dự án chỉ dựa trên cảm nhận, nhóm sử dụng các chỉ số thành công tại Bảng~\ref{tab:success-metrics}.
+
+\begin{longtable}{p{1.4cm}p{7.2cm}p{5.2cm}}
+\caption{Mục tiêu và chỉ số thành công của dự án}\label{tab:success-metrics}\\
+\toprule
+\textbf{Mã} & \textbf{Chỉ số} & \textbf{Mức chấp nhận} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Mã} & \textbf{Chỉ số} & \textbf{Mức chấp nhận} \\
+\midrule
+\endhead
+OBJ-01 & Tỷ lệ yêu cầu bắt buộc vượt UAT & 100\% yêu cầu Must Have \\
+OBJ-02 & Kiểm thử logic smart contract cốt lõi & Tối thiểu 80\% statement coverage \\
+OBJ-03 & Lỗi trước nghiệm thu & Không còn lỗi Critical hoặc High \\
+OBJ-04 & Luồng end-to-end & Chạy được từ tạo chiến dịch đến giải ngân trên Sepolia \\
+OBJ-05 & Khả năng truy vết & Có transaction hash, event và CID tương ứng \\
+OBJ-06 & Hiệu năng API thông thường & Không quá 2 giây trong môi trường thử nghiệm ổn định \\
+OBJ-07 & Hiển thị nội dung trang chính & Không quá 3 giây trong điều kiện thử nghiệm \\
+OBJ-08 & Tiến độ & Hoàn thành trước hoặc trong ngày 30/06/2026 \\
+OBJ-09 & Ngân sách & EAC không vượt Project Budget 64 triệu VNĐ \\
+OBJ-10 & Bàn giao & Có source, ABI, cấu hình mẫu, test report và tài liệu \\
+\bottomrule
+\end{longtable}
+
+\section{Mô tả tổng quan sản phẩm}
+
+\subsection{Các hợp phần trong phạm vi quản trị}
+
+Sản phẩm được chia thành các hợp phần đủ lớn để hình thành work package và phân công nguồn lực. Chương này chỉ mô tả trách nhiệm cấp cao; thiết kế kỹ thuật chi tiết, địa chỉ triển khai và interface được quản lý trong hồ sơ cấu hình và phụ lục kỹ thuật.
+
+\begin{table}[H]
+\centering
+\caption{Các hợp phần sản phẩm và vấn đề quản trị tương ứng}
+\label{tab:product-components}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3.1cm}p{5.2cm}X}
+\toprule
+Hợp phần & Phạm vi cấp cao & Nội dung cần quản trị \\
+\midrule
+Blockchain & Quản lý chiến dịch, quỹ, yêu cầu chi và phân quyền & Bảo mật, gas, test, thay đổi interface và triển khai \\
+Backend/IPFS & Metadata, bằng chứng, đồng bộ event và thông báo & API, dữ liệu, dịch vụ ngoài, tính sẵn sàng và bảo mật secret \\
+Relayer/AI & Hàng đợi giao dịch và hỗ trợ tối ưu thời điểm gửi & Chi phí vận hành, fallback, monitoring và giới hạn phạm vi AI \\
+Frontend & Trang công khai và dashboard theo vai trò & Yêu cầu người dùng, UI/UX, tích hợp và UAT \\
+Hạ tầng & Sepolia, RPC, MongoDB, Redis, Pinata và hosting & Mua sắm, quota, SLA, configuration và phương án dự phòng \\
+Tài liệu/QA & Kế hoạch, hướng dẫn, test report và hồ sơ bàn giao & Traceability, quality gate, phê duyệt và lưu trữ tri thức \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Việc phân chia trên cho thấy blockchain chỉ là một hợp phần của dự án. Nếu chỉ hoàn thành smart contract nhưng thiếu giao diện, kiểm thử, tài liệu, cấu hình triển khai hoặc hồ sơ nghiệm thu, dự án vẫn chưa đáp ứng Definition of Done. Ngược lại, một giao diện hoàn chỉnh cũng không được chấp nhận nếu các điều kiện phân quyền và giải ngân chưa được kiểm thử.
+
+\subsection{Kiến trúc ở mức quản trị dự án}
+
+Kiến trúc tổng thể được dùng để nhận diện dependency và rủi ro tích hợp. Frontend phụ thuộc vào ABI và API; backend phụ thuộc RPC, IPFS, MongoDB và Redis; relayer phụ thuộc Forwarder và quỹ gas; toàn bộ release phụ thuộc cấu hình đúng network và contract address. Vì vậy, thay đổi ở một hợp phần phải được đánh giá tác động tới các hợp phần còn lại trước khi phê duyệt.
+
+\figureplaceholder{ch01-system-architecture.png}{Sơ đồ cấp cao gồm Frontend, Backend/IPFS, Relayer/AI, Smart Contract và hạ tầng dữ liệu. Ưu tiên thể hiện dependency và ranh giới trách nhiệm; không cần liệt kê chi tiết hàm hoặc cấu trúc dữ liệu.}{Kiến trúc sản phẩm phục vụ phân tích phạm vi và phụ thuộc}{fig:system-architecture}
+
+\subsection{Tác động của kiến trúc đến kế hoạch dự án}
+
+Kiến trúc nhiều hợp phần ảnh hưởng trực tiếp đến cách lập kế hoạch. Blockchain phải ổn định interface trước khi frontend và listener hoàn tất tích hợp; Evidence API phải sẵn sàng trước khi kiểm thử luồng tạo chiến dịch và yêu cầu chi; môi trường Sepolia và tài khoản dịch vụ phải được chuẩn bị trước UAT. Một phần công việc có thể làm song song, nhưng các mốc tích hợp và regression vẫn nằm gần đường găng.
+
+Về chi phí, dự án phải tính không chỉ công sức phát triển mà còn gas, RPC, lưu trữ, cơ sở dữ liệu và hosting. Về chất lượng, các lỗi liên quan đến tiền và quyền truy cập có mức độ nghiêm trọng cao hơn lỗi trình bày. Về rủi ro, việc phụ thuộc dịch vụ ngoài đòi hỏi retry, fallback và phương án demo dự phòng. Các nội dung này được triển khai chi tiết trong các chương quản lý thời gian, chi phí, chất lượng, rủi ro, mua sắm và tích hợp.
+
+\subsection{Môi trường và giới hạn bàn giao}
+
+Release của môn học được bàn giao trên Sepolia Testnet. Địa chỉ contract, ABI, chain ID và biến môi trường được xem là configuration item, được lưu trong hồ sơ triển khai thay vì trình bày sâu trong chương giới thiệu. Trước demo, nhóm phải thực hiện checklist cấu hình và smoke test. Release này dùng để chứng minh quy trình và kết quả quản trị; nó không được xem là phiên bản production hoặc cam kết vận hành Mainnet.
+
+\section{Đối tượng sử dụng và các bên liên quan}
+
+\subsection{Nhóm người dùng trực tiếp}
+
+Hệ thống có năm vai trò người dùng trực tiếp. Một địa chỉ ví có thể xuất hiện trong nhiều ngữ cảnh, nhưng smart contract đặt ra các giới hạn nhằm tránh xung đột lợi ích, chẳng hạn manager không được quyên góp hoặc biểu quyết cho chính chiến dịch của mình và recipient không được tự đóng vai verifier cho cùng yêu cầu.
+
+\begin{longtable}{p{3cm}p{4.2cm}p{7cm}}
+\caption{Nhu cầu và quyền hạn của người dùng trực tiếp}\label{tab:user-roles}\\
+\toprule
+\textbf{Vai trò} & \textbf{Nhu cầu chính} & \textbf{Chức năng/quyền hạn} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Vai trò} & \textbf{Nhu cầu chính} & \textbf{Chức năng/quyền hạn} \\
+\midrule
+\endhead
+Donor & Minh bạch và bảo vệ khoản đóng góp & Donate, theo dõi lịch sử, vote, validator approval, nhận notification và claim refund \\
+Campaign Manager & Tổ chức và điều phối chiến dịch & Submit proposal, tạo/hủy request, theo dõi quỹ, finalize và deactivate campaign \\
+Platform Admin & Kiểm soát nền tảng & Duyệt/từ chối campaign, quản lý Supplier, phí chống spam và quyền admin \\
+Supplier & Nộp bằng chứng và nhận thanh toán & Quản lý hồ sơ, xem nhiệm vụ, submit proof và theo dõi earnings \\
+Verifier & Xác minh độc lập & Kiểm tra proof CID, verify/reject request và verify milestone \\
+\bottomrule
+\end{longtable}
+
+\subsection{Các bên liên quan khác}
+
+Ngoài người dùng trực tiếp, dự án còn chịu ảnh hưởng của giảng viên/người nghiệm thu, nhóm phát triển, nhà cung cấp RPC, Pinata, MongoDB, Redis/hosting và cộng đồng có thể xem dữ liệu công khai. Giảng viên quan tâm đến tính đúng đắn của phương pháp quản trị và chất lượng bàn giao; nhóm phát triển quan tâm đến phạm vi rõ ràng, công cụ và lịch khả thi; nhà cung cấp hạ tầng ảnh hưởng tới tính sẵn sàng nhưng không có quyền thay đổi trạng thái tài chính on-chain.
+
+\begin{table}[H]
+\centering
+\caption{Phân loại stakeholder theo quyền lực và mức quan tâm}
+\label{tab:stakeholder-grid}
+\begin{tabularx}{\textwidth}{p{3.7cm}p{4cm}X}
+\toprule
+\textbf{Nhóm} & \textbf{Stakeholder} & \textbf{Chiến lược tương tác} \\
+\midrule
+Quyền lực cao, quan tâm cao & Giảng viên/người nghiệm thu, PM, Platform Admin & Quản lý chặt, báo cáo định kỳ, tham gia quyết định baseline/change \\
+Quyền lực thấp hơn, quan tâm cao & Donor, Manager, Supplier, Verifier, nhóm phát triển & Cập nhật thường xuyên, demo và lấy phản hồi \\
+Quyền lực cao, quan tâm thấp & Nhà cung cấp hạ tầng chủ chốt & Theo dõi SLA, quota, thay đổi dịch vụ và phương án dự phòng \\
+Quyền lực thấp, quan tâm thấp & Khách truy cập và cộng đồng chung & Cung cấp thông tin công khai, tài liệu và kênh phản hồi \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\figureplaceholder{ch01-stakeholder-map.png}{Power--Interest Grid bốn phần tư, đặt giảng viên/PM/Admin ở Manage Closely; người dùng và nhóm phát triển ở Keep Informed/Manage Closely; nhà cung cấp ở Keep Satisfied; khách truy cập ở Monitor.}{Bản đồ quyền lực và mức quan tâm của stakeholder}{fig:stakeholder-map}
+
+Power--Interest Grid chỉ hỗ trợ phân loại, vì vậy dự án sử dụng thêm Stakeholder Engagement Assessment Matrix. Năm mức tham gia gồm Unaware (U), Resistant (R), Neutral (N), Supportive (S) và Leading (L); ký hiệu C là trạng thái hiện tại, D là trạng thái mong muốn. Ma trận là baseline giao tiếp tại thời điểm khởi tạo và được rà soát sau mỗi sprint review.
+
+\begin{landscape}
+\begin{longtable}{p{3.2cm}ccccc p{5.8cm}p{2.5cm}p{2.5cm}}
+\caption{Stakeholder Engagement Assessment Matrix}\label{tab:stakeholder-engagement}\\
+\toprule
+\textbf{Stakeholder} & \textbf{U} & \textbf{R} & \textbf{N} & \textbf{S} & \textbf{L} & \textbf{Hành động thu hẹp khoảng cách} & \textbf{Owner} & \textbf{Rà soát} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Stakeholder} & \textbf{U} & \textbf{R} & \textbf{N} & \textbf{S} & \textbf{L} & \textbf{Hành động thu hẹp khoảng cách} & \textbf{Owner} & \textbf{Rà soát} \\
+\midrule
+\endhead
+Giảng viên/người nghiệm thu & & & & C & D & Gửi status trước milestone, demo bằng tiêu chí nghiệm thu và chốt decision log & PM & Mỗi milestone \\
+Nhóm 2/PM & & & & C & D & Duy trì baseline, weekly review và chủ động escalation blocker & PM & Hằng tuần \\
+Đội kỹ thuật & & & C & D & & Workshop yêu cầu, công bố Definition of Done, review chéo và retrospective & TL/PM & Mỗi sprint \\
+Platform Admin & & & C & D & & Demo quyền quản trị, security checklist và UAT luồng duyệt chiến dịch & BA & Sprint 3--6 \\
+Donor & C & & & D & & Prototype, usability test và UAT donate/vote/refund & BA/FE & Sprint review \\
+Campaign Manager & & & C & D & & Phỏng vấn yêu cầu và UAT tạo campaign/request/finalize & BA & Sprint 2, 5--6 \\
+Supplier & C & & & D & & Hướng dẫn proof CID, demo submit proof và lấy phản hồi & BA/QA & Sprint 4--6 \\
+Verifier & & & C & D & & Walkthrough quy tắc verify/reject và UAT bằng dữ liệu mẫu & BA/QA & Sprint 4--6 \\
+Nhà cung cấp hạ tầng & & & C/D & & & Theo dõi quota/status, duy trì đầu mối hỗ trợ và phương án dự phòng & DevOps & Hằng tuần \\
+\bottomrule
+\end{longtable}
+\end{landscape}
+
+Khoảng cách lớn nhất nằm ở nhóm người dùng chưa tiếp xúc với bản thử nghiệm. PM không giả định thái độ của người thật khi chưa khảo sát; giá trị C trong báo cáo là giả định lập kế hoạch và phải được thay bằng kết quả phỏng vấn/UAT khi có dữ liệu. Thông tin nhạy cảm về thái độ cá nhân được lưu trong stakeholder register có kiểm soát, còn báo cáo chỉ trình bày mức tổng hợp cần thiết cho quản trị.
+
+\iffalse
+\section{Phạm vi sơ bộ của dự án}
+
+\subsection{Nội dung thuộc phạm vi}
+
+Phạm vi sản phẩm bao gồm các smart contract và luồng nghiệp vụ đã mô tả; Evidence API, relayer, gas monitor, AI sidecar, listener và notification; các trang và dashboard React; cấu hình Docker; triển khai Sepolia; test suite; tài liệu cài đặt, vận hành, quản trị và hướng dẫn demo. Phạm vi dự án còn bao gồm hoạt động phân tích, thiết kế, phát triển, tích hợp, kiểm thử, triển khai, nghiệm thu và kết thúc trong baseline ba tháng.
+
+Mọi chức năng được xem là thuộc phạm vi phải có yêu cầu, acceptance criteria và work package tương ứng. Các thay đổi ảnh hưởng storage/interface của contract, milestone hoặc Cost Baseline phải đi qua Integrated Change Control thay vì được bổ sung trực tiếp vào code.
+
+\subsection{Nội dung ngoài phạm vi}
+
+Các nội dung không thuộc phạm vi gồm Mainnet, giao dịch tiền pháp định, KYC pháp lý hoàn chỉnh, mobile native, NFT donation, token quản trị, DAO đầy đủ, sàn giao dịch, AI phát hiện gian lận và hệ thống kế toán/thuế. Audit bảo mật bởi đơn vị độc lập, formal verification và SLA production cũng chưa được xem là deliverable nếu không có hợp đồng hoặc bằng chứng thực hiện.
+
+Việc xác định ngoài phạm vi không có nghĩa các chức năng trên không có giá trị. Chúng được đưa vào định hướng phát triển để tránh làm tăng phạm vi trong kỳ học và bảo vệ thời gian dành cho kiểm thử các luồng tài chính cốt lõi.
+
+\subsection{Giả định và ràng buộc}
+
+Các giả định chính gồm: người dùng có MetaMask và ETH testnet; Sepolia, RPC và Pinata khả dụng; các vai trò giữ an toàn khóa ví; dữ liệu IPFS được pin trong vòng đời thử nghiệm; quy mô thử nghiệm tối đa 100 ví, 30 chiến dịch, 500 donation và 200 request với không quá 20 người dùng đồng thời.
+
+Ràng buộc gồm thời gian ba tháng, nguồn lực sinh viên, phí gas biến động, phụ thuộc dịch vụ ngoài và tính khó thay đổi của smart contract sau deploy. Một thay đổi contract có thể bắt buộc deploy lại, verify lại, cập nhật ABI/address, cấu hình listener và frontend. Vì vậy, dự án dành buffer cho integration, regression và tài liệu ở giai đoạn cuối.
+
+\section{Lợi ích mong đợi từ dự án}
+
+\subsection{Lợi ích đối với Donor}
+
+Donor có thể kiểm tra transaction, số tiền đã đóng góp, yêu cầu chi, trạng thái biểu quyết, proof CID và khoản thanh toán mà không chỉ phụ thuộc vào báo cáo một chiều. Cơ chế weighted voting tạo tiếng nói gắn với contribution, trong khi refund giúp xử lý phần quỹ còn lại khi chiến dịch dừng. Những cơ chế này không loại bỏ hoàn toàn rủi ro nhưng làm cho quyết định và dòng tiền dễ truy vết hơn.
+
+\subsection{Lợi ích đối với Campaign Manager}
+
+Manager có một quy trình thống nhất để đề xuất chiến dịch, huy động quỹ, quản lý available funds, tạo request và theo dõi phê duyệt. Việc tách metadata sang IPFS giảm giới hạn nội dung và chi phí on-chain. Dashboard và notification giúp manager theo dõi nhiệm vụ, còn event tạo dấu vết kiểm toán cho các quyết định quan trọng.
+
+\subsection{Lợi ích đối với Supplier và Verifier}
+
+Supplier được nhận nhiệm vụ và thanh toán thông qua địa chỉ đã đăng ký, giảm sự mơ hồ về người nhận tiền. Proof CID gắn bằng chứng với từng request hoặc milestone. Verifier có nhiệm vụ và quyền quyết định rõ ràng; hard reject vừa ghi nhận kết quả on-chain vừa giải phóng ngân sách để chiến dịch không bị khóa vốn vô thời hạn.
+
+\subsection{Lợi ích đối với nền tảng và cộng đồng}
+
+Platform Admin có công cụ xét duyệt chiến dịch, quản lý Supplier và giám sát toàn cục mà không cần nắm quyền rút tiền của từng Campaign. Cộng đồng có thể sử dụng dữ liệu công khai để đối chiếu. Về mặt học thuật, dự án tạo ra một trường hợp nghiên cứu kết hợp quản trị dự án, smart contract security, hệ thống phân tán và trải nghiệm người dùng.
+
+\subsection{Lợi ích định lượng giả định}
+
+Trong phân tích quản trị, dự án giả định lợi ích quy đổi 30.000.000~VNĐ mỗi năm từ việc giảm công sức đối soát, tổng hợp chứng từ và quản lý báo cáo. Với initial investment 64.000.000~VNĐ, thời gian đánh giá ba năm và discount rate 12\%, NPV ước tính khoảng 8.055.000~VNĐ. Đây chỉ là kịch bản phục vụ phân tích lựa chọn đầu tư, không phải doanh thu đã được chứng minh.
+
+\fi
+\section{Sản phẩm bàn giao cấp cao}
+
+Các deliverable cấp cao được xác định tại Bảng~\ref{tab:deliverables}. Mỗi deliverable chỉ được chấp nhận khi có bằng chứng và owner trong kế hoạch chi tiết.
+
+\begin{longtable}{p{1.1cm}p{3.5cm}p{4.6cm}p{3.6cm}}
+\caption{Danh sách sản phẩm bàn giao cấp cao}\label{tab:deliverables}\\
+\toprule
+\textbf{ID} & \textbf{Deliverable} & \textbf{Thành phần} & \textbf{Bằng chứng chấp nhận} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Deliverable} & \textbf{Thành phần} & \textbf{Bằng chứng chấp nhận} \\
+\midrule
+\endhead
+D1 & Bộ tài liệu phân tích/thiết kế & Requirement, RTM, use case, architecture & Review và baseline được duyệt \\
+D2 & Blockchain module & Contracts, ABI, scripts và tests & Test report, tx hash, verified source \\
+D3 & Backend/AI & Evidence, listener, notification, relayer, sidecar & API test, log và demo tích hợp \\
+D4 & Frontend DApp & Public pages và role dashboards & Build thành công và UAT \\
+D5 & Hạ tầng/cấu hình & Docker, env template, MongoDB, Redis & Deployment checklist và smoke test \\
+D6 & Báo cáo chất lượng & Test plan, result, defect và security checklist & Không còn Critical/High defect \\
+D7 & Tài liệu sử dụng/vận hành & README, deploy guide, demo script & Người nhận có thể tái triển khai \\
+D8 & Hồ sơ quản trị & Baseline, RACI, risk, cost, change và closure & Đủ biểu mẫu và phê duyệt \\
+\bottomrule
+\end{longtable}
+
+\section{Tiêu chí thành công cấp cao}
+
+Dự án được xem là thành công khi đạt đồng thời các điều kiện sau:
+
+\begin{enumerate}
+  \item Các chức năng Must Have trong phạm vi được triển khai và đạt UAT; những phần chưa hoàn thành được ghi rõ, không che giấu dưới dạng ``hướng phát triển''.
+  \item Luồng từ đề xuất chiến dịch đến giải ngân chạy được trên Sepolia, đồng thời có thể kiểm tra transaction và metadata liên quan.
+  \item Các invariant quan trọng được bảo vệ: manager không tự donate/vote, request không vượt available funds, recipient thuộc Supplier Registry, payment chỉ xảy ra khi đủ điều kiện và refund không thể nhận hai lần.
+  \item Smart contract test đạt quality gate, frontend/backend build thành công và không còn lỗi Critical hoặc High trước nghiệm thu.
+  \item Schedule Baseline kết thúc ngày 30/06/2026; mọi sai lệch đáng kể có phân tích nguyên nhân và corrective action.
+  \item Dự báo chi phí không vượt Project Budget 64.000.000~VNĐ nếu chưa có thay đổi được phê duyệt.
+  \item Source, ABI, địa chỉ triển khai, cấu hình mẫu, test report và tài liệu được bàn giao đầy đủ; không có private key hoặc secret trong repository.
+  \item Stakeholder chấp nhận sản phẩm theo biên bản nghiệm thu và danh sách known issues.
+\end{enumerate}
+
+Chương này đã xác định bối cảnh, mục tiêu, kiến trúc, stakeholder, phạm vi, lợi ích, deliverable và tiêu chí thành công của FundChain. Đây là cơ sở để Chương II chuyển phạm vi cấp cao thành yêu cầu, Scope Baseline, WBS và quy trình kiểm soát thay đổi chi tiết.

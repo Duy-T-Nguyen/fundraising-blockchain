@@ -1,0 +1,117 @@
+\usepackage{fontspec}
+\setmainfont{Liberation Serif}
+\setsansfont{Liberation Sans}
+\setmonofont{Liberation Mono}[Scale=0.85]
+
+\usepackage{geometry}
+\geometry{top=2.5cm,bottom=2.5cm,left=3.5cm,right=2cm}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{1.27cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\graphicspath{{images/}{assets/}{../fe/src/assets/}{../fe/public/}}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{pdflscape}
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=1.5cm}
+
+\usepackage{xcolor}
+\definecolor{linkblue}{HTML}{1F4E79}
+\usepackage[hidelinks,unicode]{hyperref}
+\hypersetup{
+  pdftitle={Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain},
+  pdfauthor={Nhóm 2},
+  pdfsubject={Quản trị dự án},
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=linkblue,
+  urlcolor=linkblue
+}
+\usepackage{url}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\centering\fontsize{16}{20}\selectfont}
+  {\MakeUppercase{\chaptername~\thechapter}}{0.5em}{\MakeUppercase}
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\centering\fontsize{16}{20}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{14}{17}\selectfont}
+  {\thesection.}{0.5em}{}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{13}{16}\selectfont}
+  {\thesubsection.}{0.5em}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{24pt}
+
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+\renewcommand{\contentsname}{MỤC LỤC}
+\renewcommand{\listfigurename}{DANH MỤC HÌNH ẢNH}
+\renewcommand{\listtablename}{DANH MỤC BẢNG}
+\renewcommand{\bibname}{TÀI LIỆU THAM KHẢO}
+\renewcommand{\chaptername}{CHƯƠNG}
+\renewcommand{\appendixname}{PHỤ LỤC}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain}
+\fancyhead[R]{\small Nhóm 2}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{15pt}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  showstringspaces=false
+}
+
+\newcommand{\projecttitle}{Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain}
+\newcommand{\university}{Trường Đại học Giao thông vận tải Thành phố Hồ Chí Minh}
+\newcommand{\coursename}{Quản trị dự án}
+\newcommand{\groupname}{Nhóm 2}
+\newcommand{\supervisor}{Lê Hữu Thanh Tùng}
+
+% Khung giữ chỗ cho hình chưa được import.
+% Cú pháp: \figureplaceholder{tên-tệp}{nội dung hình}{caption}{label}
+\newcommand{\figureplaceholder}[4]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{images/#1}{%
+      \includegraphics[width=0.92\textwidth,height=0.78\textheight,keepaspectratio]{#1}%
+    }{%
+      \fbox{%
+        \begin{minipage}[c][5cm][c]{0.88\textwidth}
+          \centering
+          \textbf{HÌNH SẼ BỔ SUNG}\\[0.35cm]
+          Tên tệp đề xuất: \texttt{#1}\\[0.25cm]
+          \small #2
+        \end{minipage}%
+      }%
+    }
+    \caption{#3}
+    \label{#4}
+  \end{figure}%
+}
