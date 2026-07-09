@@ -88,26 +88,26 @@ Dự án không tạo activity quá nhỏ đến mức làm lịch biểu trở 
 
 \subsection{Danh mục hoạt động cấp giai đoạn}
 
-\begin{longtable}{p{0.9cm}p{4.5cm}p{2.3cm}p{1.5cm}p{3.1cm}}
+\begin{longtable}{| p{0.9cm} | p{4.5cm} | p{2.3cm} | p{1.5cm} | p{3.1cm} |}
 \caption{Danh mục hoạt động cấp giai đoạn của dự án}\label{tab:schedule-activities}\\
-\toprule
+\hline
 \textbf{ID} & \textbf{Hoạt động} & \textbf{Thời gian} & \textbf{Tuần} & \textbf{Đầu ra chính} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{ID} & \textbf{Hoạt động} & \textbf{Thời gian} & \textbf{Tuần} & \textbf{Đầu ra chính} \\
-\midrule
+\hline
 \endhead
-A1 & Khởi tạo, stakeholder và charter & 01/04--07/04 & 1 & Charter, stakeholder register \\
-A2 & Yêu cầu, phạm vi và WBS & 08/04--21/04 & 2--3 & Scope Baseline, RTM, WBS \\
-A3 & Thiết kế kiến trúc, contract, API và UI & 22/04--05/05 & 4--5 & Design baseline \\
-A4 & Phát triển smart contract cốt lõi & 06/05--26/05 & 6--8 & Contract core và test \\
-A5 & Backend, IPFS, relayer, AI và notification & 06/05--26/05 & 6--8 & API/services tích hợp \\
-A6 & Frontend và dashboard theo vai trò & 06/05--26/05 & 6--8 & Các luồng UI chính \\
-A7 & Tích hợp, hardening và regression & 27/05--11/06 & 9--11 & End-to-end flow và defect fixes \\
-A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06--25/06 & 11--13 & Release candidate và UAT \\
+A1 & Khởi tạo, stakeholder và charter & 01/04--07/04 & 1 & Charter, stakeholder register \\ \hline
+A2 & Yêu cầu, phạm vi và WBS & 08/04--21/04 & 2--3 & Scope Baseline, RTM, WBS \\ \hline
+A3 & Thiết kế kiến trúc, contract, API và UI & 22/04--05/05 & 4--5 & Design baseline \\ \hline
+A4 & Phát triển smart contract cốt lõi & 06/05--26/05 & 6--8 & Contract core và test \\ \hline
+A5 & Backend, IPFS, relayer, AI và notification & 06/05--26/05 & 6--8 & API/services tích hợp \\ \hline
+A6 & Frontend và dashboard theo vai trò & 06/05--26/05 & 6--8 & Các luồng UI chính \\ \hline
+A7 & Tích hợp, hardening và regression & 27/05--11/06 & 9--11 & End-to-end flow và defect fixes \\ \hline
+A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06--25/06 & 11--13 & Release candidate và UAT \\ \hline
 A9 & Tài liệu, bàn giao và closure & 26/06--30/06 & 13 & Báo cáo, demo, closure \\
-\bottomrule
+\hline
 \end{longtable}
 
 \section{Sắp xếp hoạt động và ước lượng thời gian}
@@ -147,15 +147,15 @@ Trong đó:
 \centering
 \caption{Ví dụ ước lượng ba điểm cho các hoạt động rủi ro cao}
 \label{tab:three-point-estimation}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}c c c c X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.2cm} | c | c | c | c | X |}
+\hline
 Hoạt động & O & M & P & E & Ghi chú \\
-\midrule
-Contract core & 8 & 10 & 14 & 10,33 & Rủi ro do logic quỹ, quyền và regression \\
-Relayer và meta-transaction & 5 & 7 & 11 & 7,33 & Phụ thuộc queue, gas và fallback \\
-Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & Rủi ro do interface và dữ liệu liên hợp \\
+\hline
+Contract core & 8 & 10 & 14 & 10,33 & Rủi ro do logic quỹ, quyền và regression \\ \hline
+Relayer và meta-transaction & 5 & 7 & 11 & 7,33 & Phụ thuộc queue, gas và fallback \\ \hline
+Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & Rủi ro do interface và dữ liệu liên hợp \\ \hline
 Deploy/UAT & 3 & 5 & 8 & 5,17 & Rủi ro do cấu hình và môi trường testnet \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -165,16 +165,16 @@ Ngoài thời lượng kỳ vọng, nhóm tính thêm độ bất định của 
 \centering
 \caption{Phân tích PERT mở rộng cho các hoạt động rủi ro cao}
 \label{tab:pert-variance}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}c c c c c X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.2cm} | c | c | c | c | c | X |}
+\hline
 Hoạt động & O & M & P & E & Var & Ý nghĩa kiểm soát \\
-\midrule
-Contract core & 8 & 10 & 14 & 10,33 & 1,00 & Cần review quyền truy cập và test hoàn tiền trước khi khóa ABI \\
-Relayer/meta-tx & 5 & 7 & 11 & 7,33 & 1,00 & Theo dõi queue, gas policy và fallback khi RPC chậm \\
-Frontend tích hợp & 7 & 10 & 16 & 10,50 & 2,25 & Rủi ro cao nhất vì phụ thuộc ABI/address và dữ liệu backend \\
-Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & 1,78 & Chỉ ghi hoàn thành khi qua integration gate, không dựa vào phần trăm cảm tính \\
+\hline
+Contract core & 8 & 10 & 14 & 10,33 & 1,00 & Cần review quyền truy cập và test hoàn tiền trước khi khóa ABI \\ \hline
+Relayer/meta-tx & 5 & 7 & 11 & 7,33 & 1,00 & Theo dõi queue, gas policy và fallback khi RPC chậm \\ \hline
+Frontend tích hợp & 7 & 10 & 16 & 10,50 & 2,25 & Rủi ro cao nhất vì phụ thuộc ABI/address và dữ liệu backend \\ \hline
+Tích hợp end-to-end & 7 & 10 & 15 & 10,33 & 1,78 & Chỉ ghi hoàn thành khi qua integration gate, không dựa vào phần trăm cảm tính \\ \hline
 Deploy/UAT & 3 & 5 & 8 & 5,17 & 0,69 & Cần runbook, env template và demo fallback để giảm biến động cuối kỳ \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -191,20 +191,20 @@ Mỗi hoạt động được gắn với nhóm năng lực chủ đạo thay v�
 \centering
 \caption{Nguồn lực chủ đạo theo hoạt động cấp giai đoạn}
 \label{tab:activity-resources}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{4.1cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{1.1cm} | p{4.1cm} | X |}
+\hline
 ID & Hoạt động & Nguồn lực chủ đạo \\
-\midrule
-A1 & Khởi tạo và charter & PM, BA, giảng viên/người nghiệm thu \\
-A2 & Yêu cầu, phạm vi và WBS & PM, BA, QA, Technical Lead \\
-A3 & Thiết kế & Technical Lead, BC, BE, FE, BA \\
-A4 & Contract core & BC, TL, QA \\
-A5 & Backend, IPFS, relayer & BE, TL, QA \\
-A6 & Frontend và dashboard & FE, BA, QA \\
-A7 & Tích hợp và hardening & TL, BC, BE, FE, QA \\
-A8 & Deploy và UAT & DevOps, QA, PM, toàn nhóm hỗ trợ \\
+\hline
+A1 & Khởi tạo và charter & PM, BA, giảng viên/người nghiệm thu \\ \hline
+A2 & Yêu cầu, phạm vi và WBS & PM, BA, QA, Technical Lead \\ \hline
+A3 & Thiết kế & Technical Lead, BC, BE, FE, BA \\ \hline
+A4 & Contract core & BC, TL, QA \\ \hline
+A5 & Backend, IPFS, relayer & BE, TL, QA \\ \hline
+A6 & Frontend và dashboard & FE, BA, QA \\ \hline
+A7 & Tích hợp và hardening & TL, BC, BE, FE, QA \\ \hline
+A8 & Deploy và UAT & DevOps, QA, PM, toàn nhóm hỗ trợ \\ \hline
 A9 & Tài liệu, bàn giao và dự phòng & PM, BA, QA, toàn nhóm \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -248,20 +248,20 @@ Cách chia giai đoạn này giúp lịch biểu vừa có tính quản trị c�
 \centering
 \caption{Milestone chính của dự án}
 \label{tab:project-milestones}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{7cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{1.1cm} | p{7cm} | X |}
+\hline
 Mốc & Nội dung & Ngày baseline \\
-\midrule
-M1 & Project Charter được sponsor/giảng viên phê duyệt & 07/04/2026 \\
-M2 & Scope, yêu cầu và WBS baseline được duyệt & 21/04/2026 \\
-M3 & Thiết kế kiến trúc, contract, API và UI được duyệt & 05/05/2026 \\
-M4 & Smart contract core hoàn thành và vượt unit test & 26/05/2026 \\
-M5 & Backend/IPFS/relayer hoạt động ổn định & 26/05/2026 \\
-M6 & Dashboard frontend hoàn thành & 26/05/2026 \\
-M7 & End-to-end flow và regression hoàn tất & 11/06/2026 \\
-M8 & Deploy Sepolia, UAT và sửa lỗi hoàn tất & 25/06/2026 \\
+\hline
+M1 & Project Charter được sponsor/giảng viên phê duyệt & 07/04/2026 \\ \hline
+M2 & Scope, yêu cầu và WBS baseline được duyệt & 21/04/2026 \\ \hline
+M3 & Thiết kế kiến trúc, contract, API và UI được duyệt & 05/05/2026 \\ \hline
+M4 & Smart contract core hoàn thành và vượt unit test & 26/05/2026 \\ \hline
+M5 & Backend/IPFS/relayer hoạt động ổn định & 26/05/2026 \\ \hline
+M6 & Dashboard frontend hoàn thành & 26/05/2026 \\ \hline
+M7 & End-to-end flow và regression hoàn tất & 11/06/2026 \\ \hline
+M8 & Deploy Sepolia, UAT và sửa lỗi hoàn tất & 25/06/2026 \\ \hline
 M9 & Báo cáo và sản phẩm được bàn giao & 30/06/2026 \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -281,41 +281,41 @@ LS_i=LF_i-d_i,\qquad LF_i=\min(LS_{succ}),\qquad TF_i=LS_i-ES_i
 Free Float được tính bằng $FF_i=\min(ES_{succ})-EF_i$. Bảng~\ref{tab:cpm-calculation} công bố toàn bộ dữ liệu đầu vào và kết quả, nhờ đó đường găng có thể được kiểm tra lại thay vì chỉ suy ra từ biểu đồ Gantt.
 
 \begin{landscape}
-\begin{longtable}{p{1.1cm}p{5.2cm}r p{2.2cm}rrrrrr}
+\begin{longtable}{| p{1.1cm} | p{5.2cm} | r | p{2.2cm} | r | r | r | r | r | r |}
 \caption{Kết quả tính CPM chi tiết theo ngày làm việc}\label{tab:cpm-calculation}\\
-\toprule
+\hline
 \textbf{ID} & \textbf{Hoạt động} & \textbf{$d$} & \textbf{Predecessor} & \textbf{ES} & \textbf{EF} & \textbf{LS} & \textbf{LF} & \textbf{TF} & \textbf{FF} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{ID} & \textbf{Hoạt động} & \textbf{$d$} & \textbf{Predecessor} & \textbf{ES} & \textbf{EF} & \textbf{LS} & \textbf{LF} & \textbf{TF} & \textbf{FF} \\
-\midrule
+\hline
 \endhead
-T01 & Lập và phê duyệt Project Charter & 3 & -- & 0 & 3 & 0 & 3 & 0 & 0 \\
-T02 & Stakeholder register và governance & 2 & T01 & 3 & 5 & 3 & 5 & 0 & 0 \\
-T03 & Thu thập và baseline yêu cầu & 5 & T02 & 5 & 10 & 5 & 10 & 0 & 0 \\
-T04 & Scope Statement, WBS và RTM & 5 & T03 & 10 & 15 & 10 & 15 & 0 & 0 \\
-T05 & Thiết kế kiến trúc tổng thể & 5 & T04 & 15 & 20 & 15 & 20 & 0 & 0 \\
-T06 & Chốt contract, API và UI interface & 5 & T05 & 20 & 25 & 20 & 25 & 0 & 0 \\
-T07 & Phát triển smart contract core & 10 & T06 & 25 & 35 & 25 & 35 & 0 & 0 \\
-T08 & Unit/security test cho contract & 5 & T07 & 35 & 40 & 35 & 40 & 0 & 0 \\
-T09 & Phát triển backend core & 8 & T06 & 25 & 33 & 25 & 33 & 0 & 0 \\
-T10 & IPFS, relayer, listener và AI sidecar & 7 & T09 & 33 & 40 & 33 & 40 & 0 & 0 \\
-T11 & Frontend foundation và wallet flow & 7 & T06 & 25 & 32 & 25 & 32 & 0 & 0 \\
-T12 & Dashboard và luồng theo vai trò & 8 & T11 & 32 & 40 & 32 & 40 & 0 & 0 \\
-T13 & Đồng bộ ABI, address và cấu hình & 3 & T08,T10,T12 & 40 & 43 & 40 & 43 & 0 & 0 \\
-T14 & Kiểm thử tích hợp end-to-end & 5 & T13,T21 & 43 & 48 & 43 & 48 & 0 & 0 \\
-T15 & Hardening, regression và sửa lỗi & 4 & T14 & 48 & 52 & 48 & 52 & 0 & 0 \\
-T16 & Chuẩn bị release và môi trường & 2 & T15,T24 & 52 & 54 & 52 & 54 & 0 & 0 \\
-T17 & Deploy và verify trên Sepolia & 2 & T16 & 54 & 56 & 54 & 56 & 0 & 0 \\
-T18 & Thực hiện UAT & 3 & T17,T22 & 56 & 59 & 56 & 59 & 0 & 0 \\
-T19 & Sửa lỗi sau UAT và xác nhận lại & 3 & T18 & 59 & 62 & 59 & 62 & 0 & 0 \\
-T20 & Hoàn thiện báo cáo, bàn giao, closure & 3 & T19,T23 & 62 & 65 & 62 & 65 & 0 & 0 \\
-T21 & Lập test plan và test case & 4 & T04 & 15 & 19 & 39 & 43 & 24 & 24 \\
-T22 & Chuẩn bị UAT plan và dữ liệu UAT & 3 & T05 & 20 & 23 & 53 & 56 & 33 & 33 \\
-T23 & Soạn tài liệu và runbook bản nháp & 8 & T06 & 25 & 33 & 54 & 62 & 29 & 29 \\
+T01 & Lập và phê duyệt Project Charter & 3 & -- & 0 & 3 & 0 & 3 & 0 & 0 \\ \hline
+T02 & Stakeholder register và governance & 2 & T01 & 3 & 5 & 3 & 5 & 0 & 0 \\ \hline
+T03 & Thu thập và baseline yêu cầu & 5 & T02 & 5 & 10 & 5 & 10 & 0 & 0 \\ \hline
+T04 & Scope Statement, WBS và RTM & 5 & T03 & 10 & 15 & 10 & 15 & 0 & 0 \\ \hline
+T05 & Thiết kế kiến trúc tổng thể & 5 & T04 & 15 & 20 & 15 & 20 & 0 & 0 \\ \hline
+T06 & Chốt contract, API và UI interface & 5 & T05 & 20 & 25 & 20 & 25 & 0 & 0 \\ \hline
+T07 & Phát triển smart contract core & 10 & T06 & 25 & 35 & 25 & 35 & 0 & 0 \\ \hline
+T08 & Unit/security test cho contract & 5 & T07 & 35 & 40 & 35 & 40 & 0 & 0 \\ \hline
+T09 & Phát triển backend core & 8 & T06 & 25 & 33 & 25 & 33 & 0 & 0 \\ \hline
+T10 & IPFS, relayer, listener và AI sidecar & 7 & T09 & 33 & 40 & 33 & 40 & 0 & 0 \\ \hline
+T11 & Frontend foundation và wallet flow & 7 & T06 & 25 & 32 & 25 & 32 & 0 & 0 \\ \hline
+T12 & Dashboard và luồng theo vai trò & 8 & T11 & 32 & 40 & 32 & 40 & 0 & 0 \\ \hline
+T13 & Đồng bộ ABI, address và cấu hình & 3 & T08,T10,T12 & 40 & 43 & 40 & 43 & 0 & 0 \\ \hline
+T14 & Kiểm thử tích hợp end-to-end & 5 & T13,T21 & 43 & 48 & 43 & 48 & 0 & 0 \\ \hline
+T15 & Hardening, regression và sửa lỗi & 4 & T14 & 48 & 52 & 48 & 52 & 0 & 0 \\ \hline
+T16 & Chuẩn bị release và môi trường & 2 & T15,T24 & 52 & 54 & 52 & 54 & 0 & 0 \\ \hline
+T17 & Deploy và verify trên Sepolia & 2 & T16 & 54 & 56 & 54 & 56 & 0 & 0 \\ \hline
+T18 & Thực hiện UAT & 3 & T17,T22 & 56 & 59 & 56 & 59 & 0 & 0 \\ \hline
+T19 & Sửa lỗi sau UAT và xác nhận lại & 3 & T18 & 59 & 62 & 59 & 62 & 0 & 0 \\ \hline
+T20 & Hoàn thiện báo cáo, bàn giao, closure & 3 & T19,T23 & 62 & 65 & 62 & 65 & 0 & 0 \\ \hline
+T21 & Lập test plan và test case & 4 & T04 & 15 & 19 & 39 & 43 & 24 & 24 \\ \hline
+T22 & Chuẩn bị UAT plan và dữ liệu UAT & 3 & T05 & 20 & 23 & 53 & 56 & 33 & 33 \\ \hline
+T23 & Soạn tài liệu và runbook bản nháp & 8 & T06 & 25 & 33 & 54 & 62 & 29 & 29 \\ \hline
 T24 & Cấp phát RPC, IPFS và môi trường & 4 & T06 & 25 & 29 & 48 & 52 & 23 & 23 \\
-\bottomrule
+\hline
 \end{longtable}
 \end{landscape}
 
@@ -339,20 +339,20 @@ Schedule Baseline của dự án được cố định với ngày bắt đầu 
 \centering
 \caption{Schedule Baseline cấp cao của dự án}
 \label{tab:schedule-baseline}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{5.5cm}p{2.6cm}p{2.6cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{1.1cm} | p{5.5cm} | p{2.6cm} | p{2.6cm} | X |}
+\hline
 ID & Hoạt động & Bắt đầu & Kết thúc & Ghi chú \\
-\midrule
-A1 & Khởi tạo, stakeholder và charter & 01/04/2026 & 07/04/2026 & Milestone M1 \\
-A2 & Yêu cầu, phạm vi và WBS & 08/04/2026 & 21/04/2026 & Milestone M2 \\
-A3 & Thiết kế kiến trúc, contract, API và UI & 22/04/2026 & 05/05/2026 & Milestone M3 \\
-A4 & Phát triển smart contract cốt lõi & 06/05/2026 & 26/05/2026 & Milestone M4 \\
-A5 & Backend, IPFS, relayer, AI và notification & 06/05/2026 & 26/05/2026 & Milestone M5; chạy song song A4/A6 \\
-A6 & Frontend và dashboard theo vai trò & 06/05/2026 & 26/05/2026 & Milestone M6 \\
-A7 & Tích hợp, hardening và regression & 27/05/2026 & 11/06/2026 & Milestone M7 \\
-A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06/2026 & 25/06/2026 & Milestone M8 \\
+\hline
+A1 & Khởi tạo, stakeholder và charter & 01/04/2026 & 07/04/2026 & Milestone M1 \\ \hline
+A2 & Yêu cầu, phạm vi và WBS & 08/04/2026 & 21/04/2026 & Milestone M2 \\ \hline
+A3 & Thiết kế kiến trúc, contract, API và UI & 22/04/2026 & 05/05/2026 & Milestone M3 \\ \hline
+A4 & Phát triển smart contract cốt lõi & 06/05/2026 & 26/05/2026 & Milestone M4 \\ \hline
+A5 & Backend, IPFS, relayer, AI và notification & 06/05/2026 & 26/05/2026 & Milestone M5; chạy song song A4/A6 \\ \hline
+A6 & Frontend và dashboard theo vai trò & 06/05/2026 & 26/05/2026 & Milestone M6 \\ \hline
+A7 & Tích hợp, hardening và regression & 27/05/2026 & 11/06/2026 & Milestone M7 \\ \hline
+A8 & Chuẩn bị release, deploy Sepolia và UAT & 12/06/2026 & 25/06/2026 & Milestone M8 \\ \hline
 A9 & Tài liệu, bàn giao và closure & 26/06/2026 & 30/06/2026 & Milestone M9 \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -388,14 +388,14 @@ Dự án sử dụng kết hợp theo dõi định tính và định lượng:
 \centering
 \caption{Ngưỡng kiểm soát lịch biểu}
 \label{tab:schedule-thresholds}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.8cm} | p{4.4cm} | X |}
+\hline
 Mức & Điều kiện & Hành động quản trị \\
-\midrule
-Xanh & Đúng baseline hoặc lệch không đáng kể & Theo dõi bình thường \\
-Vàng & Task chậm trên 1 ngày hoặc sprint hoàn thành dưới 90\% kế hoạch & PM rà nguyên nhân, điều chỉnh nội bộ \\
+\hline
+Xanh & Đúng baseline hoặc lệch không đáng kể & Theo dõi bình thường \\ \hline
+Vàng & Task chậm trên 1 ngày hoặc sprint hoàn thành dưới 90\% kế hoạch & PM rà nguyên nhân, điều chỉnh nội bộ \\ \hline
 Đỏ & Task đường găng chậm từ 2 ngày, milestone chậm từ 3 ngày hoặc SPI dưới 0,90 & Phân tích tác động, lập kế hoạch khắc phục, xem xét Change Request \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -418,15 +418,15 @@ Các biện pháp rút ngắn lịch biểu luôn phải đi kèm phân tích r�
 \caption{Phân tích rút ngắn tiến độ có kiểm soát}
 \label{tab:schedule-crashing-options}
 \small
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.7cm}p{2.6cm}c c c X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.7cm} | p{2.6cm} | c | c | c | X |}
+\hline
 Phương án & Activity tác động & Ngày rút & Chi phí tăng & Cost slope & Rủi ro/điều kiện áp dụng \\
-\midrule
-Review contract sớm & Contract core/test & 1 & 800.000 & 800.000/ngày & Cần reviewer độc lập, không bỏ qua security checklist \\
-Mock ABI song song & Backend và frontend & 2 & 1.200.000 & 600.000/ngày & Chỉ dùng khi interface baseline đủ ổn định; có nguy cơ rework nếu ABI đổi \\
-QA regression tăng cường & Integration/UAT & 1 & 700.000 & 700.000/ngày & Cần test case ưu tiên cho donate, release, refund và access control \\
+\hline
+Review contract sớm & Contract core/test & 1 & 800.000 & 800.000/ngày & Cần reviewer độc lập, không bỏ qua security checklist \\ \hline
+Mock ABI song song & Backend và frontend & 2 & 1.200.000 & 600.000/ngày & Chỉ dùng khi interface baseline đủ ổn định; có nguy cơ rework nếu ABI đổi \\ \hline
+QA regression tăng cường & Integration/UAT & 1 & 700.000 & 700.000/ngày & Cần test case ưu tiên cho donate, release, refund và access control \\ \hline
 Defer nice-to-have UI & Frontend polish & 1 & 0 & 0/ngày & Giảm độ hoàn thiện UX nhưng không ảnh hưởng deliverable bắt buộc \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

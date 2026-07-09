@@ -98,23 +98,23 @@ Nhân sự là cấu phần lớn nhất trong tổng ngân sách của FundChai
 \centering
 \caption{Ước lượng chi phí nhân sự quy đổi}
 \label{tab:labor-cost-estimate}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}r r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.8cm} | r | r | X |}
+\hline
 Nhóm công việc & Giờ baseline & Thành tiền (VNĐ) & Ghi chú \\
-\midrule
-1.0 Khởi tạo và quản trị & 72 & 3.600.000 & Charter, governance, lập kế hoạch ban đầu \\
-2.0 Phân tích phạm vi & 96 & 4.800.000 & Yêu cầu, RTM, WBS, baseline \\
-3.0 Thiết kế & 96 & 4.800.000 & Kiến trúc, contract, API, UI, test approach \\
-4.0 Blockchain & 144 & 7.200.000 & Contract core, review, unit test, deploy support \\
-5.0 Backend/AI & 120 & 6.000.000 & API, dữ liệu, relayer, notification, sidecar \\
-6.0 Frontend & 120 & 6.000.000 & Wallet flow, dashboard, role-based UI \\
-7.0 Tích hợp & 96 & 4.800.000 & E2E, hardening, fix lỗi tương tác liên hệ thống \\
-8.0 Kiểm thử và chất lượng & 96 & 4.800.000 & Test plan, test execution, defect management \\
-9.0 Triển khai & 48 & 2.400.000 & Release, cấu hình, môi trường, smoke test \\
+\hline
+1.0 Khởi tạo và quản trị & 72 & 3.600.000 & Charter, governance, lập kế hoạch ban đầu \\ \hline
+2.0 Phân tích phạm vi & 96 & 4.800.000 & Yêu cầu, RTM, WBS, baseline \\ \hline
+3.0 Thiết kế & 96 & 4.800.000 & Kiến trúc, contract, API, UI, test approach \\ \hline
+4.0 Blockchain & 144 & 7.200.000 & Contract core, review, unit test, deploy support \\ \hline
+5.0 Backend/AI & 120 & 6.000.000 & API, dữ liệu, relayer, notification, sidecar \\ \hline
+6.0 Frontend & 120 & 6.000.000 & Wallet flow, dashboard, role-based UI \\ \hline
+7.0 Tích hợp & 96 & 4.800.000 & E2E, hardening, fix lỗi tương tác liên hệ thống \\ \hline
+8.0 Kiểm thử và chất lượng & 96 & 4.800.000 & Test plan, test execution, defect management \\ \hline
+9.0 Triển khai & 48 & 2.400.000 & Release, cấu hình, môi trường, smoke test \\ \hline
 10.0 Tài liệu và kết thúc & 72 & 3.600.000 & Báo cáo, demo, closure, handover \\
-\midrule
+\hline
 \textbf{Tổng nhân công} & \textbf{960} & \textbf{48.000.000} & Đơn giá 50.000 VNĐ/giờ \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -126,19 +126,19 @@ Ngoài nhân sự, dự án cần ngân sách cho các dịch vụ hỗ trợ tr
 \centering
 \caption{Ước lượng chi phí hạ tầng và dịch vụ}
 \label{tab:infra-cost-estimate}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.5cm}p{4cm}r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.5cm} | p{4cm} | r | X |}
+\hline
 Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
-\midrule
-RPC provider & Gói thử nghiệm 3 tháng & 700.000 & Phục vụ đọc/ghi blockchain và relayer \\
-IPFS/Pinning & Gói lưu trữ thử nghiệm & 500.000 & Lưu metadata và bằng chứng \\
-MongoDB/Database & Gói dung lượng nhỏ & 500.000 & Dữ liệu ứng dụng và logging cơ bản \\
-Redis/Queue & Gói tối thiểu & 300.000 & Queue, cache, retry và batch processing \\
-Backend/AI hosting & VPS hoặc cloud test & 700.000 & Chạy API, worker, notification, sidecar \\
+\hline
+RPC provider & Gói thử nghiệm 3 tháng & 700.000 & Phục vụ đọc/ghi blockchain và relayer \\ \hline
+IPFS/Pinning & Gói lưu trữ thử nghiệm & 500.000 & Lưu metadata và bằng chứng \\ \hline
+MongoDB/Database & Gói dung lượng nhỏ & 500.000 & Dữ liệu ứng dụng và logging cơ bản \\ \hline
+Redis/Queue & Gói tối thiểu & 300.000 & Queue, cache, retry và batch processing \\ \hline
+Backend/AI hosting & VPS hoặc cloud test & 700.000 & Chạy API, worker, notification, sidecar \\ \hline
 Frontend hosting, domain, SSL & Gói demo/ngắn hạn & 300.000 & Phục vụ trình diễn và truy cập ổn định \\
-\midrule
+\hline
 \textbf{Tổng hạ tầng và dịch vụ} &  & \textbf{3.000.000} &  \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -151,16 +151,16 @@ Mặc dù môi trường testnet không phát sinh chi phí thương mại lớn
 \centering
 \caption{Ước lượng chi phí blockchain và vận hành thử nghiệm}
 \label{tab:blockchain-cost-estimate}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.7cm}p{3.8cm}r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.7cm} | p{3.8cm} | r | X |}
+\hline
 Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
-\midrule
-Deploy và verify contract nền tảng & Ước lượng nhiều lần deploy test & 900.000 & Forwarder, Registry, Factory, implementation \\
-Relayer và batch transaction test & Quỹ biến động theo số lần chạy & 700.000 & Bao gồm signed intent và batch \\
+\hline
+Deploy và verify contract nền tảng & Ước lượng nhiều lần deploy test & 900.000 & Forwarder, Registry, Factory, implementation \\ \hline
+Relayer và batch transaction test & Quỹ biến động theo số lần chạy & 700.000 & Bao gồm signed intent và batch \\ \hline
 Quỹ dự phòng gas/redeploy & Three-point estimate & 400.000 & Dành cho known risks kỹ thuật \\
-\midrule
+\hline
 \textbf{Tổng blockchain} &  & \textbf{2.000.000} &  \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -174,16 +174,16 @@ Chi phí chất lượng không chỉ nằm trong effort nhân công mà còn c�
 \centering
 \caption{Ước lượng chi phí hỗ trợ chất lượng và bàn giao}
 \label{tab:support-cost-estimate}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}p{4cm}r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.8cm} | p{4cm} | r | X |}
+\hline
 Hạng mục & Cơ sở tính & Thành tiền (VNĐ) & Ghi chú \\
-\midrule
-Kiểm thử, demo và trình bày & Thiết bị, dữ liệu, chuẩn bị demo & 800.000 & Bao gồm test bổ sung trước nghiệm thu \\
-Tài liệu, lưu trữ, in ấn & Hồ sơ báo cáo và minh chứng & 400.000 & Phục vụ bàn giao môn học \\
+\hline
+Kiểm thử, demo và trình bày & Thiết bị, dữ liệu, chuẩn bị demo & 800.000 & Bao gồm test bổ sung trước nghiệm thu \\ \hline
+Tài liệu, lưu trữ, in ấn & Hồ sơ báo cáo và minh chứng & 400.000 & Phục vụ bàn giao môn học \\ \hline
 Dự phòng phối hợp/thiết bị nhỏ & Họp, phụ trợ và contingency nhỏ & 300.000 & Hỗ trợ hoạt động closure \\
-\midrule
+\hline
 \textbf{Tổng hỗ trợ} &  & \textbf{1.500.000} &  \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -198,23 +198,23 @@ Sau khi tổng hợp các nhóm ước lượng, ngân sách của FundChain đ�
 \centering
 \caption{Ngân sách tổng hợp của dự án}
 \label{tab:project-budget}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{5.2cm}p{4.2cm}r}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{5.2cm} | p{4.2cm} | r |}
+\hline
 Nhóm chi phí & Cơ sở tính & Thành tiền (VNĐ) \\
-\midrule
-Nhân công quy đổi & 960 giờ $\times$ 50.000 & 48.000.000 \\
-Hạ tầng, lưu trữ và hosting & Gói thử nghiệm 3 tháng & 3.000.000 \\
-Blockchain và relayer test & Deploy, verify và quỹ gas dự phòng & 2.000.000 \\
+\hline
+Nhân công quy đổi & 960 giờ $\times$ 50.000 & 48.000.000 \\ \hline
+Hạ tầng, lưu trữ và hosting & Gói thử nghiệm 3 tháng & 3.000.000 \\ \hline
+Blockchain và relayer test & Deploy, verify và quỹ gas dự phòng & 2.000.000 \\ \hline
 Chất lượng, tài liệu và demo & Hỗ trợ bàn giao và nghiệm thu & 1.500.000 \\
-\midrule
-\textbf{Ước lượng cơ sở} &  & \textbf{54.500.000} \\
+\hline
+\textbf{Ước lượng cơ sở} &  & \textbf{54.500.000} \\ \hline
 Contingency Reserve & Xấp xỉ 10\% chi phí cơ sở & 5.500.000 \\
-\midrule
-\textbf{Cost Baseline} &  & \textbf{60.000.000} \\
+\hline
+\textbf{Cost Baseline} &  & \textbf{60.000.000} \\ \hline
 Management Reserve & Xấp xỉ 4.000.000 cho unknown risks & 4.000.000 \\
-\midrule
+\hline
 \textbf{Project Budget} &  & \textbf{64.000.000} \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -236,22 +236,159 @@ Contingency reserve thuộc Cost Baseline và được kiểm soát cho các r�
 \centering
 \caption{Phân bổ Cost Baseline theo thời gian}
 \label{tab:cost-baseline-phasing}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3cm}r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3cm} | r | X |}
+\hline
 Giai đoạn thời gian & Giá trị (VNĐ) & Cơ sở phân bổ \\
-\midrule
-Tháng 4/2026 & 17.000.000 & Khởi tạo, phạm vi, thiết kế và phần đầu của phát triển lõi \\
-Tháng 5/2026 & 28.000.000 & Tập trung effort lớn nhất cho blockchain, backend, frontend và kiểm thử sớm \\
+\hline
+Tháng 4/2026 & 17.000.000 & Khởi tạo, phạm vi, thiết kế và phần đầu của phát triển lõi \\ \hline
+Tháng 5/2026 & 28.000.000 & Tập trung effort lớn nhất cho blockchain, backend, frontend và kiểm thử sớm \\ \hline
 Tháng 6/2026 & 15.000.000 & Tích hợp, UAT, tài liệu, closure và phần còn lại của reserve trong baseline \\
-\midrule
+\hline
 \textbf{Tổng Cost Baseline} & \textbf{60.000.000} &  \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
 Phân bổ này cho thấy tháng 5 là giai đoạn tiêu tốn nguồn lực lớn nhất, phù hợp với Schedule Baseline khi A4, A5 và A6 chồng lấn có kiểm soát. Nhờ đó, PM có thể tập trung theo dõi variance chặt hơn ở giai đoạn giữa dự án thay vì phân bố sự chú ý đồng đều.
 
 \figureplaceholder{ch05-cost-baseline-scurve.png}{Biểu đồ S-curve thể hiện lũy kế Cost Baseline theo ba tháng: tháng 4 đạt 17 triệu VNĐ, tháng 5 tăng lên 45 triệu VNĐ lũy kế và tháng 6 kết thúc ở 60 triệu VNĐ. Có thể bổ sung đường Actual Cost giả định để minh họa variance.}{Đường cong phân bổ Cost Baseline của dự án}{fig:cost-baseline-scurve}
+
+\section{Phân tích hiệu quả đầu tư dự án (NPV, Payback, ROI, Break-Even)}
+
+\subsection{Giả định phân tích tài chính}
+
+Để đánh giá tính khả thi và hiệu quả của phương án đầu tư cho dự án FundChain ở cấp độ quản trị, nhóm sử dụng các tham số giả định (simulated assumptions) dưới đây. Các con số này được quy đổi từ giá trị công việc và chi phí cơ hội, đóng vai trò là mô phỏng học thuật để thực hành các phương pháp đánh giá tài chính:
+
+\begin{itemize}
+  \item \textbf{Vốn đầu tư ban đầu ($I_0$):} Quy đổi bằng ngân sách tổng hợp của dự án (Project Budget) là $64.000.000$ VNĐ (đã bao gồm contingency reserve và management reserve).
+  \item \textbf{Lợi ích quy đổi hằng năm ($CF_t$):} Ước tính đạt $30.000.000$ VNĐ/năm (thu được từ việc tối ưu hóa nhân lực, giảm sai sót đối soát thủ công và tự động hóa quy trình phân phối).
+  \item \textbf{Thời gian đánh giá ($n$):} $3$ năm.
+  \item \textbf{Tỷ lệ chiết khấu ($r$):} $12\%$/năm (phản ánh chi phí cơ hội của dòng vốn đầu tư trong lĩnh vực công nghệ).
+\end{itemize}
+
+Các dữ liệu này thuộc nhóm mô phỏng (\textit{simulated data}). Trong thực tế khi chuyển giao sang môi trường Production thương mại, nhóm sẽ cần bổ sung các chi phí kiểm định an toàn (audit contract), chi phí pháp lý, phí gas Mainnet thực tế và các rủi ro vận hành khác trước khi thực hiện đánh giá chính thức.
+
+\subsection{Net Present Value (NPV)}
+
+Net Present Value (NPV) là tổng giá trị hiện tại của các dòng tiền ròng của dự án sau khi đã chiết khấu theo tỷ lệ xác định. Công thức tính NPV tổng quát:
+
+\[
+NPV = -I_0 + \sum_{t=1}^{n} \frac{CF_t}{(1 + r)^t}
+\]
+
+Áp dụng các thông số giả định của dự án FundChain:
+
+\[
+NPV = -64.000.000 + \frac{30.000.000}{1{,}12} + \frac{30.000.000}{1{,}12^2} + \frac{30.000.000}{1{,}12^3}
+\]
+
+\[
+NPV \approx -64.000.000 + 26.785.714 + 23.915.816 + 21.353.407 \approx 8.055.000 \text{ VNĐ}
+\]
+
+Vì $NPV \approx 8.055.000$ VNĐ $> 0$, dự án có tính khả thi về mặt tài chính trong điều kiện giả định và mang lại giá trị thặng dư ròng quy đổi dương sau 3 năm vận hành.
+
+\subsection{Thời gian hoàn vốn (Payback Period)}
+
+Thời gian hoàn vốn là khoảng thời gian cần thiết để các lợi ích tích lũy của dự án bù đắp được chi phí đầu tư ban đầu. Nhóm tiến hành phân tích theo hai phương pháp:
+
+\begin{itemize}
+  \item \textbf{Thời gian hoàn vốn đơn giản (Simple Payback Period - SPB):}
+  Không xét đến giá trị thời gian của tiền tệ.
+  \[
+  SPB = \frac{I_0}{CF_t} = \frac{64.000.000}{30.000.000} \approx 2{,}13 \text{ năm} \text{ (khoảng 2 năm 2 tháng)}
+  \]
+  
+  \item \textbf{Thời gian hoàn vốn có chiết khấu (Discounted Payback Period - DPB):}
+  Có xét đến giá trị thời gian của tiền tệ bằng cách dùng dòng tiền đã chiết khấu. Bảng~\ref{tab:discounted-cashflow-cum} trình bày chi tiết dòng tiền tích lũy chiết khấu theo từng năm.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Dòng tiền tích lũy chiết khấu của dự án}
+\label{tab:discounted-cashflow-cum}
+\begin{tabularx}{\textwidth}{| c | r | r | r |}
+\hline
+\textbf{Năm ($t$)} & \textbf{Dòng tiền ($CF_t$)} & \textbf{Dòng tiền chiết khấu ($PV_t$)} & \textbf{Dòng tiền tích lũy ($Cumulative\ PV$)} \\
+\hline
+0 & $-64.000.000$ & $-64.000.000$ & $-64.000.000$ \\ \hline
+1 & $30.000.000$ & $26.785.714$ & $-37.214.286$ \\ \hline
+2 & $30.000.000$ & $23.915.816$ & $-13.298.470$ \\ \hline
+3 & $30.000.000$ & $21.353.407$ & $8.055.000$ \\
+\hline
+\end{tabularx}
+\end{table}
+
+Dựa vào bảng trên, dòng tiền tích lũy chuyển từ âm sang dương vào năm thứ 3. Thời gian hoàn vốn có chiết khấu được xác định bằng công thức nội suy:
+
+\[
+DPB = 2 + \frac{|Cumulative\ PV_{\text{năm 2}}|}{PV_{\text{năm 3}}} = 2 + \frac{13.298.470}{21.353.407} \approx 2{,}62 \text{ năm} \text{ (khoảng 2 năm 7 tháng)}
+\]
+
+Kết quả cho thấy nếu tính đến trượt giá và chi phí cơ hội của vốn đầu tư, dự án cần khoảng 2,62 năm để hoàn toàn thu hồi vốn đầu tư quy đổi.
+
+\subsection{Tỷ suất hoàn vốn (Return On Investment - ROI)}
+
+Tỷ suất hoàn vốn đo lường hiệu quả sinh lời của nguồn vốn đầu tư ban đầu. Chỉ số này cũng được tính theo hai cách tiếp cận:
+
+\begin{itemize}
+  \item \textbf{ROI đơn giản (Simple ROI):}
+  Dựa trên tổng lợi ích chưa chiết khấu thu được trong 3 năm.
+  \[
+  Simple\ ROI = \frac{\sum CF_t - I_0}{I_0} = \frac{90.000.000 - 64.000.000}{64.000.000} \approx 40{,}63\%
+  \]
+  
+  \item \textbf{ROI có chiết khấu (Discounted ROI):}
+  Đánh giá hiệu suất thực tế bằng cách chia giá trị thặng dư NPV cho vốn đầu tư ban đầu.
+  \[
+  Discounted\ ROI = \frac{NPV}{I_0} = \frac{8.055.000}{64.000.000} \approx 12{,}59\%
+  \]
+\end{itemize}
+
+Cả hai chỉ số ROI đều cho thấy tỷ suất sinh lời khả quan, đáp ứng mục tiêu quản trị dự án học thuật trong môi trường giả định.
+
+\subsection{Phân tích điểm hòa vốn (Break-Even Analysis)}
+
+Điểm hòa vốn tài chính của dự án được xác định theo hai góc nhìn định lượng:
+
+\begin{itemize}
+  \item \textbf{Thời điểm hòa vốn (Break-Even Time):}
+  Trùng với thời gian hoàn vốn có chiết khấu của dự án, đạt được tại mốc $2{,}62$ năm kể từ khi dự án bắt đầu đi vào vận hành.
+  
+  \item \textbf{Lợi ích hòa vốn hằng năm (Break-Even Annual Benefit):}
+  Xác định mức lợi ích quy đổi hằng năm tối thiểu ($CF_{BE}$) để dự án đạt NPV bằng 0 tại tỷ lệ chiết khấu $12\%$.
+  \[
+  -I_0 + CF_{BE} \times \left[ \frac{1}{1{,}12} + \frac{1}{1{,}12^2} + \frac{1}{1{,}12^3} \right] = 0
+  \]
+  \[
+  -64.000.000 + CF_{BE} \times 2{,}401831 = 0 \implies CF_{BE} \approx 26.646.300 \text{ VNĐ}
+  \]
+\end{itemize}
+
+Điều này có nghĩa là mỗi năm dự án cần mang lại tối thiểu $26.646.300$ VNĐ giá trị quy đổi để không bị lỗ vốn về mặt giá trị chiết khấu. Ngưỡng này giúp nhóm xác định mục tiêu tối thiểu cho các chỉ số hoạt động (KPI) của ứng dụng khi triển khai.
+
+\subsection{Phân tích độ nhạy của NPV}
+
+Bảng~\ref{tab:npv-sensitivity} trình bày phân tích độ nhạy của NPV đối với hai biến số chính: mức lợi ích quy đổi hằng năm và tỷ lệ chiết khấu:
+
+\begin{table}[H]
+\centering
+\caption{Phân tích nhạy cảm định lượng cho NPV}
+\label{tab:npv-sensitivity}
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3cm} | p{3cm} | p{3.2cm} | X |}
+\hline
+Lợi ích/năm & Discount rate & NPV & Kết luận kịch bản \\
+\hline
+20 triệu VNĐ & 12\% & $-15{,}963$ triệu & Âm; không đạt điều kiện tài chính giả định \\ \hline
+30 triệu VNĐ & 12\% & $8{,}055$ triệu & Dương nhẹ; kịch bản cơ sở \\ \hline
+40 triệu VNĐ & 12\% & $32{,}073$ triệu & Dương; có biên an toàn tốt hơn \\ \hline
+30 triệu VNĐ & 15\% & $4{,}497$ triệu & Vẫn dương nhưng nhạy với discount rate \\ \hline
+30 triệu VNĐ & 10\% & $10{,}606$ triệu & Dương; thuận lợi hơn kịch bản cơ sở \\
+\hline
+\end{tabularx}
+\end{table}
+
+Tại discount rate 12\%, lợi ích hòa vốn hằng năm là $64/2{,}401831\approx26{,}646$ triệu VNĐ. Đây là ngưỡng của mô hình ba năm đã giả định, không phải forecast doanh thu. Nếu chuyển sang production, mô hình phải bổ sung audit, pháp lý, gas Mainnet, vận hành/SLA, incident response, bảo hiểm và dữ liệu adoption thực tế trước khi tái tính NPV.
 
 \section{Kiểm soát chi phí}
 
@@ -276,17 +413,17 @@ Dự án dùng EVM tại data date cuối tháng 5. Vì chưa có timesheet và 
 \centering
 \caption{Kịch bản EVM tại data date 31/05/2026}
 \label{tab:evm-context-scenario}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}p{2.4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.2cm} | p{2.4cm} | X |}
+\hline
 Chỉ số & Giá trị mô phỏng & Diễn giải theo bối cảnh FundChain \\
-\midrule
-PV & 45 triệu VNĐ & Giá trị công việc theo kế hoạch lũy kế đến hết tháng 5 \\
-EV & 42 triệu VNĐ & Ba triệu giá trị chưa được ghi nhận do integration gate chưa đạt \\
-AC & 44 triệu VNĐ & Effort tăng vì sửa lỗi contract, redeploy và đồng bộ lại ABI/address \\
-SV = EV--PV & $-3$ triệu VNĐ & Chậm tiến độ theo giá trị, không có nghĩa dự án đã chi thiếu ba triệu \\
-CV = EV--AC & $-2$ triệu VNĐ & Chi phí quy đổi cao hơn giá trị hoàn thành \\
+\hline
+PV & 45 triệu VNĐ & Giá trị công việc theo kế hoạch lũy kế đến hết tháng 5 \\ \hline
+EV & 42 triệu VNĐ & Ba triệu giá trị chưa được ghi nhận do integration gate chưa đạt \\ \hline
+AC & 44 triệu VNĐ & Effort tăng vì sửa lỗi contract, redeploy và đồng bộ lại ABI/address \\ \hline
+SV = EV--PV & $-3$ triệu VNĐ & Chậm tiến độ theo giá trị, không có nghĩa dự án đã chi thiếu ba triệu \\ \hline
+CV = EV--AC & $-2$ triệu VNĐ & Chi phí quy đổi cao hơn giá trị hoàn thành \\ \hline
 SPI; CPI & 0,933; 0,955 & Cảnh báo tiến độ; hiệu quả chi phí ở sát ngưỡng vàng \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -306,14 +443,14 @@ Chi phí được theo dõi ở ba cấp:
 \centering
 \caption{Ngưỡng kiểm soát chi phí}
 \label{tab:cost-thresholds}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.6cm}p{4.8cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.6cm} | p{4.8cm} | X |}
+\hline
 Mức & Điều kiện & Hành động quản trị \\
-\midrule
-Xanh & CPI từ 0,95 trở lên và CV trong phạm vi kiểm soát & Theo dõi bình thường, cập nhật báo cáo định kỳ \\
-Vàng & CPI dưới 0,95 hoặc CV âm quá 5\% ngân sách kỳ & PM phân tích nguyên nhân, điều chỉnh nội bộ và giám sát sát hơn \\
+\hline
+Xanh & CPI từ 0,95 trở lên và CV trong phạm vi kiểm soát & Theo dõi bình thường, cập nhật báo cáo định kỳ \\ \hline
+Vàng & CPI dưới 0,95 hoặc CV âm quá 5\% ngân sách kỳ & PM phân tích nguyên nhân, điều chỉnh nội bộ và giám sát sát hơn \\ \hline
 Đỏ & CPI dưới 0,90, CV âm quá 10\% Cost Baseline hoặc EAC vượt Project Budget & Escalation, xem xét Change Request hoặc kích hoạt reserve phù hợp \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

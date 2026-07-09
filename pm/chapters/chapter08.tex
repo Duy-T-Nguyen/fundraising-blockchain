@@ -109,24 +109,24 @@ Bảng~\ref{tab:communication-matrix} mô tả các hoạt động truyền thô
 
 \begin{landscape}
 \small
-\begin{longtable}{p{2.4cm}p{3.2cm}p{2cm}p{2.4cm}p{1.6cm}p{1.8cm}p{2.4cm}}
+\begin{longtable}{| p{2.4cm} | p{3.2cm} | p{2cm} | p{2.4cm} | p{1.6cm} | p{1.8cm} | p{2.4cm} |}
 \caption{Ma trận truyền thông của dự án}\label{tab:communication-matrix}\\
-\toprule
+\hline
 \textbf{Hoạt động} & \textbf{Nội dung chính} & \textbf{Người gửi} & \textbf{Người nhận} & \textbf{Tần suất} & \textbf{Kênh} & \textbf{Đầu ra} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Hoạt động} & \textbf{Nội dung chính} & \textbf{Người gửi} & \textbf{Người nhận} & \textbf{Tần suất} & \textbf{Kênh} & \textbf{Đầu ra} \\
-\midrule
+\hline
 \endhead
-Daily sync & Tiến độ, blocker, effort còn lại & Thành viên & Nhóm dự án & Hằng ngày & Chat/board & Action list ngắn \\
-Weekly status & Scope, schedule, cost, risk, chất lượng & PM & Nhóm 2, stakeholder chính & Hằng tuần & Report/meeting & Status report \\
-Sprint planning & Backlog, capacity, ưu tiên & PM/BA & Dev, QA, nhóm liên quan & Mỗi sprint & Meeting/board & Sprint backlog \\
-Sprint review & Demo, phản hồi, acceptance sơ bộ & Nhóm dự án & Stakeholder liên quan & Mỗi sprint & Demo/meeting & Accepted hoặc rework \\
-Technical review & API, ABI, design, integration impact & Technical Lead & Dev, QA, PM & Khi có thay đổi & PR/doc/meeting & Decision record \\
-Incident alert & Lỗi Critical, deploy sai, outage, secret risk & Người phát hiện & PM, TL, nhóm liên quan & Ngay lập tức & Alert/call/chat & Incident record \\
+Daily sync & Tiến độ, blocker, effort còn lại & Thành viên & Nhóm dự án & Hằng ngày & Chat/board & Action list ngắn \\ \hline
+Weekly status & Scope, schedule, cost, risk, chất lượng & PM & Nhóm 2, stakeholder chính & Hằng tuần & Report/meeting & Status report \\ \hline
+Sprint planning & Backlog, capacity, ưu tiên & PM/BA & Dev, QA, nhóm liên quan & Mỗi sprint & Meeting/board & Sprint backlog \\ \hline
+Sprint review & Demo, phản hồi, acceptance sơ bộ & Nhóm dự án & Stakeholder liên quan & Mỗi sprint & Demo/meeting & Accepted hoặc rework \\ \hline
+Technical review & API, ABI, design, integration impact & Technical Lead & Dev, QA, PM & Khi có thay đổi & PR/doc/meeting & Decision record \\ \hline
+Incident alert & Lỗi Critical, deploy sai, outage, secret risk & Người phát hiện & PM, TL, nhóm liên quan & Ngay lập tức & Alert/call/chat & Incident record \\ \hline
 Change request & Tác động baseline và đề xuất xử lý & PM & CCB/giảng viên khi cần & Khi phát sinh & Form/meeting & Quyết định thay đổi \\
-\bottomrule
+\hline
 \end{longtable}
 \end{landscape}
 \normalsize
@@ -163,18 +163,18 @@ Status report hằng tuần là sản phẩm truyền thông quan trọng nhất
 \centering
 \caption{Nội dung chuẩn của báo cáo trạng thái}
 \label{tab:status-report-content}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.5cm} | X |}
+\hline
 Thành phần & Nội dung yêu cầu \\
-\midrule
-Tổng quan kỳ báo cáo & Mốc thời gian, người lập, trạng thái tổng thể \\
-RAG dashboard & Scope, Schedule, Cost, Quality, Risk \\
-Hoàn thành chính & Deliverable, milestone hoặc decision đã đạt \\
-Kế hoạch tiếp theo & Task trọng tâm và owner \\
-Blocker/Issue & Mô tả, tác động, người xử lý, hạn hoàn thành \\
-Thay đổi & Change request đã duyệt hoặc đang chờ xem xét \\
+\hline
+Tổng quan kỳ báo cáo & Mốc thời gian, người lập, trạng thái tổng thể \\ \hline
+RAG dashboard & Scope, Schedule, Cost, Quality, Risk \\ \hline
+Hoàn thành chính & Deliverable, milestone hoặc decision đã đạt \\ \hline
+Kế hoạch tiếp theo & Task trọng tâm và owner \\ \hline
+Blocker/Issue & Mô tả, tác động, người xử lý, hạn hoàn thành \\ \hline
+Thay đổi & Change request đã duyệt hoặc đang chờ xem xét \\ \hline
 Hỗ trợ cần thiết & Quyết định hoặc nguồn lực cần từ stakeholder \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -223,14 +223,14 @@ Hiệu quả truyền thông được theo dõi bằng các tín hiệu sau:
 \centering
 \caption{Ngưỡng theo dõi hiệu quả truyền thông}
 \label{tab:communication-thresholds}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.8cm} | p{4.5cm} | X |}
+\hline
 Mức & Điều kiện & Hành động quản trị \\
-\midrule
-Xanh & Action item và phản hồi trong ngưỡng chấp nhận & Duy trì cơ chế hiện tại \\
-Vàng & Nhiều action item trễ hoặc hiểu sai yêu cầu lặp lại & PM rà lại tần suất, biểu mẫu và owner \\
+\hline
+Xanh & Action item và phản hồi trong ngưỡng chấp nhận & Duy trì cơ chế hiện tại \\ \hline
+Vàng & Nhiều action item trễ hoặc hiểu sai yêu cầu lặp lại & PM rà lại tần suất, biểu mẫu và owner \\ \hline
 Đỏ & Incident hoặc thay đổi quan trọng không được truyền đạt kịp thời & Escalation và điều chỉnh kế hoạch truyền thông ngay \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

@@ -54,17 +54,17 @@ Chuyển giao trong FundChain không chỉ là gửi một repository, mà là b
 \centering
 \caption{Danh mục bàn giao cuối dự án}
 \label{tab:handover-items}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.2cm} | X |}
+\hline
 Nhóm bàn giao & Nội dung \\
-\midrule
-Mã nguồn và release & Repository, tag cuối, commit tham chiếu, hướng dẫn build \\
-Contract artifact & Source, ABI, address, verify link, network information \\
-Triển khai và cấu hình & Deployment script, `.env.example`, runbook, smoke test steps \\
-Backend/frontend & API doc, config cần thiết, hướng dẫn chạy môi trường demo \\
-Chất lượng & Test report, quality checklist, known issues, limitation note \\
+\hline
+Mã nguồn và release & Repository, tag cuối, commit tham chiếu, hướng dẫn build \\ \hline
+Contract artifact & Source, ABI, address, verify link, network information \\ \hline
+Triển khai và cấu hình & Deployment script, `.env.example`, runbook, smoke test steps \\ \hline
+Backend/frontend & API doc, config cần thiết, hướng dẫn chạy môi trường demo \\ \hline
+Chất lượng & Test report, quality checklist, known issues, limitation note \\ \hline
 Hồ sơ quản trị & Baseline, status report, risk/change/issue log, lessons learned \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -102,16 +102,16 @@ Hiệu quả dự án được đánh giá bằng cách so planned với actual 
 \centering
 \caption{Khung đánh giá hiệu quả dự án khi kết thúc}
 \label{tab:closure-evaluation}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{3.8cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.2cm} | p{3.8cm} | X |}
+\hline
 Chiều đánh giá & Chỉ số/tiêu chí & Nội dung đánh giá \\
-\midrule
-Scope & Deliverable achieved & Có hoàn thành các đầu ra cốt lõi đã baseline hay không \\
-Schedule & Milestone, SPI, độ lệch & Dự án có giữ được các mốc chính hay dùng nhiều buffer \\
-Cost & CPI, CV, reserve used & Chi phí quy đổi có nằm trong khung cho phép hay không \\
-Quality & Defect, UAT, acceptance & Mức ổn định và mức chấp nhận của deliverable \\
+\hline
+Scope & Deliverable achieved & Có hoàn thành các đầu ra cốt lõi đã baseline hay không \\ \hline
+Schedule & Milestone, SPI, độ lệch & Dự án có giữ được các mốc chính hay dùng nhiều buffer \\ \hline
+Cost & CPI, CV, reserve used & Chi phí quy đổi có nằm trong khung cho phép hay không \\ \hline
+Quality & Defect, UAT, acceptance & Mức ổn định và mức chấp nhận của deliverable \\ \hline
 Knowledge transfer & Handover completeness & Tài liệu và tri thức có đủ để bàn giao, tái sử dụng \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -139,14 +139,14 @@ Cuộc họp hậu phân tích được tổ chức sau nghiệm thu với toàn
 \centering
 \caption{Bài học cần xác nhận trong cuộc họp hậu phân tích}
 \label{tab:student-lessons-learned}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{5.1cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.2cm} | p{5.1cm} | X |}
+\hline
 Thành viên & Bài học từ phạm vi phụ trách & Hành động cho dự án sau \\
-\midrule
-Nguyễn Thành Long & Baseline chỉ hữu ích khi status, change và bằng chứng được tích hợp cùng một nhịp & Chốt data date hằng tuần và không phát hành final report trước acceptance record \\
-Đỗ Nguyễn Phương Thảo & Yêu cầu và phản hồi stakeholder cần được chuyển ngay thành acceptance criteria có thể kiểm tra & Chuẩn bị RTM/UAT checklist trước demo và ghi owner cho mọi phản hồi \\
+\hline
+Nguyễn Thành Long & Baseline chỉ hữu ích khi status, change và bằng chứng được tích hợp cùng một nhịp & Chốt data date hằng tuần và không phát hành final report trước acceptance record \\ \hline
+Đỗ Nguyễn Phương Thảo & Yêu cầu và phản hồi stakeholder cần được chuyển ngay thành acceptance criteria có thể kiểm tra & Chuẩn bị RTM/UAT checklist trước demo và ghi owner cho mọi phản hồi \\ \hline
 Hoàng Lê Việt Hà & Sai lệch lịch--chi phí phải gắn với nguyên nhân như rework, redeploy hoặc dependency, không chỉ báo cáo chỉ số & Duy trì assumption/variance log và cập nhật CPM, EVM sau thay đổi được duyệt \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -189,16 +189,16 @@ Sau retrospective, nhóm cần hoàn tất:
 \centering
 \caption{Closure checklist cấp cao của dự án}
 \label{tab:closure-checklist}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.5cm} | X |}
+\hline
 Nhóm việc & Nội dung cần hoàn tất \\
-\midrule
-Nghiệm thu & Đối chiếu RTM, test, UAT, biên bản chấp nhận \\
-Bàn giao & Source, tài liệu, runbook, report, known issues \\
-Hồ sơ quản trị & Archive baseline, log, lessons learned, final report \\
-Nhà cung cấp và tài khoản & Backup dữ liệu, thu hồi key, xác nhận owner cuối \\
+\hline
+Nghiệm thu & Đối chiếu RTM, test, UAT, biên bản chấp nhận \\ \hline
+Bàn giao & Source, tài liệu, runbook, report, known issues \\ \hline
+Hồ sơ quản trị & Archive baseline, log, lessons learned, final report \\ \hline
+Nhà cung cấp và tài khoản & Backup dữ liệu, thu hồi key, xác nhận owner cuối \\ \hline
 Closure tổ chức & Retrospective, ghi nhận đóng góp, giải tán nhóm \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

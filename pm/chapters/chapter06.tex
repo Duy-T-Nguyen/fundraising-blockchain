@@ -123,24 +123,24 @@ Nếu deliverable không đạt quality gate, nhóm không được đánh dấu
 
 Metric sản phẩm được dùng để đánh giá chất lượng đầu ra hữu hình của dự án. Bảng~\ref{tab:product-quality-metrics} tổng hợp các chỉ số chính.
 
-\begin{longtable}{p{4.2cm}p{3.2cm}p{5.2cm}}
+\begin{longtable}{| p{4.2cm} | p{3.2cm} | p{5.2cm} |}
 \caption{Metric chất lượng sản phẩm}\label{tab:product-quality-metrics}\\
-\toprule
+\hline
 \textbf{Metric} & \textbf{Ngưỡng mục tiêu} & \textbf{Ý nghĩa quản trị} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Metric} & \textbf{Ngưỡng mục tiêu} & \textbf{Ý nghĩa quản trị} \\
-\midrule
+\hline
 \endhead
-Test pass rate & $\geq$ 95\% trong bộ test hợp lệ & Phản ánh mức ổn định của deliverable trước khi chuyển gate \\
-Coverage logic cốt lõi & $\geq$ 80\% statement coverage cho phần quan trọng & Bảo đảm các luồng tài chính và quyền truy cập được kiểm thử ở mức tối thiểu \\
-Defect tồn đọng trước nghiệm thu & 0 Critical/High; Medium có owner; Low ghi backlog & Tạo ngưỡng chấp nhận rõ ràng trước UAT/bàn giao \\
-API response time & Thông thường $\leq$ 2 giây ở môi trường thử nghiệm ổn định & Hạn chế trải nghiệm chậm gây hiểu nhầm trạng thái hệ thống \\
-Thời gian hiển thị nội dung ban đầu & $\leq$ 3 giây với trang chính & Kiểm soát mức sẵn sàng trình diễn và sử dụng thử \\
-Tính nhất quán trạng thái sự kiện & 100\% sự kiện trọng yếu có dữ liệu hiển thị tương ứng & Bảo đảm minh bạch giữa blockchain, backend và giao diện \\
+Test pass rate & $\geq$ 95\% trong bộ test hợp lệ & Phản ánh mức ổn định của deliverable trước khi chuyển gate \\ \hline
+Coverage logic cốt lõi & $\geq$ 80\% statement coverage cho phần quan trọng & Bảo đảm các luồng tài chính và quyền truy cập được kiểm thử ở mức tối thiểu \\ \hline
+Defect tồn đọng trước nghiệm thu & 0 Critical/High; Medium có owner; Low ghi backlog & Tạo ngưỡng chấp nhận rõ ràng trước UAT/bàn giao \\ \hline
+API response time & Thông thường $\leq$ 2 giây ở môi trường thử nghiệm ổn định & Hạn chế trải nghiệm chậm gây hiểu nhầm trạng thái hệ thống \\ \hline
+Thời gian hiển thị nội dung ban đầu & $\leq$ 3 giây với trang chính & Kiểm soát mức sẵn sàng trình diễn và sử dụng thử \\ \hline
+Tính nhất quán trạng thái sự kiện & 100\% sự kiện trọng yếu có dữ liệu hiển thị tương ứng & Bảo đảm minh bạch giữa blockchain, backend và giao diện \\ \hline
 UAT acceptance rate & $\geq$ 90\% kịch bản đạt ngay vòng đầu & Đo mức trưởng thành của deliverable trước khi đóng dự án \\
-\bottomrule
+\hline
 \end{longtable}
 
 Những metric này không chỉ phục vụ kiểm thử kỹ thuật mà còn giúp PM đưa ra quyết định quản trị. Ví dụ, nếu UAT acceptance rate thấp, vấn đề không còn là ``một số bug nhỏ'' mà là tín hiệu cho thấy deliverable chưa sẵn sàng để chốt milestone.
@@ -153,17 +153,17 @@ Khác với metric sản phẩm, metric quy trình phản ánh cách nhóm tạo
 \centering
 \caption{Metric chất lượng quy trình}
 \label{tab:process-quality-metrics}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}p{3cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.2cm} | p{3cm} | X |}
+\hline
 Metric & Ngưỡng mục tiêu & Ý nghĩa quản trị \\
-\midrule
-Tỷ lệ task đạt Definition of Done & $\geq$ 90\% & Kiểm tra mức tuân thủ chuẩn hoàn thành \\
-Review turnaround time & $\leq$ 24 giờ làm việc & Giảm tắc nghẽn và tránh tồn đọng PR \\
-Build success rate & $\geq$ 95\% & Phản ánh độ ổn định của pipeline và cấu hình \\
-Defect leakage & Giảm dần qua các milestone & Đo số lỗi lọt sang giai đoạn sau do kiểm soát chưa đủ sớm \\
-Defect reopen rate & $\leq$ 10\% & Đánh giá chất lượng sửa lỗi và retest \\
+\hline
+Tỷ lệ task đạt Definition of Done & $\geq$ 90\% & Kiểm tra mức tuân thủ chuẩn hoàn thành \\ \hline
+Review turnaround time & $\leq$ 24 giờ làm việc & Giảm tắc nghẽn và tránh tồn đọng PR \\ \hline
+Build success rate & $\geq$ 95\% & Phản ánh độ ổn định của pipeline và cấu hình \\ \hline
+Defect leakage & Giảm dần qua các milestone & Đo số lỗi lọt sang giai đoạn sau do kiểm soát chưa đủ sớm \\ \hline
+Defect reopen rate & $\leq$ 10\% & Đánh giá chất lượng sửa lỗi và retest \\ \hline
 Tỷ lệ traceability đầy đủ & 100\% với luồng trọng yếu & Bảo đảm yêu cầu, test và bằng chứng có thể đối chiếu \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -188,23 +188,23 @@ DoD giúp ngăn tình trạng ``xong về mặt cá nhân nhưng chưa xong về
 
 Để tránh phát hiện vấn đề quá muộn, dự án sử dụng quality gate tại các cột mốc chính. Bảng~\ref{tab:quality-gates} mô tả các gate quan trọng.
 
-\begin{longtable}{p{3.2cm}p{5.3cm}p{4.2cm}}
+\begin{longtable}{| p{3.2cm} | p{5.3cm} | p{4.2cm} |}
 \caption{Quality gate theo giai đoạn}\label{tab:quality-gates}\\
-\toprule
+\hline
 \textbf{Giai đoạn} & \textbf{Điều kiện qua gate} & \textbf{Bằng chứng yêu cầu} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Giai đoạn} & \textbf{Điều kiện qua gate} & \textbf{Bằng chứng yêu cầu} \\
-\midrule
+\hline
 \endhead
-Phạm vi/yêu cầu & Use case, RTM, acceptance criteria và WBS nhất quán & Biên bản review, RTM, baseline được duyệt \\
-Thiết kế & Kiến trúc, interface, dữ liệu và test approach đã rà soát & Tài liệu thiết kế, checklist review, quyết định kỹ thuật \\
-Phát triển lõi & Luồng quan trọng có unit test và review chéo & PR review, test result, log build/lint \\
-Tích hợp & Luồng end-to-end chạy ổn định, defect trọng yếu đã xử lý & Test report, defect log, demo nội bộ \\
-UAT/triển khai & Không còn lỗi Critical/High, có runbook và bằng chứng UAT & UAT checklist, release note, deployment record \\
+Phạm vi/yêu cầu & Use case, RTM, acceptance criteria và WBS nhất quán & Biên bản review, RTM, baseline được duyệt \\ \hline
+Thiết kế & Kiến trúc, interface, dữ liệu và test approach đã rà soát & Tài liệu thiết kế, checklist review, quyết định kỹ thuật \\ \hline
+Phát triển lõi & Luồng quan trọng có unit test và review chéo & PR review, test result, log build/lint \\ \hline
+Tích hợp & Luồng end-to-end chạy ổn định, defect trọng yếu đã xử lý & Test report, defect log, demo nội bộ \\ \hline
+UAT/triển khai & Không còn lỗi Critical/High, có runbook và bằng chứng UAT & UAT checklist, release note, deployment record \\ \hline
 Bàn giao & Tài liệu, minh chứng, known issues và kết luận đầy đủ & Hồ sơ bàn giao, demo, báo cáo tổng hợp \\
-\bottomrule
+\hline
 \end{longtable}
 
 \iffalse
@@ -286,15 +286,15 @@ Bảng~\ref{tab:defect-severity} quy định mức độ lỗi và thời gian p
 \centering
 \caption{Mức độ lỗi và SLA nội bộ}
 \label{tab:defect-severity}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.2cm}p{6cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.2cm} | p{6cm} | X |}
+\hline
 Mức độ & Mô tả & SLA nội bộ \\
-\midrule
-Critical & Gây mất chức năng cốt lõi, rủi ro quỹ, sai quyền hoặc chặn toàn bộ luồng chính & Có biện pháp cô lập/sửa trong 4 giờ làm việc \\
-High & Ảnh hưởng nghiêm trọng đến một luồng nghiệp vụ trọng yếu nhưng còn workaround hạn chế & Xử lý trong 1 ngày làm việc \\
-Medium & Ảnh hưởng một phần chức năng, chưa chặn toàn bộ luồng & Xử lý trong 3 ngày làm việc \\
+\hline
+Critical & Gây mất chức năng cốt lõi, rủi ro quỹ, sai quyền hoặc chặn toàn bộ luồng chính & Có biện pháp cô lập/sửa trong 4 giờ làm việc \\ \hline
+High & Ảnh hưởng nghiêm trọng đến một luồng nghiệp vụ trọng yếu nhưng còn workaround hạn chế & Xử lý trong 1 ngày làm việc \\ \hline
+Medium & Ảnh hưởng một phần chức năng, chưa chặn toàn bộ luồng & Xử lý trong 3 ngày làm việc \\ \hline
 Low & Lỗi nhỏ, hiển thị hoặc cải tiến không khẩn cấp & Ghi backlog kỳ kế tiếp hoặc trước bàn giao nếu có thể \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -320,16 +320,16 @@ Hành động khắc phục có thể gồm bổ sung review chéo, tăng test c
 \centering
 \caption{Check sheet lỗi tích hợp và UAT giả lập}
 \label{tab:quality-checksheet}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}c X>{\raggedright\arraybackslash}p{3.3cm}}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.5cm} | c | X | >{\raggedright\arraybackslash}p{3.3cm} |}
+\hline
 Nhóm lỗi & Số lỗi & Ví dụ quan sát & Hành động kiểm soát \\
-\midrule
-UI validation & 4 & Form campaign/donation cho phép nhập thiếu hoặc sai định dạng & Bổ sung validation checklist trước demo \\
-ABI/address mismatch & 3 & Frontend hoặc listener gọi sai contract address sau redeploy & Khóa address registry và cập nhật env template \\
-Documentation gap & 3 & Runbook thiếu biến môi trường hoặc thiếu bước verify contract & Review tài liệu bằng checklist bàn giao \\
-Access control & 2 & Role không đúng khi approve hoặc release fund & Thêm negative test và review quyền \\
+\hline
+UI validation & 4 & Form campaign/donation cho phép nhập thiếu hoặc sai định dạng & Bổ sung validation checklist trước demo \\ \hline
+ABI/address mismatch & 3 & Frontend hoặc listener gọi sai contract address sau redeploy & Khóa address registry và cập nhật env template \\ \hline
+Documentation gap & 3 & Runbook thiếu biến môi trường hoặc thiếu bước verify contract & Review tài liệu bằng checklist bàn giao \\ \hline
+Access control & 2 & Role không đúng khi approve hoặc release fund & Thêm negative test và review quyền \\ \hline
 RPC/IPFS timeout & 2 & Metadata hoặc event sync chậm trong lúc demo & Chuẩn bị retry/fallback và dữ liệu demo dự phòng \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

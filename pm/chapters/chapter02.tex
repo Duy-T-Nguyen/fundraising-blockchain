@@ -58,18 +58,18 @@ Danh sách thành viên Nhóm 2 đã được xác định và trách nhiệm đ
 \centering
 \caption{Trách nhiệm trong quản lý phạm vi}
 \label{tab:scope-responsibility}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.5cm} | X |}
+\hline
 Vai trò & Trách nhiệm \\
-\midrule
-Giảng viên/người nghiệm thu & Định hướng đề tài, xem xét deliverable cấp cao và xác nhận kết quả môn học \\
-Project Manager & Duy trì Scope Baseline, tổ chức phân tích tác động, điều phối xác nhận phạm vi và Change Control \\
-Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu; duy trì Product Backlog và RTM \\
-Technical Lead & Đánh giá tính khả thi, dependency và tác động kỹ thuật của yêu cầu/thay đổi \\
-QA/Tester & Xây acceptance criteria, xác nhận khả năng kiểm thử và cung cấp test evidence \\
-Thành viên phát triển & Ước lượng work package, triển khai đúng phạm vi và báo cáo sai lệch/blocker \\
+\hline
+Giảng viên/người nghiệm thu & Định hướng đề tài, xem xét deliverable cấp cao và xác nhận kết quả môn học \\ \hline
+Project Manager & Duy trì Scope Baseline, tổ chức phân tích tác động, điều phối xác nhận phạm vi và Change Control \\ \hline
+Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu; duy trì Product Backlog và RTM \\ \hline
+Technical Lead & Đánh giá tính khả thi, dependency và tác động kỹ thuật của yêu cầu/thay đổi \\ \hline
+QA/Tester & Xây acceptance criteria, xác nhận khả năng kiểm thử và cung cấp test evidence \\ \hline
+Thành viên phát triển & Ước lượng work package, triển khai đúng phạm vi và báo cáo sai lệch/blocker \\ \hline
 Change Control Board & Phê duyệt, từ chối hoặc hoãn thay đổi ảnh hưởng baseline \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -104,19 +104,19 @@ Mục tiêu của thu thập yêu cầu là chuyển kỳ vọng của stakehold
 \centering
 \caption{Nguồn yêu cầu của dự án}
 \label{tab:requirement-sources}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.6cm}p{5.1cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.6cm} | p{5.1cm} | X |}
+\hline
 Nguồn & Kỳ vọng chính & Loại yêu cầu tạo ra \\
-\midrule
-Giảng viên/môn học & Có kế hoạch quản trị đầy đủ, logic và có số liệu & Deliverable quản trị, baseline, báo cáo \\
-Donor & Minh bạch, kiểm soát khoản chi và hoàn tiền hợp lệ & Chức năng, bảo mật, khả dụng \\
-Campaign Manager & Tạo và quản lý chiến dịch thuận tiện & Chức năng, UX và thông báo \\
-Admin & Kiểm soát chiến dịch và nhà cung cấp & Phân quyền, giám sát, báo cáo \\
-Supplier/Verifier & Nhiệm vụ rõ ràng và bằng chứng truy vết được & Workflow, notification, audit trail \\
-Nhóm phát triển & Phạm vi khả thi, interface ổn định và có test & Kỹ thuật, bảo trì, configuration \\
-Nhà cung cấp dịch vụ & Quota, API và điều kiện sử dụng & Ràng buộc vận hành/mua sắm \\
+\hline
+Giảng viên/môn học & Có kế hoạch quản trị đầy đủ, logic và có số liệu & Deliverable quản trị, baseline, báo cáo \\ \hline
+Donor & Minh bạch, kiểm soát khoản chi và hoàn tiền hợp lệ & Chức năng, bảo mật, khả dụng \\ \hline
+Campaign Manager & Tạo và quản lý chiến dịch thuận tiện & Chức năng, UX và thông báo \\ \hline
+Admin & Kiểm soát chiến dịch và nhà cung cấp & Phân quyền, giám sát, báo cáo \\ \hline
+Supplier/Verifier & Nhiệm vụ rõ ràng và bằng chứng truy vết được & Workflow, notification, audit trail \\ \hline
+Nhóm phát triển & Phạm vi khả thi, interface ổn định và có test & Kỹ thuật, bảo trì, configuration \\ \hline
+Nhà cung cấp dịch vụ & Quota, API và điều kiện sử dụng & Ràng buộc vận hành/mua sắm \\ \hline
 Source và test hiện có & Phản ánh đúng sản phẩm thực tế & Yêu cầu hiện trạng và tiêu chí hồi quy \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -149,85 +149,85 @@ Ngoài giá trị, việc ưu tiên còn xét rủi ro, dependency, effort và t
 \fi
 \subsection{Yêu cầu quản trị dự án}
 
-\begin{longtable}{p{1.2cm}p{7.4cm}p{2.1cm}p{2.1cm}}
+\begin{longtable}{| p{1.2cm} | p{7.4cm} | p{2.1cm} | p{2.1cm} |}
 \caption{Yêu cầu quản trị dự án}\label{tab:management-requirements}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endhead
-MR-01 & Có Project Charter và mục tiêu SMART được thống nhất & Must & Charter \\
-MR-02 & Có Scope, Schedule và Cost Baseline & Must & Baseline \\
-MR-03 & Có WBS bao phủ 100\% phạm vi và WBS Dictionary & Must & WBS \\
-MR-04 & Có RACI và resource calendar sau khi phân vai & Must & RACI \\
-MR-05 & Có kế hoạch chất lượng, test report và UAT & Must & QA record \\
-MR-06 & Có Risk Register, owner và phản hồi cho rủi ro chính & Must & Risk log \\
-MR-07 & Có ma trận truyền thông và báo cáo định kỳ & Should & Status report \\
-MR-08 & Có quy trình Change Request và Change Log & Must & Change log \\
-MR-09 & Có kế hoạch mua sắm dịch vụ ngoài & Should & Kế hoạch mua sắm \\
+MR-01 & Có Project Charter và mục tiêu SMART được thống nhất & Must & Charter \\ \hline
+MR-02 & Có Scope, Schedule và Cost Baseline & Must & Baseline \\ \hline
+MR-03 & Có WBS bao phủ 100\% phạm vi và WBS Dictionary & Must & WBS \\ \hline
+MR-04 & Có RACI và resource calendar sau khi phân vai & Must & RACI \\ \hline
+MR-05 & Có kế hoạch chất lượng, test report và UAT & Must & QA record \\ \hline
+MR-06 & Có Risk Register, owner và phản hồi cho rủi ro chính & Must & Risk log \\ \hline
+MR-07 & Có ma trận truyền thông và báo cáo định kỳ & Should & Status report \\ \hline
+MR-08 & Có quy trình Change Request và Change Log & Must & Change log \\ \hline
+MR-09 & Có kế hoạch mua sắm dịch vụ ngoài & Should & Kế hoạch mua sắm \\ \hline
 MR-10 & Có biên bản nghiệm thu, bàn giao và lessons learned & Must & Closure record \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Yêu cầu chức năng cấp cao}
 
 Yêu cầu chức năng được giữ ở mức đủ để quản trị Product Scope. Đặc tả hàm, kiểu dữ liệu và xử lý kỹ thuật nằm trong tài liệu thiết kế, không thuộc nội dung chính của chương này.
 
-\begin{longtable}{p{1.2cm}p{7.3cm}p{2cm}p{2.3cm}}
+\begin{longtable}{| p{1.2cm} | p{7.3cm} | p{2cm} | p{2.3cm} |}
 \caption{Yêu cầu chức năng cấp cao}\label{tab:functional-requirements}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Owner} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Ưu tiên} & \textbf{Owner} \\
-\midrule
+\hline
 \endhead
-FR-01 & Người dùng kết nối ví và xem chiến dịch công khai & Must & FE \\
-FR-02 & Người khởi tạo gửi đề xuất chiến dịch và theo dõi trạng thái xét duyệt & Must & FE/BC \\
-FR-03 & Admin phê duyệt hoặc từ chối đề xuất và quản lý nhà cung cấp & Must & FE/BC \\
-FR-04 & Donor quyên góp và xem lịch sử đóng góp & Must & FE/BC \\
-FR-05 & Manager theo dõi số dư khả dụng và tạo yêu cầu chi hợp lệ & Must & FE/BC \\
-FR-06 & Hệ thống giữ trước ngân sách của yêu cầu đang mở để tránh cam kết vượt quỹ & Must & BC \\
-FR-07 & Donor hoặc validator tham gia phê duyệt theo quy tắc của yêu cầu & Must & FE/BC \\
-FR-08 & Supplier nộp bằng chứng; Verifier xác minh hoặc từ chối & Must & FE/BC/IPFS \\
-FR-09 & Hệ thống chỉ giải ngân khi đủ điều kiện và ghi nhận người nhận & Must & BC \\
-FR-10 & Manager có thể hủy yêu cầu hợp lệ; ngân sách được giải phóng & Must & BC \\
-FR-11 & Hỗ trợ yêu cầu nhiều giai đoạn và thanh toán theo milestone & Should & FE/BC \\
-FR-12 & Donor yêu cầu hoàn tiền theo điều kiện khi chiến dịch dừng & Must & FE/BC \\
-FR-13 & Backend upload/đọc metadata và bằng chứng IPFS & Must & BE \\
-FR-14 & Backend theo dõi sự kiện và phát thông báo cho người dùng liên quan & Should & BE/FE \\
-FR-15 & Hệ thống hỗ trợ giao dịch thay mặt và gom giao dịch có chữ ký hợp lệ & Should & BE/BC \\
+FR-01 & Người dùng kết nối ví và xem chiến dịch công khai & Must & FE \\ \hline
+FR-02 & Người khởi tạo gửi đề xuất chiến dịch và theo dõi trạng thái xét duyệt & Must & FE/BC \\ \hline
+FR-03 & Admin phê duyệt hoặc từ chối đề xuất và quản lý nhà cung cấp & Must & FE/BC \\ \hline
+FR-04 & Donor quyên góp và xem lịch sử đóng góp & Must & FE/BC \\ \hline
+FR-05 & Manager theo dõi số dư khả dụng và tạo yêu cầu chi hợp lệ & Must & FE/BC \\ \hline
+FR-06 & Hệ thống giữ trước ngân sách của yêu cầu đang mở để tránh cam kết vượt quỹ & Must & BC \\ \hline
+FR-07 & Donor hoặc validator tham gia phê duyệt theo quy tắc của yêu cầu & Must & FE/BC \\ \hline
+FR-08 & Supplier nộp bằng chứng; Verifier xác minh hoặc từ chối & Must & FE/BC/IPFS \\ \hline
+FR-09 & Hệ thống chỉ giải ngân khi đủ điều kiện và ghi nhận người nhận & Must & BC \\ \hline
+FR-10 & Manager có thể hủy yêu cầu hợp lệ; ngân sách được giải phóng & Must & BC \\ \hline
+FR-11 & Hỗ trợ yêu cầu nhiều giai đoạn và thanh toán theo milestone & Should & FE/BC \\ \hline
+FR-12 & Donor yêu cầu hoàn tiền theo điều kiện khi chiến dịch dừng & Must & FE/BC \\ \hline
+FR-13 & Backend upload/đọc metadata và bằng chứng IPFS & Must & BE \\ \hline
+FR-14 & Backend theo dõi sự kiện và phát thông báo cho người dùng liên quan & Should & BE/FE \\ \hline
+FR-15 & Hệ thống hỗ trợ giao dịch thay mặt và gom giao dịch có chữ ký hợp lệ & Should & BE/BC \\ \hline
 FR-16 & Cung cấp dashboard cho Manager, Admin, Supplier, Verifier và hoạt động Donor & Must & FE \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Yêu cầu phi chức năng}
 
-\begin{longtable}{p{1.3cm}p{7.1cm}p{4.4cm}}
+\begin{longtable}{| p{1.3cm} | p{7.1cm} | p{4.4cm} |}
 \caption{Yêu cầu phi chức năng}\label{tab:nfr}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Tiêu chí chấp nhận} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Yêu cầu} & \textbf{Tiêu chí chấp nhận} \\
-\midrule
+\hline
 \endhead
-NFR-01 & Quyền tài chính phải được kiểm tra ở lớp tin cậy, không chỉ ở giao diện & Test phủ các trường hợp truy cập trái phép \\
-NFR-02 & Trạng thái tiền và quyết định cốt lõi phải truy vết được & Có transaction/event tương ứng \\
-NFR-03 & Không để private key hoặc secret trong repository/client & Kiểm tra cấu hình và source trước bàn giao \\
-NFR-04 & API thông thường phản hồi trong điều kiện thử nghiệm ổn định & Không quá 2 giây, không tính xác nhận blockchain/IPFS \\
-NFR-05 & Trang chính hiển thị nội dung ban đầu trong điều kiện thử nghiệm & Không quá 3 giây \\
-NFR-06 & Smart contract logic cốt lõi có mức kiểm thử tối thiểu & 80\% statement coverage và 100\% test Critical/High đạt \\
-NFR-07 & Hệ thống có cơ chế xử lý khi dịch vụ ngoài tạm lỗi & Có thông báo, retry hoặc fallback cho luồng liên quan \\
-NFR-08 & Sản phẩm có thể bảo trì và tái triển khai & Module hóa, lockfile, env template và deployment guide \\
-NFR-09 & Giao diện hỗ trợ các trình duyệt hiện đại có MetaMask & UAT trên môi trường được chỉ định \\
+NFR-01 & Quyền tài chính phải được kiểm tra ở lớp tin cậy, không chỉ ở giao diện & Test phủ các trường hợp truy cập trái phép \\ \hline
+NFR-02 & Trạng thái tiền và quyết định cốt lõi phải truy vết được & Có transaction/event tương ứng \\ \hline
+NFR-03 & Không để private key hoặc secret trong repository/client & Kiểm tra cấu hình và source trước bàn giao \\ \hline
+NFR-04 & API thông thường phản hồi trong điều kiện thử nghiệm ổn định & Không quá 2 giây, không tính xác nhận blockchain/IPFS \\ \hline
+NFR-05 & Trang chính hiển thị nội dung ban đầu trong điều kiện thử nghiệm & Không quá 3 giây \\ \hline
+NFR-06 & Smart contract logic cốt lõi có mức kiểm thử tối thiểu & 80\% statement coverage và 100\% test Critical/High đạt \\ \hline
+NFR-07 & Hệ thống có cơ chế xử lý khi dịch vụ ngoài tạm lỗi & Có thông báo, retry hoặc fallback cho luồng liên quan \\ \hline
+NFR-08 & Sản phẩm có thể bảo trì và tái triển khai & Module hóa, lockfile, env template và deployment guide \\ \hline
+NFR-09 & Giao diện hỗ trợ các trình duyệt hiện đại có MetaMask & UAT trên môi trường được chỉ định \\ \hline
 NFR-10 & Dữ liệu công khai không được mô tả sai là dữ liệu bí mật & Cảnh báo và quy định upload IPFS \\
-\bottomrule
+\hline
 \end{longtable}
 
 \iffalse
@@ -251,24 +251,24 @@ Product Owner/BA chịu trách nhiệm duy trì nội dung và ưu tiên; Techni
 
 RTM là công cụ nối nhu cầu với kết quả dự án. Bảng~\ref{tab:rtm-sample} trình bày một phần RTM; bản đầy đủ được đặt trong phụ lục và cập nhật đến khi nghiệm thu.
 
-\begin{longtable}{p{1.1cm}p{2.4cm}p{1.5cm}p{3cm}p{3.8cm}}
+\begin{longtable}{| p{1.1cm} | p{2.4cm} | p{1.5cm} | p{3cm} | p{3.8cm} |}
 \caption{Trích Ma trận truy vết yêu cầu}\label{tab:rtm-sample}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Nguồn} & \textbf{WBS} & \textbf{Deliverable} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Nguồn} & \textbf{WBS} & \textbf{Deliverable} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endhead
-MR-02 & Môn học/PM & 1.4, 10.1 & Hồ sơ baseline & Baseline được duyệt \\
-FR-02 & Manager và Admin & 4.1, 6.3 & Luồng tạo chiến dịch & Test và UAT scenario 1 \\
-FR-06 & Donor/PM & 4.2, 8.2 & Kiểm soát ngân sách & Unit/security test \\
-FR-08 & Supplier và Verifier & 4.4, 5.1, 6.6--6.7 & Luồng bằng chứng & Integration/UAT \\
-FR-12 & Donor & 4.5, 6.5, 8.2 & Hoàn tiền & Unit/E2E test \\
-NFR-03 & Nhóm dự án & 8.2, 9.1 & Cấu hình an toàn & Checklist/secret scan \\
+MR-02 & Môn học/PM & 1.4, 10.1 & Hồ sơ baseline & Baseline được duyệt \\ \hline
+FR-02 & Manager và Admin & 4.1, 6.3 & Luồng tạo chiến dịch & Test và UAT scenario 1 \\ \hline
+FR-06 & Donor/PM & 4.2, 8.2 & Kiểm soát ngân sách & Unit/security test \\ \hline
+FR-08 & Supplier và Verifier & 4.4, 5.1, 6.6--6.7 & Luồng bằng chứng & Integration/UAT \\ \hline
+FR-12 & Donor & 4.5, 6.5, 8.2 & Hoàn tiền & Unit/E2E test \\ \hline
+NFR-03 & Nhóm dự án & 8.2, 9.1 & Cấu hình an toàn & Checklist/secret scan \\ \hline
 NFR-06 & QA & 8.1--8.7 & Báo cáo chất lượng & Coverage/test report \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Thách thức khi thu thập yêu cầu}
@@ -317,18 +317,18 @@ Product Scope gồm năm nhóm deliverable:
 \centering
 \caption{Deliverable và tiêu chí chấp nhận cấp cao}
 \label{tab:scope-deliverables}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.5cm}p{5.1cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.5cm} | p{5.1cm} | X |}
+\hline
 Deliverable & Nội dung & Tiêu chí chấp nhận \\
-\midrule
-Hồ sơ quản trị & Charter, baseline, kế hoạch thành phần và log & Đầy đủ, nhất quán, có version/phê duyệt \\
-Blockchain module & Contract, ABI, script và test & Compile/test đạt quality gate, deploy được Sepolia \\
-Backend/AI module & API, listener, notification, relayer và sidecar & Build chạy, integration scenario đạt \\
-Frontend DApp & Trang công khai và dashboard & Build thành công, Must Have đạt UAT \\
-Hạ tầng thử nghiệm & Cấu hình database, queue, IPFS, RPC và Docker & Có env template, checklist và smoke test \\
-Báo cáo kiểm thử & Test result, coverage, defect và known issues & Không còn lỗi Critical/High \\
+\hline
+Hồ sơ quản trị & Charter, baseline, kế hoạch thành phần và log & Đầy đủ, nhất quán, có version/phê duyệt \\ \hline
+Blockchain module & Contract, ABI, script và test & Compile/test đạt quality gate, deploy được Sepolia \\ \hline
+Backend/AI module & API, listener, notification, relayer và sidecar & Build chạy, integration scenario đạt \\ \hline
+Frontend DApp & Trang công khai và dashboard & Build thành công, Must Have đạt UAT \\ \hline
+Hạ tầng thử nghiệm & Cấu hình database, queue, IPFS, RPC và Docker & Có env template, checklist và smoke test \\ \hline
+Báo cáo kiểm thử & Test result, coverage, defect và known issues & Không còn lỗi Critical/High \\ \hline
 Tài liệu bàn giao & README, hướng dẫn deploy/demo và cấu hình & Người nhận có thể kiểm tra/tái triển khai \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -423,128 +423,128 @@ WBS sử dụng cách phân rã theo vòng đời và deliverable, gồm mười
 \iffalse
 \subsection{WBS chi tiết}
 
-\begin{longtable}{p{1.2cm}p{4.9cm}p{6.7cm}}
+\begin{longtable}{| p{1.2cm} | p{4.9cm} | p{6.7cm} |}
 \caption{Cấu trúc WBS chi tiết}\label{tab:wbs-detail}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Work package} & \textbf{Đầu ra chính} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Work package} & \textbf{Đầu ra chính} \\
-\midrule
+\hline
 \endhead
-1.1 & Project Charter & Charter và mục tiêu SMART \\
-1.2 & Stakeholder management & Stakeholder Register/engagement strategy \\
-1.3 & Thiết lập công cụ và governance & Repository, board, quy ước và meeting cadence \\
+1.1 & Project Charter & Charter và mục tiêu SMART \\ \hline
+1.2 & Stakeholder management & Stakeholder Register/engagement strategy \\ \hline
+1.3 & Thiết lập công cụ và governance & Repository, board, quy ước và meeting cadence \\ \hline
 1.4 & Project Management Plan & Các baseline và kế hoạch thành phần \\
-\midrule
-2.1 & Thu thập yêu cầu & Requirement list và biên bản workshop \\
-2.2 & Phân tích/ưu tiên yêu cầu & Backlog, MoSCoW và acceptance criteria \\
-2.3 & Xác định phạm vi & Scope Statement và exclusions \\
-2.4 & WBS/WBS Dictionary & Scope Baseline \\
+\hline
+2.1 & Thu thập yêu cầu & Requirement list và biên bản workshop \\ \hline
+2.2 & Phân tích/ưu tiên yêu cầu & Backlog, MoSCoW và acceptance criteria \\ \hline
+2.3 & Xác định phạm vi & Scope Statement và exclusions \\ \hline
+2.4 & WBS/WBS Dictionary & Scope Baseline \\ \hline
 2.5 & Requirements Traceability & RTM hoàn chỉnh \\
-\midrule
-3.1 & Kiến trúc tổng thể & Architecture diagram và decision record \\
-3.2 & Thiết kế luồng nghiệp vụ & Use case, state/sequence diagram \\
-3.3 & Thiết kế dữ liệu/API & API contract, schema và event mapping \\
-3.4 & Thiết kế UI/UX & Wireframe/prototype và navigation \\
+\hline
+3.1 & Kiến trúc tổng thể & Architecture diagram và decision record \\ \hline
+3.2 & Thiết kế luồng nghiệp vụ & Use case, state/sequence diagram \\ \hline
+3.3 & Thiết kế dữ liệu/API & API contract, schema và event mapping \\ \hline
+3.4 & Thiết kế UI/UX & Wireframe/prototype và navigation \\ \hline
 3.5 & Threat modeling & Threat list và security controls \\
-\midrule
-4.1 & Quản lý vòng đời chiến dịch & Contract/module và test liên quan \\
-4.2 & Donation/yêu cầu chi & Logic quỹ, giữ ngân sách và biểu quyết \\
-4.3 & Supplier management & Registry và quyền quản trị \\
-4.4 & Bằng chứng/xác minh/milestone & Verification và payment workflow \\
-4.5 & Hủy, deadline và hoàn tiền & Lifecycle exception handling \\
-4.6 & Giao dịch thay mặt & Forwarding/batching workflow \\
+\hline
+4.1 & Quản lý vòng đời chiến dịch & Contract/module và test liên quan \\ \hline
+4.2 & Donation/yêu cầu chi & Logic quỹ, giữ ngân sách và biểu quyết \\ \hline
+4.3 & Supplier management & Registry và quyền quản trị \\ \hline
+4.4 & Bằng chứng/xác minh/milestone & Verification và payment workflow \\ \hline
+4.5 & Hủy, deadline và hoàn tiền & Lifecycle exception handling \\ \hline
+4.6 & Giao dịch thay mặt & Forwarding/batching workflow \\ \hline
 4.7 & Tối ưu và deploy script & Gas/security optimization, scripts \\
-\midrule
-5.1 & Evidence/IPFS service & Upload/read metadata API \\
-5.2 & Blockchain listener & Event listener và sync state \\
-5.3 & Notification service & Persistence và real-time notification \\
-5.4 & Relayer/queue & Intent validation, queue và batch \\
-5.5 & Gas monitor/AI sidecar & Decision integration và fallback \\
+\hline
+5.1 & Evidence/IPFS service & Upload/read metadata API \\ \hline
+5.2 & Blockchain listener & Event listener và sync state \\ \hline
+5.3 & Notification service & Persistence và real-time notification \\ \hline
+5.4 & Relayer/queue & Intent validation, queue và batch \\ \hline
+5.5 & Gas monitor/AI sidecar & Decision integration và fallback \\ \hline
 5.6 & Backend documentation & Swagger, validation và logging \\
-\midrule
-6.1 & Layout/routing/wallet & Khung giao diện và trạng thái ví \\
-6.2 & Public campaign pages & Home, list và detail \\
-6.3 & Create Campaign & Form và trạng thái proposal \\
-6.4 & Creator/Activity dashboard & Quản lý chiến dịch và lịch sử \\
-6.5 & Donation/request interaction & Donate, vote và request view \\
-6.6 & Supplier dashboard & Profile, task và proof \\
-6.7 & Verifier dashboard & Verify/reject workflow \\
-6.8 & Admin dashboard & Campaign/Supplier/system management \\
+\hline
+6.1 & Layout/routing/wallet & Khung giao diện và trạng thái ví \\ \hline
+6.2 & Public campaign pages & Home, list và detail \\ \hline
+6.3 & Create Campaign & Form và trạng thái proposal \\ \hline
+6.4 & Creator/Activity dashboard & Quản lý chiến dịch và lịch sử \\ \hline
+6.5 & Donation/request interaction & Donate, vote và request view \\ \hline
+6.6 & Supplier dashboard & Profile, task và proof \\ \hline
+6.7 & Verifier dashboard & Verify/reject workflow \\ \hline
+6.8 & Admin dashboard & Campaign/Supplier/system management \\ \hline
 6.9 & Notification/legal/responsive & UX hỗ trợ và các trang bổ sung \\
-\midrule
-7.1 & ABI/address/config integration & Configuration đồng bộ \\
-7.2 & Frontend--blockchain integration & Các luồng on-chain \\
-7.3 & Frontend--backend/IPFS integration & Metadata, evidence và notification \\
-7.4 & Relayer integration & Signed intent và kết quả transaction \\
+\hline
+7.1 & ABI/address/config integration & Configuration đồng bộ \\ \hline
+7.2 & Frontend--blockchain integration & Các luồng on-chain \\ \hline
+7.3 & Frontend--backend/IPFS integration & Metadata, evidence và notification \\ \hline
+7.4 & Relayer integration & Signed intent và kết quả transaction \\ \hline
 7.5 & End-to-end scenario & Luồng tích hợp hoàn chỉnh \\
-\midrule
-8.1 & Test planning & Test strategy, case và environment \\
-8.2 & Contract/security test & Unit, negative và hardening test \\
-8.3 & Backend/API test & Unit/integration/E2E test \\
-8.4 & Frontend test & Build, lint, manual và browser test \\
-8.5 & Regression/performance & Regression và đo ngưỡng cơ bản \\
-8.6 & UAT & Scenario, biên bản và feedback \\
+\hline
+8.1 & Test planning & Test strategy, case và environment \\ \hline
+8.2 & Contract/security test & Unit, negative và hardening test \\ \hline
+8.3 & Backend/API test & Unit/integration/E2E test \\ \hline
+8.4 & Frontend test & Build, lint, manual và browser test \\ \hline
+8.5 & Regression/performance & Regression và đo ngưỡng cơ bản \\ \hline
+8.6 & UAT & Scenario, biên bản và feedback \\ \hline
 8.7 & Defect closure & Triage, fix, retest và test report \\
-\midrule
-9.1 & Chuẩn bị môi trường & Account, secret và env template \\
-9.2 & Deploy/verify contract & Sepolia deployment record \\
-9.3 & Deploy backend/data/AI & Docker services và health check \\
-9.4 & Build/deploy frontend & Release frontend \\
+\hline
+9.1 & Chuẩn bị môi trường & Account, secret và env template \\ \hline
+9.2 & Deploy/verify contract & Sepolia deployment record \\ \hline
+9.3 & Deploy backend/data/AI & Docker services và health check \\ \hline
+9.4 & Build/deploy frontend & Release frontend \\ \hline
 9.5 & Smoke test/monitoring & Checklist và vận hành thử \\
-\midrule
-10.1 & Hoàn thiện báo cáo & Tiểu luận, bảng và hình \\
-10.2 & Tài liệu sử dụng/vận hành & README, runbook và demo script \\
-10.3 & Nghiệm thu/bàn giao & Acceptance và handover record \\
-10.4 & Lessons learned & Retrospective và knowledge archive \\
+\hline
+10.1 & Hoàn thiện báo cáo & Tiểu luận, bảng và hình \\ \hline
+10.2 & Tài liệu sử dụng/vận hành & README, runbook và demo script \\ \hline
+10.3 & Nghiệm thu/bàn giao & Acceptance và handover record \\ \hline
+10.4 & Lessons learned & Retrospective và knowledge archive \\ \hline
 10.5 & Đóng dự án & Closure report và thu hồi quyền \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Từ điển WBS}
 
 WBS Dictionary mô tả nội dung không thể thể hiện đầy đủ trên sơ đồ cây. Mỗi work package có: mã/tên, mô tả, owner, đầu vào, đầu ra, dependency, giả định, effort, duration, acceptance criteria và rủi ro. Bảng~\ref{tab:wbs-dictionary} là trích mẫu; bản đầy đủ được đưa vào phụ lục.
 
-\begin{longtable}{p{3cm}p{9.8cm}}
+\begin{longtable}{| p{3cm} | p{9.8cm} |}
 \caption{Trích WBS Dictionary cho work package 2.4}\label{tab:wbs-dictionary}\\
-\toprule
+\hline
 \textbf{Thuộc tính} & \textbf{Nội dung} \\
-\midrule
-WBS ID/Tên & 2.4 -- Xây dựng WBS và WBS Dictionary \\
-Mục tiêu & Phân rã 100\% Project Scope thành work package kiểm soát được \\
-Owner & Product Owner/BA; PM điều phối review; cấp có thẩm quyền phê duyệt baseline \\
-Đầu vào & Charter, requirement list, Scope Statement, giả định/ràng buộc \\
-Đầu ra & WBS dạng cây, bảng WBS chi tiết, WBS Dictionary \\
-Phụ thuộc & 2.1, 2.2 và 2.3 hoàn thành \\
-Effort giả định & 32 giờ \\
-Duration giả định & 4 ngày làm việc \\
-Acceptance criteria & Bao phủ 100\% deliverable; không trùng lặp; mỗi work package có owner và đầu ra \\
-Rủi ro & Bỏ sót công việc kiểm thử/tài liệu; phân rã theo activity quá sớm; trùng phạm vi giữa module \\
+\hline
+WBS ID/Tên & 2.4 -- Xây dựng WBS và WBS Dictionary \\ \hline
+Mục tiêu & Phân rã 100\% Project Scope thành work package kiểm soát được \\ \hline
+Owner & Product Owner/BA; PM điều phối review; cấp có thẩm quyền phê duyệt baseline \\ \hline
+Đầu vào & Charter, requirement list, Scope Statement, giả định/ràng buộc \\ \hline
+Đầu ra & WBS dạng cây, bảng WBS chi tiết, WBS Dictionary \\ \hline
+Phụ thuộc & 2.1, 2.2 và 2.3 hoàn thành \\ \hline
+Effort giả định & 32 giờ \\ \hline
+Duration giả định & 4 ngày làm việc \\ \hline
+Acceptance criteria & Bao phủ 100\% deliverable; không trùng lặp; mỗi work package có owner và đầu ra \\ \hline
+Rủi ro & Bỏ sót công việc kiểm thử/tài liệu; phân rã theo activity quá sớm; trùng phạm vi giữa module \\ \hline
 Bằng chứng & File WBS, biên bản review và version baseline \\
-\bottomrule
+\hline
 \end{longtable}
 
 Một ví dụ thứ hai đối với work package có rủi ro cao:
 
-\begin{longtable}{p{3cm}p{9.8cm}}
+\begin{longtable}{| p{3cm} | p{9.8cm} |}
 \caption{Trích WBS Dictionary cho work package 7.5}\label{tab:wbs-dictionary-e2e}\\
-\toprule
+\hline
 \textbf{Thuộc tính} & \textbf{Nội dung} \\
-\midrule
-WBS ID/Tên & 7.5 -- End-to-end scenario \\
-Mục tiêu & Chứng minh các hợp phần phối hợp đúng trong luồng nghiệp vụ cốt lõi \\
-Owner & Technical Lead; QA chịu trách nhiệm kiểm chứng \\
-Đầu vào & Release candidate của blockchain, backend, frontend và cấu hình test \\
-Đầu ra & Luồng tích hợp chạy được và danh sách defect \\
-Phụ thuộc & 7.1--7.4 và các module Must Have \\
-Effort giả định & 56 giờ \\
-Duration giả định & 5 ngày làm việc \\
-Acceptance criteria & Scenario tạo chiến dịch--quyên góp--yêu cầu chi--xác minh--giải ngân chạy thành công; có bằng chứng giao dịch \\
-Rủi ro & ABI/address sai, dịch vụ ngoài gián đoạn, dữ liệu test không nhất quán \\
+\hline
+WBS ID/Tên & 7.5 -- End-to-end scenario \\ \hline
+Mục tiêu & Chứng minh các hợp phần phối hợp đúng trong luồng nghiệp vụ cốt lõi \\ \hline
+Owner & Technical Lead; QA chịu trách nhiệm kiểm chứng \\ \hline
+Đầu vào & Release candidate của blockchain, backend, frontend và cấu hình test \\ \hline
+Đầu ra & Luồng tích hợp chạy được và danh sách defect \\ \hline
+Phụ thuộc & 7.1--7.4 và các module Must Have \\ \hline
+Effort giả định & 56 giờ \\ \hline
+Duration giả định & 5 ngày làm việc \\ \hline
+Acceptance criteria & Scenario tạo chiến dịch--quyên góp--yêu cầu chi--xác minh--giải ngân chạy thành công; có bằng chứng giao dịch \\ \hline
+Rủi ro & ABI/address sai, dịch vụ ngoài gián đoạn, dữ liệu test không nhất quán \\ \hline
 Bằng chứng & Test log, transaction hash, ảnh/video demo và defect record \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Mối liên hệ giữa WBS và các baseline khác}
@@ -588,18 +588,18 @@ Phạm vi được xác nhận tại ba cấp:
 \centering
 \caption{Bằng chứng xác nhận theo loại deliverable}
 \label{tab:acceptance-evidence}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.8cm} | X |}
+\hline
 Deliverable & Bằng chứng phù hợp \\
-\midrule
-Tài liệu quản trị & Version, biên bản review, chữ ký/xác nhận và change history \\
-Source code & Pull request, commit/tag và code review \\
-Smart contract & Test report, deployment record và transaction hash \\
-Backend/API & Build/test log, Swagger hoặc response mẫu \\
-Frontend & Build log, screenshot/video và UAT checklist \\
-Tích hợp & E2E log, transaction/CID và defect record \\
+\hline
+Tài liệu quản trị & Version, biên bản review, chữ ký/xác nhận và change history \\ \hline
+Source code & Pull request, commit/tag và code review \\ \hline
+Smart contract & Test report, deployment record và transaction hash \\ \hline
+Backend/API & Build/test log, Swagger hoặc response mẫu \\ \hline
+Frontend & Build log, screenshot/video và UAT checklist \\ \hline
+Tích hợp & E2E log, transaction/CID và defect record \\ \hline
 Bàn giao & Handover checklist, known issues và biên bản nghiệm thu \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -645,15 +645,15 @@ Mọi thành viên và stakeholder có thể đề xuất thay đổi. Quy trìn
 \centering
 \caption{Phân loại thay đổi phạm vi}
 \label{tab:change-level}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.6cm}p{6cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.6cm} | p{6cm} | X |}
+\hline
 Mức & Tiêu chí & Thẩm quyền \\
-\midrule
-Làm rõ & Không thay đổi deliverable, effort hoặc acceptance intent & Product Owner/BA ghi nhận \\
-Minor & Tác động trong work package, không đổi milestone/Cost Baseline & PM và Product Owner \\
-Major & Thêm/bớt deliverable, đổi interface, milestone hoặc ngân sách & Change Control Board \\
+\hline
+Làm rõ & Không thay đổi deliverable, effort hoặc acceptance intent & Product Owner/BA ghi nhận \\ \hline
+Minor & Tác động trong work package, không đổi milestone/Cost Baseline & PM và Product Owner \\ \hline
+Major & Thêm/bớt deliverable, đổi interface, milestone hoặc ngân sách & Change Control Board \\ \hline
 Emergency & Lỗi Critical ảnh hưởng tiền, secret hoặc quyền truy cập & PM/Technical Lead xử lý cô lập ngay; CCB review sau \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

@@ -14,18 +14,18 @@ Khác với một website quyên góp chỉ hiển thị thông tin do quản tr
 \centering
 \caption{Thông tin khái quát về dự án}
 \label{tab:project-overview}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.2cm}X}
-\toprule
-Tên đề tài & Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain \\
-Tên sản phẩm & FundChain \\
-Loại sản phẩm & Ứng dụng web phi tập trung quản lý gây quỹ \\
-Đơn vị thực hiện & Nhóm 2 \\
-Thời gian baseline & 01/04/2026--30/06/2026 \\
-Môi trường blockchain & Ethereum Sepolia Testnet \\
-Thành phần chính & React DApp, NestJS backend, Solidity smart contract, AI sidecar \\
-Kho dữ liệu & Sepolia, IPFS/Pinata, MongoDB và Redis \\
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.2cm} | X |}
+\hline
+Tên đề tài & Quản lí dự án gây dựng quỹ từ thiện bằng Blockchain \\ \hline
+Tên sản phẩm & FundChain \\ \hline
+Loại sản phẩm & Ứng dụng web phi tập trung quản lý gây quỹ \\ \hline
+Đơn vị thực hiện & Nhóm 2 \\ \hline
+Thời gian baseline & 01/04/2026--30/06/2026 \\ \hline
+Môi trường blockchain & Ethereum Sepolia Testnet \\ \hline
+Thành phần chính & React DApp, NestJS backend, Solidity smart contract, AI sidecar \\ \hline
+Kho dữ liệu & Sepolia, IPFS/Pinata, MongoDB và Redis \\ \hline
 Ngân sách giả định & 64.000.000 VNĐ \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -110,27 +110,27 @@ Các mục tiêu cụ thể được chia thành hai nhóm để tránh đồng 
 
 Để tránh đánh giá dự án chỉ dựa trên cảm nhận, nhóm sử dụng các chỉ số thành công tại Bảng~\ref{tab:success-metrics}.
 
-\begin{longtable}{p{1.4cm}p{7.2cm}p{5.2cm}}
+\begin{longtable}{| p{1.4cm} | p{7.2cm} | p{5.2cm} |}
 \caption{Mục tiêu và chỉ số thành công của dự án}\label{tab:success-metrics}\\
-\toprule
+\hline
 \textbf{Mã} & \textbf{Chỉ số} & \textbf{Mức chấp nhận} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Mã} & \textbf{Chỉ số} & \textbf{Mức chấp nhận} \\
-\midrule
+\hline
 \endhead
-OBJ-01 & Tỷ lệ yêu cầu bắt buộc vượt UAT & 100\% yêu cầu Must Have \\
-OBJ-02 & Kiểm thử logic smart contract cốt lõi & Tối thiểu 80\% statement coverage \\
-OBJ-03 & Lỗi trước nghiệm thu & Không còn lỗi Critical hoặc High \\
-OBJ-04 & Luồng end-to-end & Chạy được từ tạo chiến dịch đến giải ngân trên Sepolia \\
-OBJ-05 & Khả năng truy vết & Có transaction hash, event và CID tương ứng \\
-OBJ-06 & Hiệu năng API thông thường & Không quá 2 giây trong môi trường thử nghiệm ổn định \\
-OBJ-07 & Hiển thị nội dung trang chính & Không quá 3 giây trong điều kiện thử nghiệm \\
-OBJ-08 & Tiến độ & Hoàn thành trước hoặc trong ngày 30/06/2026 \\
-OBJ-09 & Ngân sách & EAC không vượt Project Budget 64 triệu VNĐ \\
+OBJ-01 & Tỷ lệ yêu cầu bắt buộc vượt UAT & 100\% yêu cầu Must Have \\ \hline
+OBJ-02 & Kiểm thử logic smart contract cốt lõi & Tối thiểu 80\% statement coverage \\ \hline
+OBJ-03 & Lỗi trước nghiệm thu & Không còn lỗi Critical hoặc High \\ \hline
+OBJ-04 & Luồng end-to-end & Chạy được từ tạo chiến dịch đến giải ngân trên Sepolia \\ \hline
+OBJ-05 & Khả năng truy vết & Có transaction hash, event và CID tương ứng \\ \hline
+OBJ-06 & Hiệu năng API thông thường & Không quá 2 giây trong môi trường thử nghiệm ổn định \\ \hline
+OBJ-07 & Hiển thị nội dung trang chính & Không quá 3 giây trong điều kiện thử nghiệm \\ \hline
+OBJ-08 & Tiến độ & Hoàn thành trước hoặc trong ngày 30/06/2026 \\ \hline
+OBJ-09 & Ngân sách & EAC không vượt Project Budget 64 triệu VNĐ \\ \hline
 OBJ-10 & Bàn giao & Có source, ABI, cấu hình mẫu, test report và tài liệu \\
-\bottomrule
+\hline
 \end{longtable}
 
 \section{Mô tả tổng quan sản phẩm}
@@ -143,17 +143,17 @@ Sản phẩm được chia thành các hợp phần đủ lớn để hình thà
 \centering
 \caption{Các hợp phần sản phẩm và vấn đề quản trị tương ứng}
 \label{tab:product-components}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.1cm}p{5.2cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.1cm} | p{5.2cm} | X |}
+\hline
 Hợp phần & Phạm vi cấp cao & Nội dung cần quản trị \\
-\midrule
-Blockchain & Quản lý chiến dịch, quỹ, yêu cầu chi và phân quyền & Bảo mật, gas, test, thay đổi interface và triển khai \\
-Backend/IPFS & Metadata, bằng chứng, đồng bộ event và thông báo & API, dữ liệu, dịch vụ ngoài, tính sẵn sàng và bảo mật secret \\
-Relayer/AI & Hàng đợi giao dịch và hỗ trợ tối ưu thời điểm gửi & Chi phí vận hành, fallback, monitoring và giới hạn phạm vi AI \\
-Frontend & Trang công khai và dashboard theo vai trò & Yêu cầu người dùng, UI/UX, tích hợp và UAT \\
-Hạ tầng & Sepolia, RPC, MongoDB, Redis, Pinata và hosting & Mua sắm, quota, SLA, configuration và phương án dự phòng \\
+\hline
+Blockchain & Quản lý chiến dịch, quỹ, yêu cầu chi và phân quyền & Bảo mật, gas, test, thay đổi interface và triển khai \\ \hline
+Backend/IPFS & Metadata, bằng chứng, đồng bộ event và thông báo & API, dữ liệu, dịch vụ ngoài, tính sẵn sàng và bảo mật secret \\ \hline
+Relayer/AI & Hàng đợi giao dịch và hỗ trợ tối ưu thời điểm gửi & Chi phí vận hành, fallback, monitoring và giới hạn phạm vi AI \\ \hline
+Frontend & Trang công khai và dashboard theo vai trò & Yêu cầu người dùng, UI/UX, tích hợp và UAT \\ \hline
+Hạ tầng & Sepolia, RPC, MongoDB, Redis, Pinata và hosting & Mua sắm, quota, SLA, configuration và phương án dự phòng \\ \hline
 Tài liệu/QA & Kế hoạch, hướng dẫn, test report và hồ sơ bàn giao & Traceability, quality gate, phê duyệt và lưu trữ tri thức \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -181,22 +181,22 @@ Release của môn học được bàn giao trên Sepolia Testnet. Địa chỉ 
 
 Hệ thống có năm vai trò người dùng trực tiếp. Một địa chỉ ví có thể xuất hiện trong nhiều ngữ cảnh, nhưng smart contract đặt ra các giới hạn nhằm tránh xung đột lợi ích, chẳng hạn manager không được quyên góp hoặc biểu quyết cho chính chiến dịch của mình và recipient không được tự đóng vai verifier cho cùng yêu cầu.
 
-\begin{longtable}{p{3cm}p{4.2cm}p{7cm}}
+\begin{longtable}{| p{3cm} | p{4.2cm} | p{7cm} |}
 \caption{Nhu cầu và quyền hạn của người dùng trực tiếp}\label{tab:user-roles}\\
-\toprule
+\hline
 \textbf{Vai trò} & \textbf{Nhu cầu chính} & \textbf{Chức năng/quyền hạn} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Vai trò} & \textbf{Nhu cầu chính} & \textbf{Chức năng/quyền hạn} \\
-\midrule
+\hline
 \endhead
-Donor & Minh bạch và bảo vệ khoản đóng góp & Donate, theo dõi lịch sử, vote, validator approval, nhận notification và claim refund \\
-Campaign Manager & Tổ chức và điều phối chiến dịch & Submit proposal, tạo/hủy request, theo dõi quỹ, finalize và deactivate campaign \\
-Platform Admin & Kiểm soát nền tảng & Duyệt/từ chối campaign, quản lý Supplier, phí chống spam và quyền admin \\
-Supplier & Nộp bằng chứng và nhận thanh toán & Quản lý hồ sơ, xem nhiệm vụ, submit proof và theo dõi earnings \\
+Donor & Minh bạch và bảo vệ khoản đóng góp & Donate, theo dõi lịch sử, vote, validator approval, nhận notification và claim refund \\ \hline
+Campaign Manager & Tổ chức và điều phối chiến dịch & Submit proposal, tạo/hủy request, theo dõi quỹ, finalize và deactivate campaign \\ \hline
+Platform Admin & Kiểm soát nền tảng & Duyệt/từ chối campaign, quản lý Supplier, phí chống spam và quyền admin \\ \hline
+Supplier & Nộp bằng chứng và nhận thanh toán & Quản lý hồ sơ, xem nhiệm vụ, submit proof và theo dõi earnings \\ \hline
 Verifier & Xác minh độc lập & Kiểm tra proof CID, verify/reject request và verify milestone \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Các bên liên quan khác}
@@ -207,15 +207,15 @@ Ngoài người dùng trực tiếp, dự án còn chịu ảnh hưởng của g
 \centering
 \caption{Phân loại stakeholder theo quyền lực và mức quan tâm}
 \label{tab:stakeholder-grid}
-\begin{tabularx}{\textwidth}{p{3.7cm}p{4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| p{3.7cm} | p{4cm} | X |}
+\hline
 \textbf{Nhóm} & \textbf{Stakeholder} & \textbf{Chiến lược tương tác} \\
-\midrule
-Quyền lực cao, quan tâm cao & Giảng viên/người nghiệm thu, PM, Platform Admin & Quản lý chặt, báo cáo định kỳ, tham gia quyết định baseline/change \\
-Quyền lực thấp hơn, quan tâm cao & Donor, Manager, Supplier, Verifier, nhóm phát triển & Cập nhật thường xuyên, demo và lấy phản hồi \\
-Quyền lực cao, quan tâm thấp & Nhà cung cấp hạ tầng chủ chốt & Theo dõi SLA, quota, thay đổi dịch vụ và phương án dự phòng \\
+\hline
+Quyền lực cao, quan tâm cao & Giảng viên/người nghiệm thu, PM, Platform Admin & Quản lý chặt, báo cáo định kỳ, tham gia quyết định baseline/change \\ \hline
+Quyền lực thấp hơn, quan tâm cao & Donor, Manager, Supplier, Verifier, nhóm phát triển & Cập nhật thường xuyên, demo và lấy phản hồi \\ \hline
+Quyền lực cao, quan tâm thấp & Nhà cung cấp hạ tầng chủ chốt & Theo dõi SLA, quota, thay đổi dịch vụ và phương án dự phòng \\ \hline
 Quyền lực thấp, quan tâm thấp & Khách truy cập và cộng đồng chung & Cung cấp thông tin công khai, tài liệu và kênh phản hồi \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -224,26 +224,26 @@ Quyền lực thấp, quan tâm thấp & Khách truy cập và cộng đồng ch
 Power--Interest Grid chỉ hỗ trợ phân loại, vì vậy dự án sử dụng thêm Stakeholder Engagement Assessment Matrix. Năm mức tham gia gồm Unaware (U), Resistant (R), Neutral (N), Supportive (S) và Leading (L); ký hiệu C là trạng thái hiện tại, D là trạng thái mong muốn. Ma trận là baseline giao tiếp tại thời điểm khởi tạo và được rà soát sau mỗi sprint review.
 
 \begin{landscape}
-\begin{longtable}{p{3.2cm}ccccc p{5.8cm}p{2.5cm}p{2.5cm}}
+\begin{longtable}{| p{3.2cm} | c | c | c | c | c | p{5.8cm} | p{2.5cm} | p{2.5cm} |}
 \caption{Stakeholder Engagement Assessment Matrix}\label{tab:stakeholder-engagement}\\
-\toprule
+\hline
 \textbf{Stakeholder} & \textbf{U} & \textbf{R} & \textbf{N} & \textbf{S} & \textbf{L} & \textbf{Hành động thu hẹp khoảng cách} & \textbf{Owner} & \textbf{Rà soát} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Stakeholder} & \textbf{U} & \textbf{R} & \textbf{N} & \textbf{S} & \textbf{L} & \textbf{Hành động thu hẹp khoảng cách} & \textbf{Owner} & \textbf{Rà soát} \\
-\midrule
+\hline
 \endhead
-Giảng viên/người nghiệm thu & & & & C & D & Gửi status trước milestone, demo bằng tiêu chí nghiệm thu và chốt decision log & PM & Mỗi milestone \\
-Nhóm 2/PM & & & & C & D & Duy trì baseline, weekly review và chủ động escalation blocker & PM & Hằng tuần \\
-Đội kỹ thuật & & & C & D & & Workshop yêu cầu, công bố Definition of Done, review chéo và retrospective & TL/PM & Mỗi sprint \\
-Platform Admin & & & C & D & & Demo quyền quản trị, security checklist và UAT luồng duyệt chiến dịch & BA & Sprint 3--6 \\
-Donor & C & & & D & & Prototype, usability test và UAT donate/vote/refund & BA/FE & Sprint review \\
-Campaign Manager & & & C & D & & Phỏng vấn yêu cầu và UAT tạo campaign/request/finalize & BA & Sprint 2, 5--6 \\
-Supplier & C & & & D & & Hướng dẫn proof CID, demo submit proof và lấy phản hồi & BA/QA & Sprint 4--6 \\
-Verifier & & & C & D & & Walkthrough quy tắc verify/reject và UAT bằng dữ liệu mẫu & BA/QA & Sprint 4--6 \\
+Giảng viên/người nghiệm thu & & & & C & D & Gửi status trước milestone, demo bằng tiêu chí nghiệm thu và chốt decision log & PM & Mỗi milestone \\ \hline
+Nhóm 2/PM & & & & C & D & Duy trì baseline, weekly review và chủ động escalation blocker & PM & Hằng tuần \\ \hline
+Đội kỹ thuật & & & C & D & & Workshop yêu cầu, công bố Definition of Done, review chéo và retrospective & TL/PM & Mỗi sprint \\ \hline
+Platform Admin & & & C & D & & Demo quyền quản trị, security checklist và UAT luồng duyệt chiến dịch & BA & Sprint 3--6 \\ \hline
+Donor & C & & & D & & Prototype, usability test và UAT donate/vote/refund & BA/FE & Sprint review \\ \hline
+Campaign Manager & & & C & D & & Phỏng vấn yêu cầu và UAT tạo campaign/request/finalize & BA & Sprint 2, 5--6 \\ \hline
+Supplier & C & & & D & & Hướng dẫn proof CID, demo submit proof và lấy phản hồi & BA/QA & Sprint 4--6 \\ \hline
+Verifier & & & C & D & & Walkthrough quy tắc verify/reject và UAT bằng dữ liệu mẫu & BA/QA & Sprint 4--6 \\ \hline
 Nhà cung cấp hạ tầng & & & C/D & & & Theo dõi quota/status, duy trì đầu mối hỗ trợ và phương án dự phòng & DevOps & Hằng tuần \\
-\bottomrule
+\hline
 \end{longtable}
 \end{landscape}
 
@@ -297,25 +297,25 @@ Trong phân tích quản trị, dự án giả định lợi ích quy đổi 30.
 
 Các deliverable cấp cao được xác định tại Bảng~\ref{tab:deliverables}. Mỗi deliverable chỉ được chấp nhận khi có bằng chứng và owner trong kế hoạch chi tiết.
 
-\begin{longtable}{p{1.1cm}p{3.5cm}p{4.6cm}p{3.6cm}}
+\begin{longtable}{| p{1.1cm} | p{3.5cm} | p{4.6cm} | p{3.6cm} |}
 \caption{Danh sách sản phẩm bàn giao cấp cao}\label{tab:deliverables}\\
-\toprule
+\hline
 \textbf{ID} & \textbf{Deliverable} & \textbf{Thành phần} & \textbf{Bằng chứng chấp nhận} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{ID} & \textbf{Deliverable} & \textbf{Thành phần} & \textbf{Bằng chứng chấp nhận} \\
-\midrule
+\hline
 \endhead
-D1 & Bộ tài liệu phân tích/thiết kế & Requirement, RTM, use case, architecture & Review và baseline được duyệt \\
-D2 & Blockchain module & Contracts, ABI, scripts và tests & Test report, tx hash, verified source \\
-D3 & Backend/AI & Evidence, listener, notification, relayer, sidecar & API test, log và demo tích hợp \\
-D4 & Frontend DApp & Public pages và role dashboards & Build thành công và UAT \\
-D5 & Hạ tầng/cấu hình & Docker, env template, MongoDB, Redis & Deployment checklist và smoke test \\
-D6 & Báo cáo chất lượng & Test plan, result, defect và security checklist & Không còn Critical/High defect \\
-D7 & Tài liệu sử dụng/vận hành & README, deploy guide, demo script & Người nhận có thể tái triển khai \\
+D1 & Bộ tài liệu phân tích/thiết kế & Requirement, RTM, use case, architecture & Review và baseline được duyệt \\ \hline
+D2 & Blockchain module & Contracts, ABI, scripts và tests & Test report, tx hash, verified source \\ \hline
+D3 & Backend/AI & Evidence, listener, notification, relayer, sidecar & API test, log và demo tích hợp \\ \hline
+D4 & Frontend DApp & Public pages và role dashboards & Build thành công và UAT \\ \hline
+D5 & Hạ tầng/cấu hình & Docker, env template, MongoDB, Redis & Deployment checklist và smoke test \\ \hline
+D6 & Báo cáo chất lượng & Test plan, result, defect và security checklist & Không còn Critical/High defect \\ \hline
+D7 & Tài liệu sử dụng/vận hành & README, deploy guide, demo script & Người nhận có thể tái triển khai \\ \hline
 D8 & Hồ sơ quản trị & Baseline, RACI, risk, cost, change và closure & Đủ biểu mẫu và phê duyệt \\
-\bottomrule
+\hline
 \end{longtable}
 
 \section{Tiêu chí thành công cấp cao}

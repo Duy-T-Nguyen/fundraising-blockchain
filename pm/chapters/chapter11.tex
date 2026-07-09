@@ -114,17 +114,17 @@ PM theo dõi dự án bằng cách đối chiếu actual với baseline ở các
 \caption{Dashboard kiểm soát dự án tại data date 31/05/2026}
 \label{tab:project-control-dashboard}
 \small
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.1cm}p{2.4cm}p{1.4cm}X>{\raggedright\arraybackslash}p{3cm}}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.1cm} | p{2.4cm} | p{1.4cm} | X | >{\raggedright\arraybackslash}p{3cm} |}
+\hline
 Nhóm kiểm soát & Chỉ số/bằng chứng & Trạng thái & Diễn giải thực nghiệm & Hành động tiếp theo \\
-\midrule
-Scope & Major change = 0 & Xanh & Yêu cầu KYC được ghi backlog, chưa đưa vào release ba tháng & Giữ Scope Baseline, chỉ nhận change qua CCB \\
-Schedule & SPI = 0,933 & Vàng & Integration gate chậm do sửa contract và đồng bộ ABI/address & Ưu tiên activity đường găng, dùng crash option đã phân tích \\
-Cost & CPI = 0,955 & Vàng nhẹ & Effort tăng vì rework nhưng chưa vượt ngưỡng đỏ & Theo dõi AC tuần kế và không dùng reserve nếu chưa có trigger \\
-Quality & 0 Critical/High & Vàng & Còn lỗi Medium về validation, tài liệu và tích hợp & Regression test, UAT checklist và defect triage hằng ngày \\
-Risk & R03/R09 tăng & Vàng & Rủi ro redeploy và defect lọt sang UAT cao hơn baseline & Kích hoạt response plan, cập nhật risk owner \\
+\hline
+Scope & Major change = 0 & Xanh & Yêu cầu KYC được ghi backlog, chưa đưa vào release ba tháng & Giữ Scope Baseline, chỉ nhận change qua CCB \\ \hline
+Schedule & SPI = 0,933 & Vàng & Integration gate chậm do sửa contract và đồng bộ ABI/address & Ưu tiên activity đường găng, dùng crash option đã phân tích \\ \hline
+Cost & CPI = 0,955 & Vàng nhẹ & Effort tăng vì rework nhưng chưa vượt ngưỡng đỏ & Theo dõi AC tuần kế và không dùng reserve nếu chưa có trigger \\ \hline
+Quality & 0 Critical/High & Vàng & Còn lỗi Medium về validation, tài liệu và tích hợp & Regression test, UAT checklist và defect triage hằng ngày \\ \hline
+Risk & R03/R09 tăng & Vàng & Rủi ro redeploy và defect lọt sang UAT cao hơn baseline & Kích hoạt response plan, cập nhật risk owner \\ \hline
 Procurement & RPC/IPFS trong quota & Xanh & Free tier đủ demo, chưa có outage nghiêm trọng & Duy trì fallback endpoint và dữ liệu demo dự phòng \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -138,19 +138,19 @@ Integrated Change Control là nội dung cốt lõi nhất của chương này. 
 \centering
 \caption{Các chiều tác động cần xem xét trong Integrated Change Control}
 \label{tab:change-impact-dimensions}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4cm} | X |}
+\hline
 Chiều tác động & Câu hỏi đánh giá \\
-\midrule
-Giá trị nghiệp vụ & Thay đổi có thực sự cần thiết với mục tiêu dự án không? \\
-Phạm vi & Có làm thay đổi deliverable hoặc WBS đã baseline không? \\
-Lịch biểu & Có ảnh hưởng activity đường găng, milestone hoặc buffer không? \\
-Chi phí & Có làm tăng effort, reserve hoặc Project Budget không? \\
-Chất lượng & Có đòi hỏi thêm test, review hoặc quality gate mới không? \\
-Rủi ro & Có tạo rủi ro mới hoặc làm tăng residual risk không? \\
-Tích hợp kỹ thuật & Có ảnh hưởng contract storage, ABI, API, config hoặc deployment không? \\
+\hline
+Giá trị nghiệp vụ & Thay đổi có thực sự cần thiết với mục tiêu dự án không? \\ \hline
+Phạm vi & Có làm thay đổi deliverable hoặc WBS đã baseline không? \\ \hline
+Lịch biểu & Có ảnh hưởng activity đường găng, milestone hoặc buffer không? \\ \hline
+Chi phí & Có làm tăng effort, reserve hoặc Project Budget không? \\ \hline
+Chất lượng & Có đòi hỏi thêm test, review hoặc quality gate mới không? \\ \hline
+Rủi ro & Có tạo rủi ro mới hoặc làm tăng residual risk không? \\ \hline
+Tích hợp kỹ thuật & Có ảnh hưởng contract storage, ABI, API, config hoặc deployment không? \\ \hline
 Tài liệu và truyền thông & Có yêu cầu cập nhật tài liệu, hướng dẫn hoặc status report không? \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -171,17 +171,17 @@ Configuration Management là một phần thiết yếu của quản lý tích h
 \centering
 \caption{Các đối tượng cấu hình trọng yếu của dự án}
 \label{tab:configuration-items}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4cm} | X |}
+\hline
 Đối tượng cấu hình & Yêu cầu kiểm soát \\
-\midrule
-Source code & Version, branch, release tag và review history \\
-ABI và contract artifact & Đồng bộ với contract version và frontend/backend integration \\
-Deployment record & Network, address, verify link, thời điểm deploy và owner \\
-Environment configuration & Template rõ ràng, không chứa secret thật \\
-Docker/config runtime & Theo dõi image, service và biến môi trường liên quan \\
+\hline
+Source code & Version, branch, release tag và review history \\ \hline
+ABI và contract artifact & Đồng bộ với contract version và frontend/backend integration \\ \hline
+Deployment record & Network, address, verify link, thời điểm deploy và owner \\ \hline
+Environment configuration & Template rõ ràng, không chứa secret thật \\ \hline
+Docker/config runtime & Theo dõi image, service và biến môi trường liên quan \\ \hline
 Tài liệu hướng dẫn & Cập nhật đồng bộ với release và config hiện hành \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -197,23 +197,23 @@ Contract source $\rightarrow$ compiler/settings $\rightarrow$ bytecode $\rightar
 Contract sử dụng semantic version ở mức release. Thay đổi làm khác ABI hoặc hành vi nghiệp vụ phải tăng version và tạo deployment record mới; không ghi đè address của release cũ. ABI được sinh từ đúng commit đã deploy, lưu cùng artifact và checksum, sau đó được frontend/backend lấy từ một nguồn versioned duy nhất. CI từ chối build nếu checksum ABI, chain ID hoặc address manifest không khớp với release manifest.
 
 \begin{landscape}
-\begin{longtable}{p{3.4cm}p{6cm}p{5cm}p{3cm}p{3.2cm}}
+\begin{longtable}{| p{3.4cm} | p{6cm} | p{5cm} | p{3cm} | p{3.2cm} |}
 \caption{Configuration Status Accounting cho release blockchain}\label{tab:blockchain-csa}\\
-\toprule
+\hline
 \textbf{Configuration item} & \textbf{Thuộc tính phải ghi} & \textbf{Kiểm soát/quality gate} & \textbf{Owner} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Configuration item} & \textbf{Thuộc tính phải ghi} & \textbf{Kiểm soát/quality gate} & \textbf{Owner} & \textbf{Bằng chứng} \\
-\midrule
+\hline
 \endhead
-Contract source & Git commit, tag, compiler, optimizer, constructor args & Review chéo; test và static analysis đạt ngưỡng & BC/TL & Commit, PR, test report \\
-ABI/artifact & Contract version, checksum, generated-at commit & Không sửa tay; CI so checksum với artifact & BC & Artifact bundle \\
-Deployment record & Network, chain ID, address, deployer, tx hash, block, thời điểm & Receipt thành công; source verified; smoke test đạt & DevOps/TL & Manifest, explorer link \\
-Application config & ABI version, address, RPC alias, feature flags & Frontend/backend cùng manifest; integration test đạt & BE/FE & Build log, test report \\
-Secret/credential & Tên secret, mục đích, custodian, scope, ngày rotate & Không xuất hiện trong source/log/artifact; least privilege & DevOps/PM & Secret-scan log, access record \\
+Contract source & Git commit, tag, compiler, optimizer, constructor args & Review chéo; test và static analysis đạt ngưỡng & BC/TL & Commit, PR, test report \\ \hline
+ABI/artifact & Contract version, checksum, generated-at commit & Không sửa tay; CI so checksum với artifact & BC & Artifact bundle \\ \hline
+Deployment record & Network, chain ID, address, deployer, tx hash, block, thời điểm & Receipt thành công; source verified; smoke test đạt & DevOps/TL & Manifest, explorer link \\ \hline
+Application config & ABI version, address, RPC alias, feature flags & Frontend/backend cùng manifest; integration test đạt & BE/FE & Build log, test report \\ \hline
+Secret/credential & Tên secret, mục đích, custodian, scope, ngày rotate & Không xuất hiện trong source/log/artifact; least privilege & DevOps/PM & Secret-scan log, access record \\ \hline
 Release package & Tag, image digest, manifest, runbook, known issues & Approval của TL, QA và PM trước UAT & PM/QA & Release checklist \\
-\bottomrule
+\hline
 \end{longtable}
 \end{landscape}
 
@@ -261,55 +261,7 @@ Checklist trước UAT tối thiểu xác nhận đúng chain ID Sepolia, addres
   \item defect Critical/High liên quan đến tích hợp đã được xử lý.
 \end{itemize}
 
-\section{Đánh giá tài chính bằng NPV}
 
-\subsection{Giả định phân tích}
-
-Để minh họa góc nhìn đầu tư ở mức quản trị, dự án sử dụng các giả định sau:
-
-\begin{itemize}
-  \item initial investment quy đổi bằng Project Budget: 64.000.000 VNĐ;
-  \item lợi ích quy đổi giả định: 30.000.000 VNĐ/năm trong 3 năm;
-  \item discount rate giả định: 12\%/năm;
-  \item không tính terminal value.
-\end{itemize}
-
-Các biến trên thuộc nhóm \textit{simulated assumptions}, không phải doanh thu hoặc dòng tiền đã quan sát. Báo cáo phân biệt ba loại dữ liệu: \textit{planned} là baseline được phê duyệt; \textit{simulated} là số liệu giả định dùng để thực hành phương pháp; \textit{actual} là dữ liệu có chứng từ hoặc log phát sinh trong quá trình thực hiện. EVM và NPV không được trình bày như kết quả thương mại nếu chưa có actual cost và actual benefit tương ứng.
-
-\subsection{Kết quả NPV}
-
-Theo giả định trên:
-
-\begin{center}
-$NPV = -64.000.000 + \frac{30.000.000}{1{,}12} + \frac{30.000.000}{1{,}12^2} + \frac{30.000.000}{1{,}12^3}$
-\end{center}
-
-Kết quả xấp xỉ:
-
-\begin{center}
-\textbf{NPV $\approx$ 8.055.000 VNĐ}
-\end{center}
-
-NPV dương cho thấy, trong kịch bản giả định, phương án đầu tư có thể chấp nhận được về mặt tài chính. Tuy nhiên, cần nhấn mạnh rằng đây không phải dự báo thương mại thực tế mà chỉ là mô phỏng học thuật để hỗ trợ đánh giá tích hợp giữa đầu tư, chi phí và lợi ích.
-
-\begin{table}[H]
-\centering
-\caption{Phân tích nhạy cảm định lượng cho NPV}
-\label{tab:npv-sensitivity}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3cm}p{3cm}p{3.2cm}X}
-\toprule
-Lợi ích/năm & Discount rate & NPV & Kết luận kịch bản \\
-\midrule
-20 triệu VNĐ & 12\% & $-15{,}963$ triệu & Âm; không đạt điều kiện tài chính giả định \\
-30 triệu VNĐ & 12\% & $8{,}055$ triệu & Dương nhẹ; kịch bản cơ sở \\
-40 triệu VNĐ & 12\% & $32{,}073$ triệu & Dương; có biên an toàn tốt hơn \\
-30 triệu VNĐ & 15\% & $4{,}497$ triệu & Vẫn dương nhưng nhạy với discount rate \\
-30 triệu VNĐ & 10\% & $10{,}606$ triệu & Dương; thuận lợi hơn kịch bản cơ sở \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Tại discount rate 12\%, lợi ích hòa vốn hằng năm là $64/2{,}401831\approx26{,}646$ triệu VNĐ. Đây là ngưỡng của mô hình ba năm đã giả định, không phải forecast doanh thu. Nếu chuyển sang production, mô hình phải bổ sung audit, pháp lý, gas Mainnet, vận hành/SLA, incident response, bảo hiểm và dữ liệu adoption thực tế trước khi tái tính NPV.
 
 \iffalse
 \section{Công cụ hỗ trợ và bài học tích hợp}
@@ -341,6 +293,6 @@ Các thách thức tích hợp chính của FundChain gồm:
 \fi
 \section{Kết luận chương}
 
-Chương XI đã tích hợp các kế hoạch riêng lẻ của dự án thành một khung điều phối thống nhất, từ Charter, Project Management Plan, Direct and Manage Work, Configuration Management, Integrated Change Control đến tích hợp kỹ thuật hệ thống và phân tích NPV minh họa. Nhờ đó, quản lý tích hợp được thể hiện đúng vai trò là ``lớp điều phối trung tâm'' của toàn bộ dự án.
+Chương XI đã tích hợp các kế hoạch riêng lẻ của dự án thành một khung điều phối thống nhất, từ Charter, Project Management Plan, Direct and Manage Work, Configuration Management, Integrated Change Control đến tích hợp kỹ thuật hệ thống. Nhờ đó, quản lý tích hợp được thể hiện đúng vai trò là ``lớp điều phối trung tâm'' của toàn bộ dự án.
 
 Đối với FundChain, quản lý tích hợp là điều kiện để mọi thay đổi đều được xem xét đầy đủ trước khi triển khai và để các thành phần kỹ thuật vận hành như một chỉnh thể. Đây cũng là nền tảng trực tiếp cho việc kết thúc dự án một cách có kiểm soát ở chương cuối.

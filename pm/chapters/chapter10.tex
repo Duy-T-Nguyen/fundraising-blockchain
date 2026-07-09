@@ -41,17 +41,17 @@ Phân tích make-or-buy của FundChain được xây trên nguyên tắc: nhóm
 \centering
 \caption{Phân tích make-or-buy của dự án}
 \label{tab:make-or-buy}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.3cm}p{2.5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.3cm} | p{2.5cm} | X |}
+\hline
 Hạng mục & Quyết định & Lý do quản trị \\
-\midrule
-Business logic và smart contract & Make & Là giá trị cốt lõi, cần kiểm soát trực tiếp \\
-Frontend/backend integration & Make & Phản ánh nghiệp vụ và luồng người dùng của dự án \\
-RPC provider & Buy & Dịch vụ hạ tầng chuẩn, tự vận hành không hiệu quả ở quy mô đề tài \\
-IPFS pinning & Buy & Tối ưu thời gian và công sức vận hành lưu trữ \\
-MongoDB/Redis/hosting & Buy & Tiện cho prototype và demo, dễ triển khai \\
+\hline
+Business logic và smart contract & Make & Là giá trị cốt lõi, cần kiểm soát trực tiếp \\ \hline
+Frontend/backend integration & Make & Phản ánh nghiệp vụ và luồng người dùng của dự án \\ \hline
+RPC provider & Buy & Dịch vụ hạ tầng chuẩn, tự vận hành không hiệu quả ở quy mô đề tài \\ \hline
+IPFS pinning & Buy & Tối ưu thời gian và công sức vận hành lưu trữ \\ \hline
+MongoDB/Redis/hosting & Buy & Tiện cho prototype và demo, dễ triển khai \\ \hline
 Audit bảo mật chuyên sâu & Buy nếu có ngân sách & Là năng lực chuyên biệt ngoài phạm vi nhóm học thuật \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -104,18 +104,18 @@ Quy trình lựa chọn của dự án gồm các bước:
 \centering
 \caption{Tiêu chí lựa chọn nhà cung cấp}
 \label{tab:vendor-selection-criteria}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4cm} | X |}
+\hline
 Tiêu chí & Nội dung đánh giá \\
-\midrule
-Chi phí tổng sở hữu & Không chỉ giá niêm yết mà cả chi phí vận hành, nâng gói và di chuyển \\
-Tính sẵn sàng/SLA & Mức ổn định cần thiết cho môi trường thử nghiệm và demo \\
-Bảo mật & Cơ chế quản lý key, truy cập, backup và nhật ký \\
-Khả năng mở rộng & Có đáp ứng được tăng tải ở mức hợp lý nếu cần mở rộng đề tài \\
-Tài liệu và hỗ trợ & Mức rõ ràng của documentation và khả năng xử lý sự cố \\
-Data portability & Khả năng export dữ liệu, giảm vendor lock-in \\
+\hline
+Chi phí tổng sở hữu & Không chỉ giá niêm yết mà cả chi phí vận hành, nâng gói và di chuyển \\ \hline
+Tính sẵn sàng/SLA & Mức ổn định cần thiết cho môi trường thử nghiệm và demo \\ \hline
+Bảo mật & Cơ chế quản lý key, truy cập, backup và nhật ký \\ \hline
+Khả năng mở rộng & Có đáp ứng được tăng tải ở mức hợp lý nếu cần mở rộng đề tài \\ \hline
+Tài liệu và hỗ trợ & Mức rõ ràng của documentation và khả năng xử lý sự cố \\ \hline
+Data portability & Khả năng export dữ liệu, giảm vendor lock-in \\ \hline
 Tương thích công nghệ & Phù hợp với stack hiện tại của dự án \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -138,24 +138,24 @@ Sau khi dịch vụ được chọn, quản lý mua sắm không dừng lại. D
 
 Bảng~\ref{tab:procurement-items} mô tả các hạng mục chính cần quản lý.
 
-\begin{longtable}{p{2.6cm}p{3cm}p{3cm}p{4.2cm}}
+\begin{longtable}{| p{2.6cm} | p{3cm} | p{3cm} | p{4.2cm} |}
 \caption{Danh sách hạng mục mua sắm của dự án}\label{tab:procurement-items}\\
-\toprule
+\hline
 \textbf{Hạng mục} & \textbf{Nhu cầu} & \textbf{Phương án hiện tại} & \textbf{Dữ liệu cần xác nhận} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Hạng mục} & \textbf{Nhu cầu} & \textbf{Phương án hiện tại} & \textbf{Dữ liệu cần xác nhận} \\
-\midrule
+\hline
 \endhead
-RPC provider & Kết nối Sepolia, đọc event & Provider qua RPC URL & Quota, giá, SLA, giới hạn request \\
-IPFS pinning & Pin file, JSON, evidence & Pinata hoặc tương đương & Dung lượng, retention, redundancy \\
-MongoDB & Notification, log, stats & MongoDB service & Storage, backup, giới hạn kết nối \\
-Redis/Queue & Queue, retry, pub/sub & Redis service & Memory, persistence, failover \\
-Backend hosting & Chạy API, worker, sidecar & VPS/cloud test & CPU/RAM, uptime, access policy \\
-Frontend hosting & Static app, demo & Hosting phù hợp & Bandwidth, domain mapping, SSL \\
+RPC provider & Kết nối Sepolia, đọc event & Provider qua RPC URL & Quota, giá, SLA, giới hạn request \\ \hline
+IPFS pinning & Pin file, JSON, evidence & Pinata hoặc tương đương & Dung lượng, retention, redundancy \\ \hline
+MongoDB & Notification, log, stats & MongoDB service & Storage, backup, giới hạn kết nối \\ \hline
+Redis/Queue & Queue, retry, pub/sub & Redis service & Memory, persistence, failover \\ \hline
+Backend hosting & Chạy API, worker, sidecar & VPS/cloud test & CPU/RAM, uptime, access policy \\ \hline
+Frontend hosting & Static app, demo & Hosting phù hợp & Bandwidth, domain mapping, SSL \\ \hline
 Audit bảo mật & Review chuyên sâu nếu có & Chưa xác nhận & Phạm vi, báo giá, thời gian thực hiện \\
-\bottomrule
+\hline
 \end{longtable}
 
 \iffalse
@@ -178,16 +178,16 @@ Nếu nhà cung cấp không còn phù hợp, dự án phải thực hiện quy 
 \centering
 \caption{Rủi ro mua sắm chính của dự án}
 \label{tab:procurement-risks}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.8cm} | X |}
+\hline
 Rủi ro & Tác động quản trị \\
-\midrule
-Hết free tier hoặc tăng giá & Làm lệch cost estimate và cần nâng gói đột xuất \\
-Outage của nhà cung cấp & Ảnh hưởng môi trường test, demo hoặc UAT \\
-Vendor lock-in & Khó export dữ liệu hoặc chuyển dịch vụ khi cần \\
-Thay đổi API/chính sách & Tăng effort tích hợp và bảo trì \\
+\hline
+Hết free tier hoặc tăng giá & Làm lệch cost estimate và cần nâng gói đột xuất \\ \hline
+Outage của nhà cung cấp & Ảnh hưởng môi trường test, demo hoặc UAT \\ \hline
+Vendor lock-in & Khó export dữ liệu hoặc chuyển dịch vụ khi cần \\ \hline
+Thay đổi API/chính sách & Tăng effort tích hợp và bảo trì \\ \hline
 Lộ credential hoặc quyền truy cập quá rộng & Tăng rủi ro bảo mật và vận hành \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

@@ -97,14 +97,14 @@ Trong phạm vi tiểu luận, ba sinh viên sau là nhân sự được công k
 \centering
 \caption{Danh sách sinh viên thực hiện tiểu luận}
 \label{tab:student-team}
-\begin{tabularx}{\textwidth}{c X p{4cm} X}
-\toprule
+\begin{tabularx}{\textwidth}{| c | X | p{4cm} | X |}
+\hline
 \textbf{STT} & \textbf{Họ và tên} & \textbf{Mã số sinh viên} & \textbf{Phạm vi tham gia trong báo cáo} \\
-\midrule
-1 & Nguyễn Thành Long & 022205011246 & Tham gia lập kế hoạch, tổng hợp tài liệu, theo dõi tiến độ và hoàn thiện báo cáo \\
-2 & Đỗ Nguyễn Phương Thảo & 036305010922 & Tham gia phân tích nội dung, rà soát minh chứng và hoàn thiện báo cáo \\
+\hline
+1 & Nguyễn Thành Long & 022205011246 & Tham gia lập kế hoạch, tổng hợp tài liệu, theo dõi tiến độ và hoàn thiện báo cáo \\ \hline
+2 & Đỗ Nguyễn Phương Thảo & 036305010922 & Tham gia phân tích nội dung, rà soát minh chứng và hoàn thiện báo cáo \\ \hline
 3 & Hoàng Lê Việt Hà & 044305005437 & Tham gia tổng hợp dữ liệu dự án, kiểm tra tính nhất quán và hoàn thiện báo cáo \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -113,26 +113,26 @@ Ba sinh viên trên không được hiểu mặc định là toàn bộ đội p
 \iffalse
 \subsection{Mô tả vai trò và trách nhiệm}
 
-\begin{longtable}{p{3.1cm}p{5.7cm}p{4.3cm}}
+\begin{longtable}{| p{3.1cm} | p{5.7cm} | p{4.3cm} |}
 \caption{Mô tả vai trò trong dự án}\label{tab:role-description}\\
-\toprule
+\hline
 \textbf{Vai trò} & \textbf{Trách nhiệm chính} & \textbf{Quyền hạn/đầu ra} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Vai trò} & \textbf{Trách nhiệm chính} & \textbf{Quyền hạn/đầu ra} \\
-\midrule
+\hline
 \endhead
-Giảng viên/người nghiệm thu & Định hướng, phản hồi tại milestone và xác nhận sản phẩm môn học & Phê duyệt/chấp nhận deliverable cấp cao \\
-Project Manager & Tích hợp kế hoạch, điều phối nguồn lực, theo dõi baseline, rủi ro và thay đổi & Project plan, status report, quyết định điều phối \\
-Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu và duy trì RTM/backlog & Requirement baseline và acceptance intent \\
-Technical Lead & Duy trì kiến trúc, interface, chuẩn kỹ thuật và review thay đổi có tác động rộng & Technical decision và integration gate \\
-Blockchain Developer & Thực hiện và kiểm thử logic quản lý quỹ/quyền truy cập & Contract module, test và deployment support \\
-Backend/AI Developer & Thực hiện API, dữ liệu, thông báo, relayer và sidecar & Backend services, API test và runbook \\
-Frontend Developer & Thực hiện giao diện, wallet flow, dashboard và tích hợp & Frontend build, UI test và demo \\
-QA/Tester & Lập test plan, thiết kế test, triage defect và cung cấp bằng chứng chất lượng & Test report, UAT checklist và quality recommendation \\
+Giảng viên/người nghiệm thu & Định hướng, phản hồi tại milestone và xác nhận sản phẩm môn học & Phê duyệt/chấp nhận deliverable cấp cao \\ \hline
+Project Manager & Tích hợp kế hoạch, điều phối nguồn lực, theo dõi baseline, rủi ro và thay đổi & Project plan, status report, quyết định điều phối \\ \hline
+Product Owner/BA & Thu thập, làm rõ, ưu tiên yêu cầu và duy trì RTM/backlog & Requirement baseline và acceptance intent \\ \hline
+Technical Lead & Duy trì kiến trúc, interface, chuẩn kỹ thuật và review thay đổi có tác động rộng & Technical decision và integration gate \\ \hline
+Blockchain Developer & Thực hiện và kiểm thử logic quản lý quỹ/quyền truy cập & Contract module, test và deployment support \\ \hline
+Backend/AI Developer & Thực hiện API, dữ liệu, thông báo, relayer và sidecar & Backend services, API test và runbook \\ \hline
+Frontend Developer & Thực hiện giao diện, wallet flow, dashboard và tích hợp & Frontend build, UI test và demo \\ \hline
+QA/Tester & Lập test plan, thiết kế test, triage defect và cung cấp bằng chứng chất lượng & Test report, UAT checklist và quality recommendation \\ \hline
 DevOps và tài liệu & Quản lý cấu hình, môi trường, build/deploy và tài liệu bàn giao & Release record, env template, hướng dẫn \\
-\bottomrule
+\hline
 \end{longtable}
 
 Các vai trò Blockchain, Backend/AI, Frontend, QA và DevOps được phân bổ trong đội kỹ thuật sáu người và có thể kiêm nhiệm tùy giai đoạn. Tuy nhiên, người triển khai một thay đổi tài chính quan trọng không được là reviewer duy nhất của chính thay đổi đó. PM và Technical Lead phải bố trí review chéo trước quality gate.
@@ -143,30 +143,30 @@ Các vai trò Blockchain, Backend/AI, Frontend, QA và DevOps được phân b�
 RACI quy định bốn mức trách nhiệm: Responsible là người trực tiếp thực hiện; Accountable là người chịu trách nhiệm cuối cùng và phê duyệt kết quả; Consulted là người được tham vấn hai chiều; Informed là người nhận thông tin. Mỗi hạng mục chỉ có một Accountable để tránh mơ hồ.
 
 \begin{landscape}
-\begin{longtable}{p{4.3cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}}
+\begin{longtable}{| p{4.3cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} |}
 \caption{Ma trận RACI của dự án}\label{tab:raci}\\
-\toprule
+\hline
 \textbf{Hạng mục} & \textbf{GV} & \textbf{PM} & \textbf{BA} & \textbf{TL} & \textbf{BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Hạng mục} & \textbf{GV} & \textbf{PM} & \textbf{BA} & \textbf{TL} & \textbf{BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
-\midrule
+\hline
 \endhead
-Project Charter & A & R & C & C & I & I & I & I \\
-Scope/Requirement Baseline & C & A & R & C & C & C & C & C \\
-Schedule/Cost Baseline & I & A/R & C & C & C & C & C & C \\
-Kiến trúc/thiết kế tích hợp & I & C & C & A/R & R & R & R & C \\
-Blockchain work package & I & I & C & A & R & C & C & C \\
-Backend/AI work package & I & I & C & A & C & R & C & C \\
-Frontend work package & I & I & C & A & C & C & R & C \\
-Test plan và quality gate & I & C & C & C & C & C & C & A/R \\
-Tích hợp end-to-end & I & C & C & A & R & R & R & R \\
-Deploy/release & I & A & I & R & C & R & R & C \\
-Change Request lớn & A & R & C & C & C & C & C & C \\
-UAT/nghiệm thu & A & R & R & C & I & I & I & R \\
+Project Charter & A & R & C & C & I & I & I & I \\ \hline
+Scope/Requirement Baseline & C & A & R & C & C & C & C & C \\ \hline
+Schedule/Cost Baseline & I & A/R & C & C & C & C & C & C \\ \hline
+Kiến trúc/thiết kế tích hợp & I & C & C & A/R & R & R & R & C \\ \hline
+Blockchain work package & I & I & C & A & R & C & C & C \\ \hline
+Backend/AI work package & I & I & C & A & C & R & C & C \\ \hline
+Frontend work package & I & I & C & A & C & C & R & C \\ \hline
+Test plan và quality gate & I & C & C & C & C & C & C & A/R \\ \hline
+Tích hợp end-to-end & I & C & C & A & R & R & R & R \\ \hline
+Deploy/release & I & A & I & R & C & R & R & C \\ \hline
+Change Request lớn & A & R & C & C & C & C & C & C \\ \hline
+UAT/nghiệm thu & A & R & R & C & I & I & I & R \\ \hline
 Báo cáo và bàn giao & A & R & R & C & C & C & C & C \\
-\bottomrule
+\hline
 \end{longtable}
 \end{landscape}
 
@@ -176,21 +176,21 @@ Trong bảng, GV là giảng viên/người nghiệm thu; PM là Project Manager
 \centering
 \caption{RACI cá nhân cho hồ sơ quản trị của Nhóm 2}
 \label{tab:student-raci}
-\begin{tabularx}{\textwidth}{>{\bfseries}Xccc}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}X | c | c | c |}
+\hline
 Hạng mục hồ sơ & Nguyễn Thành Long & Đỗ Nguyễn Phương Thảo & Hoàng Lê Việt Hà \\
-\midrule
-Charter và governance & A/R & C & C \\
-Stakeholder register và engagement & A & R & C \\
-Requirement, Scope Statement và RTM & A & R & R \\
-WBS, CPM và Schedule Baseline & A/R & C & R \\
-Cost Baseline, EVM và NPV & A & C & R \\
-Quality plan, test evidence và UAT & A & R & C \\
-Risk, configuration và change log & A & C & R \\
-Weekly status và tích hợp hồ sơ & A/R & C & C \\
-Rà soát nhất quán và trích dẫn & A & R & R \\
+\hline
+Charter và governance & A/R & C & C \\ \hline
+Stakeholder register và engagement & A & R & C \\ \hline
+Requirement, Scope Statement và RTM & A & R & R \\ \hline
+WBS, CPM và Schedule Baseline & A/R & C & R \\ \hline
+Cost Baseline, EVM và NPV & A & C & R \\ \hline
+Quality plan, test evidence và UAT & A & R & C \\ \hline
+Risk, configuration và change log & A & C & R \\ \hline
+Weekly status và tích hợp hồ sơ & A/R & C & C \\ \hline
+Rà soát nhất quán và trích dẫn & A & R & R \\ \hline
 Báo cáo, slide, demo và closure & A/R & R & R \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -201,26 +201,26 @@ Trong lớp quản trị học thuật, Nguyễn Thành Long giữ vai trò PM v
 
 Năng lực được đánh giá theo thang 1--4: 1 là cần hướng dẫn; 2 là có thể thực hiện nhiệm vụ cơ bản; 3 là làm việc độc lập; 4 là có thể thiết kế, review và hướng dẫn người khác. Bảng~\ref{tab:competency-target} mô tả mức năng lực mục tiêu theo vai trò, không phải điểm cá nhân.
 
-\begin{longtable}{p{4.6cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}p{1.5cm}}
+\begin{longtable}{| p{4.6cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} | p{1.5cm} |}
 \caption{Mức năng lực mục tiêu theo vai trò}\label{tab:competency-target}\\
-\toprule
+\hline
 \textbf{Năng lực} & \textbf{PM/BA} & \textbf{TL/BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Năng lực} & \textbf{PM/BA} & \textbf{TL/BC} & \textbf{BE} & \textbf{FE} & \textbf{QA} \\
-\midrule
+\hline
 \endhead
-Quản trị phạm vi/lịch/chi phí & 4 & 2 & 2 & 2 & 3 \\
-Phân tích yêu cầu/acceptance & 4 & 3 & 3 & 3 & 4 \\
-Thiết kế hệ thống/tích hợp & 2 & 4 & 3 & 3 & 3 \\
-Smart contract/security & 1 & 4 & 2 & 1 & 3 \\
-Backend/API/dữ liệu & 1 & 3 & 4 & 2 & 3 \\
-Frontend/UI/UX & 2 & 2 & 2 & 4 & 3 \\
-Kiểm thử/defect management & 2 & 3 & 3 & 3 & 4 \\
-CI/CD/configuration & 2 & 3 & 3 & 3 & 3 \\
+Quản trị phạm vi/lịch/chi phí & 4 & 2 & 2 & 2 & 3 \\ \hline
+Phân tích yêu cầu/acceptance & 4 & 3 & 3 & 3 & 4 \\ \hline
+Thiết kế hệ thống/tích hợp & 2 & 4 & 3 & 3 & 3 \\ \hline
+Smart contract/security & 1 & 4 & 2 & 1 & 3 \\ \hline
+Backend/API/dữ liệu & 1 & 3 & 4 & 2 & 3 \\ \hline
+Frontend/UI/UX & 2 & 2 & 2 & 4 & 3 \\ \hline
+Kiểm thử/defect management & 2 & 3 & 3 & 3 & 4 \\ \hline
+CI/CD/configuration & 2 & 3 & 3 & 3 & 3 \\ \hline
 Tài liệu/trình bày & 4 & 3 & 3 & 3 & 3 \\
-\bottomrule
+\hline
 \end{longtable}
 
 Sau khi có danh sách thành viên, nhóm thực hiện self-assessment và review chéo để lập competency matrix cá nhân. Khoảng cách giữa năng lực hiện tại và mục tiêu tạo đầu vào cho kế hoạch đào tạo, pairing và phân công backup.
@@ -234,23 +234,23 @@ Tổng effort 960 giờ được phân bổ theo nhóm công việc thay vì chi
 \centering
 \caption{Phân bổ effort nguồn nhân lực theo WBS cấp cao}
 \label{tab:effort-allocation}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{4.8cm}r r X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{4.8cm} | r | r | X |}
+\hline
 Nhóm công việc & Giờ & Tỷ lệ & Nguồn lực chủ đạo \\
-\midrule
-1.0 Khởi tạo/quản trị & 72 & 7,5\% & PM, BA \\
-2.0 Phân tích phạm vi & 96 & 10,0\% & PM, BA, QA, TL \\
-3.0 Thiết kế & 96 & 10,0\% & TL, BA, FE/BE/BC \\
-4.0 Blockchain & 144 & 15,0\% & BC, TL, QA \\
-5.0 Backend/AI & 120 & 12,5\% & BE, TL, QA \\
-6.0 Frontend & 120 & 12,5\% & FE, BA, QA \\
-7.0 Tích hợp & 96 & 10,0\% & TL, BC, BE, FE, QA \\
-8.0 Kiểm thử/chất lượng & 96 & 10,0\% & QA và toàn nhóm \\
-9.0 Triển khai & 48 & 5,0\% & DevOps, TL, QA \\
+\hline
+1.0 Khởi tạo/quản trị & 72 & 7,5\% & PM, BA \\ \hline
+2.0 Phân tích phạm vi & 96 & 10,0\% & PM, BA, QA, TL \\ \hline
+3.0 Thiết kế & 96 & 10,0\% & TL, BA, FE/BE/BC \\ \hline
+4.0 Blockchain & 144 & 15,0\% & BC, TL, QA \\ \hline
+5.0 Backend/AI & 120 & 12,5\% & BE, TL, QA \\ \hline
+6.0 Frontend & 120 & 12,5\% & FE, BA, QA \\ \hline
+7.0 Tích hợp & 96 & 10,0\% & TL, BC, BE, FE, QA \\ \hline
+8.0 Kiểm thử/chất lượng & 96 & 10,0\% & QA và toàn nhóm \\ \hline
+9.0 Triển khai & 48 & 5,0\% & DevOps, TL, QA \\ \hline
 10.0 Tài liệu/kết thúc & 72 & 7,5\% & PM, BA và toàn nhóm \\
-\midrule
+\hline
 \textbf{Tổng cộng} & \textbf{960} & \textbf{100\%} & \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -265,44 +265,44 @@ Resource calendar được lập theo hai lớp nguồn lực: lớp quản tr�
 \small
 \caption{Resource calendar cá nhân cho 240 giờ quản trị học thuật}
 \label{tab:student-resource-calendar}
-\begin{tabularx}{\textwidth}{p{2.3cm}Xrrr r}
-\toprule
+\begin{tabularx}{\textwidth}{| p{2.3cm} | X | r | r | r | r |}
+\hline
 \textbf{Thời gian} & \textbf{Trọng tâm công việc} & \textbf{Long} & \textbf{Thảo} & \textbf{Hà} & \textbf{Tổng} \\
-\midrule
-01/04--07/04 & Charter, stakeholder, governance & 8 & 8 & 6 & 22 \\
-08/04--21/04 & Yêu cầu, phạm vi, WBS, RTM & 12 & 14 & 12 & 38 \\
-22/04--05/05 & Thiết kế kế hoạch, CPM, quality approach & 10 & 10 & 12 & 32 \\
-06/05--15/05 & Theo dõi milestone, cost và risk & 10 & 8 & 8 & 26 \\
-16/05--26/05 & Status, change và evidence review & 10 & 8 & 8 & 26 \\
-27/05--11/06 & Tích hợp hồ sơ, quality và consistency & 10 & 10 & 10 & 30 \\
-12/06--25/06 & UAT, deployment record, nghiệm thu & 8 & 10 & 10 & 28 \\
+\hline
+01/04--07/04 & Charter, stakeholder, governance & 8 & 8 & 6 & 22 \\ \hline
+08/04--21/04 & Yêu cầu, phạm vi, WBS, RTM & 12 & 14 & 12 & 38 \\ \hline
+22/04--05/05 & Thiết kế kế hoạch, CPM, quality approach & 10 & 10 & 12 & 32 \\ \hline
+06/05--15/05 & Theo dõi milestone, cost và risk & 10 & 8 & 8 & 26 \\ \hline
+16/05--26/05 & Status, change và evidence review & 10 & 8 & 8 & 26 \\ \hline
+27/05--11/06 & Tích hợp hồ sơ, quality và consistency & 10 & 10 & 10 & 30 \\ \hline
+12/06--25/06 & UAT, deployment record, nghiệm thu & 8 & 10 & 10 & 28 \\ \hline
 26/06--30/06 & Báo cáo, slide, demo và closure & 12 & 12 & 14 & 38 \\
-\midrule
+\hline
 \textbf{Tổng giờ/người} & & \textbf{80} & \textbf{80} & \textbf{80} & \textbf{240} \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
 Số giờ trên là planned effort, không phải khẳng định về giờ thực tế. Mỗi thành viên ghi actual effort theo tuần; chênh lệch vượt 20\% ở một giai đoạn phải có giải thích và được phản ánh trong status report. Cách phân bổ 80 giờ/người tạo baseline minh bạch, còn đánh giá đóng góp cuối kỳ dựa trên deliverable, bằng chứng review và actual effort thay vì mặc định chia đều.
 
-\begin{longtable}{p{2.1cm}p{2.2cm}p{4.4cm}p{4.1cm}}
+\begin{longtable}{| p{2.1cm} | p{2.2cm} | p{4.4cm} | p{4.1cm} |}
 \caption{Resource calendar cấp nhóm}\label{tab:resource-calendar}\\
-\toprule
+\hline
 \textbf{Thời gian} & \textbf{Giai đoạn} & \textbf{Vai trò ưu tiên} & \textbf{Kết quả nguồn lực} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Thời gian} & \textbf{Giai đoạn} & \textbf{Vai trò ưu tiên} & \textbf{Kết quả nguồn lực} \\
-\midrule
+\hline
 \endhead
-01/04--07/04 & Khởi tạo & Nhóm 2 giữ PM/BA; TL/QA kỹ thuật tham vấn & Charter, stakeholder và governance \\
-08/04--21/04 & Phạm vi & Nhóm 2 chủ đạo; đội kỹ thuật review yêu cầu & Scope Baseline, WBS và RTM \\
-22/04--05/05 & Thiết kế & TL cùng BC/BE/FE; Nhóm 2 theo dõi và tổng hợp & Design baseline và test approach \\
-06/05--26/05 & Ba nhánh phát triển & BC/BE/FE chạy song song; TL/QA kiểm soát interface & Ba increment sẵn sàng tích hợp \\
-27/05--11/06 & Tích hợp và hoàn thiện & Đội kỹ thuật tích hợp; Nhóm 2 theo dõi rủi ro và thay đổi & E2E, regression và defect fixes \\
-12/06--25/06 & Deploy/UAT & DevOps, QA, PM; Nhóm 2 phối hợp nghiệm thu & Release candidate, UAT và fixes \\
+01/04--07/04 & Khởi tạo & Nhóm 2 giữ PM/BA; TL/QA kỹ thuật tham vấn & Charter, stakeholder và governance \\ \hline
+08/04--21/04 & Phạm vi & Nhóm 2 chủ đạo; đội kỹ thuật review yêu cầu & Scope Baseline, WBS và RTM \\ \hline
+22/04--05/05 & Thiết kế & TL cùng BC/BE/FE; Nhóm 2 theo dõi và tổng hợp & Design baseline và test approach \\ \hline
+06/05--26/05 & Ba nhánh phát triển & BC/BE/FE chạy song song; TL/QA kiểm soát interface & Ba increment sẵn sàng tích hợp \\ \hline
+27/05--11/06 & Tích hợp và hoàn thiện & Đội kỹ thuật tích hợp; Nhóm 2 theo dõi rủi ro và thay đổi & E2E, regression và defect fixes \\ \hline
+12/06--25/06 & Deploy/UAT & DevOps, QA, PM; Nhóm 2 phối hợp nghiệm thu & Release candidate, UAT và fixes \\ \hline
 26/06--30/06 & Bàn giao & Nhóm 2 chủ trì báo cáo; đội kỹ thuật hỗ trợ minh chứng & Báo cáo, demo, closure \\
-\bottomrule
+\hline
 \end{longtable}
 
 \figureplaceholder{ch07-resource-histogram.png}{Biểu đồ cột chồng theo tuần, thể hiện tổng giờ của hai lớp nguồn lực: Nhóm 2 phụ trách quản trị học thuật và đội kỹ thuật phụ trách phát triển sản phẩm. Đường ngang capacity biểu diễn baseline 960 giờ được phân bổ trong 12 tuần.}{Biểu đồ nhu cầu và khả năng nguồn lực theo thời gian}{fig:resource-histogram}
@@ -403,19 +403,19 @@ PM không kỳ vọng xung đột biến mất hoàn toàn; mục tiêu là chuy
 \centering
 \caption{Kế hoạch phát triển năng lực nhóm}
 \label{tab:training-plan}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.7cm}p{4.2cm}p{3cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.7cm} | p{4.2cm} | p{3cm} | X |}
+\hline
 Hoạt động & Mục tiêu & Thời điểm & Bằng chứng \\
-\midrule
-Project onboarding & Hiểu Charter, scope, WBS và governance & Tuần 1 & Checklist hoàn thành \\
-Workshop yêu cầu/WBS & Thống nhất requirement và work package & Tuần 2--3 & RTM/WBS review \\
-Security/threat review & Nhận diện rủi ro tiền, quyền và secret & Tuần 4--5 & Threat checklist \\
-Pair programming & Chuyển giao kiến thức module quan trọng & Tuần 6--10 & PR/review record \\
-Test case workshop & Nâng chất lượng acceptance/negative test & Tuần 8--10 & Test case review \\
-Deployment rehearsal & Giảm rủi ro release và key-person & Tuần 11 & Runbook/smoke test \\
-Demo rehearsal & Đồng bộ câu chuyện sản phẩm và quản trị & Tuần 12--13 & Feedback/action list \\
+\hline
+Project onboarding & Hiểu Charter, scope, WBS và governance & Tuần 1 & Checklist hoàn thành \\ \hline
+Workshop yêu cầu/WBS & Thống nhất requirement và work package & Tuần 2--3 & RTM/WBS review \\ \hline
+Security/threat review & Nhận diện rủi ro tiền, quyền và secret & Tuần 4--5 & Threat checklist \\ \hline
+Pair programming & Chuyển giao kiến thức module quan trọng & Tuần 6--10 & PR/review record \\ \hline
+Test case workshop & Nâng chất lượng acceptance/negative test & Tuần 8--10 & Test case review \\ \hline
+Deployment rehearsal & Giảm rủi ro release và key-person & Tuần 11 & Runbook/smoke test \\ \hline
+Demo rehearsal & Đồng bộ câu chuyện sản phẩm và quản trị & Tuần 12--13 & Feedback/action list \\ \hline
 Retrospective & Ghi nhận bài học và cải tiến & Cuối sprint & Lessons learned \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -443,23 +443,23 @@ Trong dự án môn học, động lực đến từ quyền sở hữu công vi
 
 Hiệu suất được đánh giá ở ba cấp: cá nhân, work package và nhóm. Chỉ số được sử dụng như tín hiệu để trao đổi, không dùng máy móc để xếp hạng.
 
-\begin{longtable}{p{3.5cm}p{5.7cm}p{4.5cm}}
+\begin{longtable}{| p{3.5cm} | p{5.7cm} | p{4.5cm} |}
 \caption{Tiêu chí theo dõi hiệu suất nguồn nhân lực}\label{tab:performance-criteria}\\
-\toprule
+\hline
 \textbf{Nhóm tiêu chí} & \textbf{Chỉ số quan sát} & \textbf{Cách sử dụng} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{Nhóm tiêu chí} & \textbf{Chỉ số quan sát} & \textbf{Cách sử dụng} \\
-\midrule
+\hline
 \endhead
-Hoàn thành & Deliverable đúng hạn, effort còn lại và acceptance status & Dự báo tiến độ và hỗ trợ sớm \\
-Chất lượng & Defect, rework, test pass và review finding & Cải thiện quy trình/năng lực \\
-Hợp tác & Phản hồi review, chia sẻ tri thức và hỗ trợ blocker & Đánh giá đóng góp nhóm \\
-Kỷ luật quản trị & Cập nhật task, báo cáo rủi ro và tuân thủ Change Control & Bảo vệ baseline \\
-Học tập & Khoảng cách năng lực giảm và có backup person & Giảm key-person risk \\
+Hoàn thành & Deliverable đúng hạn, effort còn lại và acceptance status & Dự báo tiến độ và hỗ trợ sớm \\ \hline
+Chất lượng & Defect, rework, test pass và review finding & Cải thiện quy trình/năng lực \\ \hline
+Hợp tác & Phản hồi review, chia sẻ tri thức và hỗ trợ blocker & Đánh giá đóng góp nhóm \\ \hline
+Kỷ luật quản trị & Cập nhật task, báo cáo rủi ro và tuân thủ Change Control & Bảo vệ baseline \\ \hline
+Học tập & Khoảng cách năng lực giảm và có backup person & Giảm key-person risk \\ \hline
 Khả năng sẵn sàng & Planned/actual availability và overload & Resource leveling \\
-\bottomrule
+\hline
 \end{longtable}
 
 Số commit, dòng code hoặc giờ online không được dùng độc lập để kết luận hiệu suất. Một review phát hiện lỗi nghiêm trọng hoặc một tài liệu giúp cả nhóm triển khai được có thể tạo giá trị lớn hơn nhiều commit nhỏ.
@@ -491,16 +491,16 @@ Nhóm ưu tiên \textit{Collaborate/Problem Solve}: xác định lợi ích chun
 \centering
 \caption{Chiến lược xử lý xung đột}
 \label{tab:conflict-strategy}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.2cm}p{5cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.2cm} | p{5cm} | X |}
+\hline
 Phương pháp & Khi sử dụng & Lưu ý \\
-\midrule
-Collaborate & Vấn đề quan trọng, cần giải pháp bền vững & Ưu tiên mặc định; cần thời gian và dữ kiện \\
-Compromise & Hai phía có quyền lợi hợp lý, thời gian hạn chế & Mỗi bên nhượng bộ; kiểm tra residual risk \\
-Điều hòa & Vấn đề nhỏ, giữ quan hệ quan trọng hơn & Không dùng để che giấu vấn đề chất lượng \\
-Force/Direct & Incident khẩn cấp hoặc quyết định thuộc thẩm quyền rõ & Ghi lý do và review sau khẩn cấp \\
+\hline
+Collaborate & Vấn đề quan trọng, cần giải pháp bền vững & Ưu tiên mặc định; cần thời gian và dữ kiện \\ \hline
+Compromise & Hai phía có quyền lợi hợp lý, thời gian hạn chế & Mỗi bên nhượng bộ; kiểm tra residual risk \\ \hline
+Điều hòa & Vấn đề nhỏ, giữ quan hệ quan trọng hơn & Không dùng để che giấu vấn đề chất lượng \\ \hline
+Force/Direct & Incident khẩn cấp hoặc quyết định thuộc thẩm quyền rõ & Ghi lý do và review sau khẩn cấp \\ \hline
 Withdraw/Avoid & Cần thêm dữ liệu hoặc hạ nhiệt tạm thời & Phải có thời điểm quay lại, không trì hoãn vô hạn \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 

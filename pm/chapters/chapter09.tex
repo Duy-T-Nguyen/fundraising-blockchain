@@ -117,19 +117,19 @@ Nhóm sử dụng kết hợp nhiều phương pháp:
 \centering
 \caption{Risk Breakdown Structure của dự án}
 \label{tab:rbs}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{1.2cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{1.2cm} | X |}
+\hline
 Nhóm & Nội dung rủi ro \\
-\midrule
-1 & Quản trị dự án và phạm vi \\
-2 & Lịch biểu và nguồn lực \\
-3 & Chi phí và reserve \\
-4 & Blockchain và smart contract \\
-5 & Backend, dữ liệu và hạ tầng \\
-6 & Frontend và trải nghiệm người dùng \\
-7 & Bảo mật, quyền truy cập và tuân thủ \\
+\hline
+1 & Quản trị dự án và phạm vi \\ \hline
+2 & Lịch biểu và nguồn lực \\ \hline
+3 & Chi phí và reserve \\ \hline
+4 & Blockchain và smart contract \\ \hline
+5 & Backend, dữ liệu và hạ tầng \\ \hline
+6 & Frontend và trải nghiệm người dùng \\ \hline
+7 & Bảo mật, quyền truy cập và tuân thủ \\ \hline
 8 & Nhà cung cấp và vận hành \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -137,27 +137,27 @@ Nhóm & Nội dung rủi ro \\
 
 Bảng~\ref{tab:risk-register} trình bày các rủi ro trọng yếu nhất của dự án ở mức quản trị.
 
-\begin{longtable}{p{1.1cm}p{3.3cm}p{1cm}p{1cm}p{1.2cm}p{2.2cm}p{3.2cm}}
+\begin{longtable}{| p{1.1cm} | p{3.3cm} | p{1cm} | p{1cm} | p{1.2cm} | p{2.2cm} | p{3.2cm} |}
 \caption{Risk Register trọng yếu của dự án}\label{tab:risk-register}\\
-\toprule
+\hline
 \textbf{ID} & \textbf{Rủi ro} & \textbf{P} & \textbf{I} & \textbf{Điểm} & \textbf{Owner} & \textbf{Phản hồi chính} \\
-\midrule
+\hline
 \endfirsthead
-\toprule
+\hline
 \textbf{ID} & \textbf{Rủi ro} & \textbf{P} & \textbf{I} & \textbf{Điểm} & \textbf{Owner} & \textbf{Phản hồi chính} \\
-\midrule
+\hline
 \endhead
-R01 & Scope creep sát hạn & 4 & 4 & 16 & PM/BA & Giữ baseline và kiểm soát thay đổi qua CCB \\
-R02 & Thiếu key person ở module quan trọng & 3 & 4 & 12 & PM/TL & Review chéo, backup person, tài liệu hóa \\
-R03 & Vulnerability trong contract & 3 & 5 & 15 & TL/BC & Test, review, checklist bảo mật, thư viện chuẩn \\
-R04 & Deploy sai contract hoặc address & 3 & 4 & 12 & TL/DevOps & Checklist deploy, verify, smoke test \\
-R05 & ABI hoặc config không đồng bộ & 4 & 4 & 16 & TL/FE/BE & Versioning, integration gate, config audit \\
-R06 & Secret bị lộ & 2 & 5 & 10 & DevOps/PM & Không commit secret, rotate key, kiểm tra quyền truy cập \\
-R07 & Gas tăng hoặc redeploy nhiều lần & 3 & 3 & 9 & PM/TL & Reserve, tối ưu số lần deploy, theo dõi usage \\
-R08 & IPFS/RPC gián đoạn & 3 & 4 & 12 & BE/DevOps & Fallback, retry, alternate provider, status notice \\
-R09 & Test không đủ, defect lọt sang UAT & 4 & 4 & 16 & QA/PM & RTM, negative test, E2E, quality gate rõ ràng \\
+R01 & Scope creep sát hạn & 4 & 4 & 16 & PM/BA & Giữ baseline và kiểm soát thay đổi qua CCB \\ \hline
+R02 & Thiếu key person ở module quan trọng & 3 & 4 & 12 & PM/TL & Review chéo, backup person, tài liệu hóa \\ \hline
+R03 & Vulnerability trong contract & 3 & 5 & 15 & TL/BC & Test, review, checklist bảo mật, thư viện chuẩn \\ \hline
+R04 & Deploy sai contract hoặc address & 3 & 4 & 12 & TL/DevOps & Checklist deploy, verify, smoke test \\ \hline
+R05 & ABI hoặc config không đồng bộ & 4 & 4 & 16 & TL/FE/BE & Versioning, integration gate, config audit \\ \hline
+R06 & Secret bị lộ & 2 & 5 & 10 & DevOps/PM & Không commit secret, rotate key, kiểm tra quyền truy cập \\ \hline
+R07 & Gas tăng hoặc redeploy nhiều lần & 3 & 3 & 9 & PM/TL & Reserve, tối ưu số lần deploy, theo dõi usage \\ \hline
+R08 & IPFS/RPC gián đoạn & 3 & 4 & 12 & BE/DevOps & Fallback, retry, alternate provider, status notice \\ \hline
+R09 & Test không đủ, defect lọt sang UAT & 4 & 4 & 16 & QA/PM & RTM, negative test, E2E, quality gate rõ ràng \\ \hline
 R10 & Không kịp hạn báo cáo và bàn giao & 3 & 4 & 12 & Nhóm 2/PM & Viết song song, buffer cuối kỳ, milestone tài liệu \\
-\bottomrule
+\hline
 \end{longtable}
 
 \figureplaceholder{ch09-probability-impact-matrix.png}{Ma trận Probability--Impact 5x5, tô nổi các vùng Low, Medium, High và Critical; đánh dấu các rủi ro R01, R03, R05 và R09 ở vùng ưu tiên cao.}{Ma trận xác suất -- tác động của rủi ro}{fig:pi-matrix}
@@ -189,14 +189,14 @@ Trong phạm vi tiểu luận, dự án không cần một mô hình định lư
 \centering
 \caption{Ví dụ phân tích EMV cho một số rủi ro chi phí}
 \label{tab:emv-sample}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{3.8cm}p{2.2cm}p{3cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{3.8cm} | p{2.2cm} | p{3cm} | X |}
+\hline
 Rủi ro & Xác suất & Tác động tiền tệ giả định & EMV \\
-\midrule
-Redeploy contract nhiều lần & 30\% & 1.000.000 VNĐ & 300.000 VNĐ \\
-Vượt free tier hạ tầng & 25\% & 1.200.000 VNĐ & 300.000 VNĐ \\
+\hline
+Redeploy contract nhiều lần & 30\% & 1.000.000 VNĐ & 300.000 VNĐ \\ \hline
+Vượt free tier hạ tầng & 25\% & 1.200.000 VNĐ & 300.000 VNĐ \\ \hline
 Rework do defect trọng yếu & 20\% & 2.000.000 VNĐ & 400.000 VNĐ \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -223,15 +223,15 @@ Risk Register cũng phải ghi nhận cơ hội, không chỉ mối đe dọa. V
 \centering
 \caption{Kế hoạch phản hồi cho các rủi ro ưu tiên cao}
 \label{tab:risk-response-plan}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{1.1cm}p{3.6cm}p{3cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{1.1cm} | p{3.6cm} | p{3cm} | X |}
+\hline
 ID & Rủi ro & Trigger & Phản hồi quản trị \\
-\midrule
-R01 & Scope creep sát hạn & Yêu cầu mới ảnh hưởng WBS/milestone & Chặn thay đổi ngoài baseline, phân tích tác động và đưa qua CCB \\
-R03 & Vulnerability trong contract & Review/test phát hiện logic nhạy cảm & Tăng review chéo, thêm test và không qua gate nếu chưa đóng issue \\
-R05 & ABI hoặc config không đồng bộ & Có thay đổi contract/deploy & Kích hoạt integration gate, cập nhật config và test lại E2E \\
+\hline
+R01 & Scope creep sát hạn & Yêu cầu mới ảnh hưởng WBS/milestone & Chặn thay đổi ngoài baseline, phân tích tác động và đưa qua CCB \\ \hline
+R03 & Vulnerability trong contract & Review/test phát hiện logic nhạy cảm & Tăng review chéo, thêm test và không qua gate nếu chưa đóng issue \\ \hline
+R05 & ABI hoặc config không đồng bộ & Có thay đổi contract/deploy & Kích hoạt integration gate, cập nhật config và test lại E2E \\ \hline
 R09 & Defect lọt sang UAT & Test coverage thấp hoặc defect leakage tăng & Tăng kiểm thử hồi quy, ưu tiên fix trọng yếu, không chốt milestone hình thức \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
@@ -265,14 +265,14 @@ Rủi ro không kết thúc khi đã có response plan. PM cần theo dõi:
 \centering
 \caption{Ngưỡng giám sát rủi ro}
 \label{tab:risk-thresholds}
-\begin{tabularx}{\textwidth}{>{\bfseries}p{2.8cm}p{4.2cm}X}
-\toprule
+\begin{tabularx}{\textwidth}{| >{\bfseries}p{2.8cm} | p{4.2cm} | X |}
+\hline
 Mức & Điều kiện & Hành động quản trị \\
-\midrule
-Xanh & Không có rủi ro High/Critical mới, trigger trong kiểm soát & Theo dõi định kỳ \\
-Vàng & Có rủi ro High mới hoặc residual risk tăng & PM rà lại response và reserve \\
+\hline
+Xanh & Không có rủi ro High/Critical mới, trigger trong kiểm soát & Theo dõi định kỳ \\ \hline
+Vàng & Có rủi ro High mới hoặc residual risk tăng & PM rà lại response và reserve \\ \hline
 Đỏ & Rủi ro Critical xảy ra hoặc ảnh hưởng trực tiếp milestone/budget & Escalation, cập nhật kế hoạch và xem xét change control \\
-\bottomrule
+\hline
 \end{tabularx}
 \end{table}
 
