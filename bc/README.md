@@ -22,7 +22,7 @@
 8. [Hướng Dẫn Deploy](#-hướng-dẫn-deploy)
 9. [Hướng Dẫn Tương Tác Với Contract](#-hướng-dẫn-tương-tác-với-contract)
 10. [Giải Thích Luồng Hoạt Động & Cơ Chế Rút Tiền](#-giải-thích-luồng-hoạt-động--cơ-chế-rút-tiền)
-    - [Chi tiết Luồng tiền (MONEY_FLOW.md)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/MONEY_FLOW.md)
+    - [Chi tiết Luồng tiền (MONEY_FLOW.md)](MONEY_FLOW.md)
 11. [Humanitarian Accountability Protocol (DAO x WFP v4.0)](#-humanitarian-accountability-protocol-dao-x-wfp)
 12. [Thông tin Triển khai (Sepolia)](#-thông-tin-triển-khai-sepolia)
 13. [Tối Ưu Hóa & Tính Năng Mới (V5.0)](#-tối-ưu-hóa--tính-năng-mới-v50)
