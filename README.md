@@ -1,88 +1,165 @@
-# 🌟 Fundraising Blockchain — Monorepo
+# Fundraising Blockchain
 
-Dự án gây quỹ phi tập trung (Decentralized Fundraising) với cơ chế minh bạch tuyệt đối, quản lý bằng chứng qua IPFS và quy trình duyệt chi tối ưu.
+A decentralised fundraising platform where donors can verify how their money was spent —
+without having to take anyone's word for it.
 
----
-
-## 🏗️ Cấu trúc Hệ thống (Monorepo)
-
-Dự án được chia thành 3 phần chính để đảm bảo tính module hóa và dễ bảo trì:
-
-1.  **[bc/ (Blockchain)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/README.md)**: Chứa Smart Contracts (Solidity), Hardhat configuration, và bộ test suite cho các hợp đồng thông minh.
-2.  **[be/ (Backend)](file:///home/thanhlong/Documents/fundraising-blockchain/be/README.md)**: Xây dựng bằng NestJS, chịu trách nhiệm lưu trữ bằng chứng (hóa đơn, chứng từ) lên IPFS (qua Pinata).
-3.  **[fe/ (Frontend)](file:///home/thanhlong/Documents/fundraising-blockchain/fe/README.md)**: Giao diện người dùng (React/Vite), nơi Donors và Managers tương tác với hệ thống.
+Deployed and live on the **Sepolia testnet**. Solidity contracts, a NestJS backend for IPFS
+evidence storage, and a React frontend.
 
 ---
 
-## ⚙️ Quy trình Hoạt động Tổng thể
+## The design question
 
-Hệ thống hoạt động theo luồng khép kín để đảm bảo tiền được sử dụng đúng mục đích:
+Charitable fundraising has one hard problem: **the donor cannot see what happened to the
+money.** Every conventional answer to that is a promise — an audit report, a receipt photo, a
+trusted intermediary. All of them require trusting someone.
 
-1.  **Upload Hình ảnh/Bằng chứng**: Manager tải ảnh đại diện chiến dịch hoặc hóa đơn/chứng từ lên **Backend (`be/`)**. Backend đẩy file lên **IPFS** và trả về mã **CID**.
-2.  **Tạo Yêu cầu**: Manager gửi giao dịch lên **Blockchain (`bc/`)** kèm theo mã **CID** đó.
-3.  **Duyệt chi**: Donors/Validators kiểm tra bằng chứng (qua CID) và thực hiện biểu quyết trên Blockchain.
-4.  **Giải ngân**: Nếu đủ phiếu bầu, Smart Contract tự động chuyển tiền cho **Supplier (Nhà cung cấp)**.
+This system was built by asking, for each step, *"what would we otherwise have to trust, and can
+we remove the need to trust it?"*
+
+| Normally you must trust… | Instead |
+|---|---|
+| The manager's claim about how funds were spent | Evidence is pinned to **IPFS** and its **CID anchored on-chain**. Alter the document and the hash no longer matches. |
+| The backend server to sign approvals honestly | Off-chain ECDSA signing was **removed entirely**. Suppliers submit proof and verifiers approve **directly from their own wallets**, on-chain. A compromised backend cannot forge an approval. |
+| The manager not to over-commit the budget | Funds are **locked when a request is created**. The sum of pending requests can never exceed the campaign balance — over-commitment is not a policy, it is unrepresentable. |
+| A request not to sit unresolved forever | A **7-day voting deadline**. Requests that fail to reach quorum expire and their locked funds return to the available balance. |
+
+The pattern is the same in each row: rather than detecting a bad outcome after the fact, make it
+impossible for the contract to enter that state.
 
 ---
 
-## 🛠️ Hướng dẫn Cài đặt Nhanh
+## Deployed contracts — Sepolia
 
-### 1. Cài đặt các thành phần
-Mỗi thư mục có file `README.md` riêng hướng dẫn chi tiết, nhưng đây là các bước cơ bản:
+Verifiable on-chain, not screenshots:
 
-```bash
-# Cài đặt Blockchain
-cd bc && yarn install
+| Contract | Address |
+|---|---|
+| CampaignFactory | [`0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028`](https://sepolia.etherscan.io/address/0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028) |
+| SupplierRegistry | [`0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5`](https://sepolia.etherscan.io/address/0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5) |
+| Forwarder (meta-tx) | [`0x26aCb6E756C2b014C247A86c9614C8bf511AE33B`](https://sepolia.etherscan.io/address/0x26aCb6E756C2b014C247A86c9614C8bf511AE33B) |
 
-# Cài đặt Backend
-cd ../be && yarn install
+---
 
-# Cài đặt Frontend
-cd ../fe && yarn install
+## How money moves
+
+Four roles, none of which can act alone.
+
+```mermaid
+graph LR
+    Donor((Donor)) -->|1 donate ETH| C[Campaign contract]
+    Manager[Manager] -->|2 create request<br/>+ IPFS CID| C
+    C -->|3 lock funds| L[(locked balance)]
+    Supplier((Supplier)) -->|4 submit proof<br/>on-chain| C
+    Verifier[Verifier] -->|5 verify / reject<br/>from own wallet| C
+    Donor -->|5 weighted vote| C
+    C -->|6 quorum + verified<br/>release| Supplier
+    C -.->|rejected or expired<br/>unlock| L
 ```
 
-### 2. Cấu hình Biến môi trường
-Bạn cần tạo file `.env` trong cả thư mục `bc/` và `be/`. Tham khảo file `.env.example` hoặc tài liệu hướng dẫn trong từng thư mục.
+1. Donors send ETH to a campaign.
+2. The manager creates a spending request, attaching an IPFS CID of the supporting evidence.
+   The requested amount is locked immediately.
+3. The supplier submits delivery proof **on-chain**.
+4. Verifiers and donors vote. Donor votes are weighted by contribution.
+5. On quorum plus verification, the contract releases funds **directly to the supplier** — the
+   manager never touches the money.
+6. On rejection or expiry, locked funds return to the campaign's available balance.
 
 ---
 
-## 🚀 Công nghệ sử dụng
+## Contracts and tests
 
-- **Blockchain**: Solidity, Hardhat, Ethers.js, OpenZeppelin.
-- **Backend**: NestJS, Pinata SDK (IPFS).
-- **Frontend**: React, Vite, TypeScript, Tailwind CSS.
-- **Storage**: IPFS (Decentralized Storage).
+```
+bc/contracts/
+  Campaign.sol            652 lines   campaign lifecycle, requests, voting, disbursement
+  CampaignFactory.sol     460 lines   deployment + registry of campaigns
+  SupplierRegistry.sol    223 lines   supplier identity and eligibility
+  Events.sol              144 lines
+  Forwarder.sol            71 lines   EIP-2771 meta-transactions (gasless UX)
+  RequestLib.sol           64 lines
+  Errors.sol               65 lines   custom errors (cheaper than revert strings)
+  modifiers/AccessControl.sol
+```
 
----
+**2,348 lines of tests against 1,699 lines of contracts** — more test code than contract code:
 
-## 📖 Tài liệu chi tiết
-
-Vui lòng đọc tài liệu hướng dẫn chuyên sâu cho từng thành phần tại đây:
-- [Tài liệu Blockchain (bc/)](file:///home/thanhlong/Documents/fundraising-blockchain/bc/README.md)
-- [Tài liệu Backend (be/)](file:///home/thanhlong/Documents/fundraising-blockchain/be/README.md)
-- [Tài liệu Frontend (fe/)](file:///home/thanhlong/Documents/fundraising-blockchain/fe/README.md)
-- [**Yêu cầu Chức năng Frontend (FE_FUNCTIONAL_REQUIREMENTS.md)**](file:///home/thanhlong/Documents/fundraising-blockchain/FE_FUNCTIONAL_REQUIREMENTS.md)
-
----
-
-## 🚀 Thông tin Triển khai (Sepolia Testnet)
-
-Hệ thống đã được triển khai chính thức trên mạng thử nghiệm Sepolia:
-
-| Hợp đồng | Địa chỉ (Contract Address) |
+| Suite | Covers |
 |---|---|
-| **Forwarder** | `0x26aCb6E756C2b014C247A86c9614C8bf511AE33B` |
-| **CampaignFactory** | `0xd4C004D1214056DaC2f76e4DbA35CEc1028a8028` |
-| **SupplierRegistry** | `0xab4E38AC7de5b90Dd21AD1EB5742e51d7f7f91c5` |
+| `Campaign.ts` (1,232 lines) | Full lifecycle: donate, request, vote, release, refund |
+| `Campaign_WithdrawalOptimization.test.ts` | Gas behaviour of the withdrawal path |
+| `RefundAndFees.test.ts` | Refund correctness and fee accounting |
+| `SecurityValidations.ts` | Access control and input validation |
+| `Hardening.test.ts` | Adversarial cases |
+| `MetaTx.test.ts` | Meta-transaction relaying via the Forwarder |
+| `Optimization.test.ts` | Gas regression checks |
+| `CampaignApproval.ts` | Approval quorum logic |
 
-**Các tính năng mới nhất (Cập nhật v6.0 - 22/04/2026):**
-- **On-chain Verification Lifecycle (100% Decentralized)**: Loại bỏ hoàn toàn chữ ký Off-chain (ECDSA) phụ thuộc vào backend. Supplier trực tiếp nộp bằng chứng (`submitProof`) và Verifier trực tiếp xác thực (`verifyRequest`/`rejectRequest`) bằng ví cá nhân trên chuỗi, đảm bảo tính chống thông đồng (collusion-resistant).
-- **Hard Reject & Fund Release**: Cơ chế tự động hoàn trả tiền từ yêu cầu bị từ chối về số dư khả dụng của chiến dịch. Khi Verifier thực hiện "Hard Reject", `lockedFunds` được giải phóng ngay lập tức, tối ưu hóa hiệu quả sử dụng vốn.
-- **IPFS JSON Metadata Refactoring**: Loại bỏ lưu trữ on-chain trực tiếp thông qua `bytes32` bị giới hạn ký tự. Toàn bộ thông tin Chiến dịch và Yêu cầu chi tiêu (Tên, Mô tả, Hình ảnh, Bằng chứng) giờ đây được băm thành một JSON đẩy lên IPFS thông qua hệ thống NestJS Backend. Smart Contract chỉ lưu duy nhất mã băm CID dạng string, tối ưu hóa đáng kể phí Gas cho toàn bộ hệ thống!
-- **Request Lifecycle (Advanced State Management)**: Chuyển đổi cơ chế quản lý Request từ cờ boolean sang hệ thống **Status Enum** (`OPEN`, `COMPLETED`, `CANCELLED`). Cho phép Manager hủy bỏ các yêu cầu không còn cần thiết để giải phóng nguồn vốn ngay lập tức.
-- **Strict Voting Deadline**: Thiết lập thời hạn biểu quyết nghiêm ngặt (7 ngày). Các yêu cầu không đạt đủ phiếu bầu trong thời gian này sẽ tự động hết hạn, đảm bảo tính luân chuyển của dòng vốn và tránh tình trạng treo ngân sách vô thời hạn.
-- **Budget Reservation (Locked Funds)**: Cơ chế bảo mật tự động khóa ngân sách ngay khi Request được tạo. Đảm bảo tổng số tiền của các yêu cầu đang chờ không bao giờ vượt quá số dư thực tế, loại bỏ hoàn toàn rủi ro thâm hụt ngân sách.
-- **Multi-Stage Payment Support**: Hỗ trợ giải ngân theo từng giai đoạn (Milestones) cho các dự án dài hạn, mỗi giai đoạn đều yêu cầu bằng chứng (Evidence) và xác thực on-chain từ Verifier độc lập.
+```bash
+cd bc && yarn hardhat test
+```
 
 ---
-*Dự án được phát triển và tối ưu bởi Nhóm 3 — Cập nhật lần cuối: 23/04/2026.*
+
+## Repository layout
+
+A monorepo with three independent parts:
+
+| Directory | Stack | Responsibility |
+|---|---|---|
+| [`bc/`](bc/) | Solidity, Hardhat, Ethers.js, OpenZeppelin | Smart contracts and test suite |
+| [`be/`](be/) | NestJS, Pinata SDK | Pins evidence to IPFS, returns the CID |
+| [`fe/`](fe/) | React, Vite, TypeScript, Tailwind | Donor and manager interface |
+
+Further reading: [money flow in detail](bc/MONEY_FLOW.md) ·
+[frontend requirements](FE_FUNCTIONAL_REQUIREMENTS.md)
+
+---
+
+## Running it
+
+```bash
+# Contracts
+cd bc && yarn install && yarn hardhat test
+
+# Backend (needs a Pinata JWT — see be/.env.example)
+cd ../be && yarn install && cp .env.example .env && yarn start:dev
+
+# Frontend
+cd ../fe && yarn install && yarn dev
+```
+
+`bc/` and `be/` both need a `.env`; each directory has its own `.env.example` and README.
+
+> Never commit `.env`. The backend's Pinata JWT grants write access to your IPFS pinning
+> account.
+
+---
+
+## Notes on the design
+
+**Why store only the CID on-chain.** An earlier revision wrote campaign and request metadata
+into `bytes32` fields, which capped field lengths and cost gas proportional to the data. Now the
+full metadata object is pinned to IPFS and only the CID string is stored. Storage cost is flat
+regardless of description length, and the content stays tamper-evident because the CID *is* the
+hash.
+
+**Why remove off-chain signatures.** The first version had the backend sign verification
+approvals with ECDSA. That made the backend a trusted party — compromise it and you could
+approve any disbursement. Moving verification fully on-chain means an attacker needs a
+verifier's private key, not a server.
+
+**Why lock funds at request time.** Without reservation, a manager could open requests totalling
+more than the balance and whichever cleared first would drain the campaign. Locking on creation
+makes the invariant *sum(pending) ≤ balance* hold by construction rather than by checking.
+
+---
+
+## Credits
+
+Built as a team project for a Smart Contract Programming course. Contracts, backend and frontend
+were developed together; see the commit history for individual contributions.
+
+## License
+
+See [LICENSE](LICENSE).
