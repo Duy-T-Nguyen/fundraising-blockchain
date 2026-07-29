@@ -41,32 +41,133 @@ Verifiable on-chain, not screenshots:
 
 ---
 
-## How money moves
+## Architecture
 
-Four roles, none of which can act alone.
+Four contracts, four roles. No single party can move money alone.
+
+```mermaid
+graph TD
+    subgraph actors["Actors"]
+        Admin["Platform admin"]
+        Manager["Manager<br/>runs a campaign"]
+        Donor["Donor<br/>funds it"]
+        Supplier["Supplier<br/>delivers goods"]
+        Verifier["Verifier<br/>confirms delivery"]
+        Relayer["Relayer<br/>pays gas for users"]
+    end
+
+    subgraph contracts["Contracts"]
+        Factory["<b>CampaignFactory</b><br/>deploys campaign proxies<br/>approves campaigns<br/>global statistics"]
+        Campaign["<b>Campaign</b> (proxy)<br/>donations, requests,<br/>voting, disbursement"]
+        Registry["<b>SupplierRegistry</b><br/>supplier whitelist<br/>payment history"]
+        Fwd["<b>Forwarder</b> EIP-2771<br/>verifies signatures<br/>relays + batches txs"]
+    end
+
+    Admin -->|approve campaign| Factory
+    Admin -->|manage whitelist| Registry
+    Manager -->|submitCampaignRequest| Factory
+    Factory -->|deploys| Campaign
+    Manager -->|createRequest / finalizeRequest| Campaign
+    Donor -->|donate / approveRequest| Campaign
+    Supplier -->|submitProof| Campaign
+    Verifier -->|verifyRequest / rejectRequest| Campaign
+    Relayer -->|execute / executeBatch| Fwd
+    Fwd -.->|forwards call| Campaign
+    Campaign -->|direct ETH transfer| Supplier
+    Campaign -->|recordPayment| Registry
+```
+
+Note the last two edges: funds go **from the contract straight to the supplier**. The manager
+never holds them.
+
+## Request lifecycle
+
+A spending request is a state machine, not a set of boolean flags. Funds are locked on entry
+and released on exit — whichever exit is taken.
+
+```mermaid
+stateDiagram-v2
+    [*] --> OPEN: createRequest()<br/>funds locked
+
+    state OPEN {
+        [*] --> Voting
+        Voting: 7-day voting window
+        Voting --> Weighted: no validators selected
+        Voting --> Audit: validators selected
+        Weighted: donor votes weighted by contribution
+        Audit: validator approval required
+    }
+
+    OPEN --> COMPLETED: quorum + verifyRequest()<br/>ETH to supplier
+    OPEN --> CANCELLED: cancelRequest()<br/>or rejectRequest()<br/>or 7-day expiry
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+
+    note right of CANCELLED
+        lockedFunds released back
+        to available balance
+    end note
+```
+
+Three statuses (`OPEN`, `COMPLETED`, `CANCELLED`) and a separate verification status
+(`PENDING`, `APPROVED`, `REJECTED`). Multi-stage requests advance one milestone at a time,
+each requiring its own proof and verification.
+
+## Disbursement protocol
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant D as Donor
+    participant C as Campaign
+    participant M as Manager
+    participant S as Supplier
+    participant V as Verifier
+
+    D->>C: donate() — ETH
+    M->>C: createRequest(amount, evidenceCID)
+    C->>C: lockedFunds += amount
+    Note over C: sum(pending) can never<br/>exceed the balance
+    D->>C: approveRequest() — weight = contribution
+    S->>C: submitProof(proofCID)
+    V->>C: verifyRequest()
+    Note over V: signed from the verifier's own<br/>wallet, not by a backend
+    M->>C: finalizeRequest()
+    C->>S: transfer ETH directly
+    C->>C: lockedFunds -= amount
+```
+
+## Defence in depth
 
 ```mermaid
 graph LR
-    Donor((Donor)) -->|1 donate ETH| C[Campaign contract]
-    Manager[Manager] -->|2 create request<br/>+ IPFS CID| C
-    C -->|3 lock funds| L[(locked balance)]
-    Supplier((Supplier)) -->|4 submit proof<br/>on-chain| C
-    Verifier[Verifier] -->|5 verify / reject<br/>from own wallet| C
-    Donor -->|5 weighted vote| C
-    C -->|6 quorum + verified<br/>release| Supplier
-    C -.->|rejected or expired<br/>unlock| L
+    subgraph L1["1 — Access control"]
+        A1["onlyManager"]
+        A2["onlyAdmin"]
+        A3["onlyActive"]
+        A4["isChildCampaign"]
+    end
+    subgraph L2["2 — Business rules"]
+        B1["weighted voting"]
+        B2["validator threshold"]
+        B3["snapshot at request time<br/>blocks vote gaming"]
+        B4["7-day voting period"]
+    end
+    subgraph L3["3 — Cryptography"]
+        C1["EIP-712 meta-tx signatures"]
+        C2["nonce — replay protection"]
+    end
+    subgraph L4["4 — Financial safety"]
+        D1["supplier whitelist"]
+        D2["lockedFunds reservation"]
+        D3["ReentrancyGuard"]
+        D4["direct transfer,<br/>never via the manager"]
+    end
+    L1 --> L2 --> L3 --> L4
 ```
 
-1. Donors send ETH to a campaign.
-2. The manager creates a spending request, attaching an IPFS CID of the supporting evidence.
-   The requested amount is locked immediately.
-3. The supplier submits delivery proof **on-chain**.
-4. Verifiers and donors vote. Donor votes are weighted by contribution.
-5. On quorum plus verification, the contract releases funds **directly to the supplier** — the
-   manager never touches the money.
-6. On rejection or expiry, locked funds return to the campaign's available balance.
-
----
+Voting weight is snapshotted at request creation (`snapshotTotalFunds`), so donating *after* a
+request opens cannot swing its outcome.
 
 ## Contracts and tests
 
@@ -111,8 +212,14 @@ A monorepo with three independent parts:
 | [`be/`](be/) | NestJS, Pinata SDK | Pins evidence to IPFS, returns the CID |
 | [`fe/`](fe/) | React, Vite, TypeScript, Tailwind | Donor and manager interface |
 
-Further reading: [money flow in detail](bc/MONEY_FLOW.md) ·
-[frontend requirements](FE_FUNCTIONAL_REQUIREMENTS.md)
+Further reading: [money flow](bc/MONEY_FLOW.md) ·
+[contract documentation](bc/docs/) · [frontend requirements](FE_FUNCTIONAL_REQUIREMENTS.md)
+
+> ⚠️ `bc/docs/` predates the move to on-chain verification. Several diagrams there still show
+> a verifier signing off-chain with ECDSA and the backend relaying that signature. The
+> contracts no longer work that way — `Campaign.sol` exposes `submitProof`, `verifyRequest`
+> and `rejectRequest` as ordinary on-chain calls. Treat this README and the contracts as
+> authoritative until those documents are updated.
 
 ---
 
@@ -157,8 +264,14 @@ makes the invariant *sum(pending) ≤ balance* hold by construction rather than 
 
 ## Credits
 
-Built as a team project for a Smart Contract Programming course. Contracts, backend and frontend
-were developed together; see the commit history for individual contributions.
+Team project for a Smart Contract Programming course.
+
+**Duy Tien Nguyen** — smart contracts (`bc/`) and backend (`be/`): the campaign and request
+state machine, fund-locking, the on-chain verification flow, and the NestJS service that pins
+evidence to IPFS and returns the CID anchored on-chain.
+
+Frontend (`fe/`) and presentation materials by other team members. See the commit history for
+the full breakdown.
 
 ## License
 
